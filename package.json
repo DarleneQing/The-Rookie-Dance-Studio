@@ -16,6 +16,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.87.1",
+    "@yudiel/react-qr-scanner": "^2.4.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.561.0",
@@ -25,6 +26,7 @@
     "react-hook-form": "^7.68.0",
     "react-qr-code": "^2.0.18",
     "react-qr-scanner": "^1.0.0-alpha.11",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.1.13"

@@ -1,4 +1,3 @@
-import Image from "next/image"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { UsersTable } from "@/components/admin/users-table"
@@ -57,18 +56,8 @@ export default async function UserManagementPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/assets/k-pop-dance-open-class.webp"
-          alt="K-Pop Dance Open Class"
-          fill
-          className="object-cover"
-          quality={90}
-        />
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/60" />
-      </div>
+      {/* Background */}
+      <div className="absolute inset-0 z-0 bg-black" />
 
       {/* Floating decorative elements */}
       <FloatingElements />

@@ -1,4 +1,3 @@
-import Image from "next/image"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { QRScannerComponent } from "@/components/admin/qr-scanner"
@@ -26,16 +25,7 @@ export default async function AdminScannerPage() {
   if (profile?.role !== "admin") {
     return (
       <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/assets/k-pop-dance-open-class.webp"
-            alt="K-Pop Dance Open Class"
-            fill
-            className="object-cover"
-            quality={90}
-          />
-          <div className="absolute inset-0 bg-black/60" />
-        </div>
+        <div className="absolute inset-0 z-0 bg-black" />
         <FloatingElements />
         <div className="relative z-10 text-center space-y-4 px-4">
           <h1 className="font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-red-600">
@@ -49,18 +39,8 @@ export default async function AdminScannerPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/assets/k-pop-dance-open-class.webp"
-          alt="K-Pop Dance Open Class"
-          fill
-          className="object-cover"
-          quality={90}
-        />
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/60" />
-      </div>
+      {/* Background */}
+      <div className="absolute inset-0 z-0 bg-black" />
 
       {/* Floating decorative elements */}
       <FloatingElements />

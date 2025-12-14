@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Space Black #000000 */
+    --background: 0 0% 0%;
+    /* Soft Blush #EFD5E0 */
+    --foreground: 335 45% 89%;
+
+    /* Deep Violet #433467 */
+    --card: 258 33% 30%;
+    --card-foreground: 335 45% 89%;
+ 
+    --popover: 258 33% 30%;
+    --popover-foreground: 335 45% 89%;
+
+    /* Cosmic Purple #5A448A */
+    --primary: 259 34% 40%;
+    --primary-foreground: 335 45% 89%;
+
+    /* Deep Violet */
+    --secondary: 258 33% 30%;
+    --secondary-foreground: 335 45% 89%;
+
+    /* Darker muted tone */
+    --muted: 258 33% 20%;
+    /* Electric Periwinkle #6F6DAD */
+    --muted-foreground: 242 27% 56%;
+
+    /* Neon Lavender #B0AFDD */
+    --accent: 241 42% 78%;
+    --accent-foreground: 0 0% 0%;
+
+    /* Pink Aura #BB77A1 */
+    --destructive: 323 35% 60%;
+    --destructive-foreground: 0 0% 0%;
+
+    /* Cosmic Purple */
+    --border: 259 34% 40%;
+    --input: 259 34% 40%;
+    
+    /* Neon Lavender */
+    --ring: 241 42% 78%;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

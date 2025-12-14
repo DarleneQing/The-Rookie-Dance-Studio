@@ -9,9 +9,9 @@ export default function Home() {
       <FloatingElements />
 
       {/* Content Container */}
-      <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-6 min-h-screen">
+      <div className="relative z-10 w-full flex flex-col items-center justify-start px-4 pt-4 pb-6 min-h-screen">
         {/* Title Section */}
-        <div className="w-full text-center pt-6 pb-4 px-4">
+        <div className="w-full text-center pt-8 pb-4 px-4">
           <h1 className="font-syne font-bold text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-1 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
             The Rookie Dance Studio
           </h1>
@@ -21,7 +21,7 @@ export default function Home() {
         </div>
 
         {/* Illustration Section */}
-        <div className="flex-1 flex items-center justify-center w-full px-4 my-4">
+        <div className="flex-1 flex items-center justify-center w-full px-4 my-2 max-h-[300px]">
           <div className="relative w-full max-w-[180px] md:max-w-[240px]">
             <Image
               src="/assets/pose1.png"

@@ -24,7 +24,7 @@ export async function login(formData: FormData) {
 }
 
 // Updated signature for useFormState
-export async function signup(prevState: any, formData: FormData) {
+export async function signup(prevState: unknown, formData: FormData) {
   const supabase = createClient()
 
   const data = {
@@ -55,5 +55,5 @@ export async function logout() {
   const supabase = createClient()
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
-  redirect('/login')
+  redirect('/')
 }

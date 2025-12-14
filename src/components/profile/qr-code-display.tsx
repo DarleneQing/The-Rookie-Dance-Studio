@@ -2,9 +2,6 @@
 
 import React, { useState } from "react"
 import QRCode from "react-qr-code"
-import { QrCode } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,

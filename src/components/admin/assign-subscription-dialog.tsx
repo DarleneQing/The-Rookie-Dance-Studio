@@ -49,7 +49,7 @@ export function AssignSubscriptionDialog({
       } else {
         toast.error(result.message)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to assign subscription')
     } finally {
       setLoading(false)
@@ -69,7 +69,7 @@ export function AssignSubscriptionDialog({
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="type">Subscription Type</Label>
-            <Select value={type} onValueChange={(val: any) => setType(val)}>
+            <Select value={type} onValueChange={(val: 'monthly' | '5_times' | '10_times') => setType(val)}>
               <SelectTrigger id="type">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>

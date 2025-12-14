@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { QrScanner } from '@yudiel/react-qr-scanner'
+import { useState } from 'react'
+import { Scanner } from '@yudiel/react-qr-scanner'
 import { toast } from 'sonner'
 import { checkInUser } from '@/app/admin/actions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,7 +26,7 @@ export function QRScannerComponent() {
       try {
         const json = JSON.parse(result)
         if (json.userId) userId = json.userId
-      } catch (e) {
+      } catch {
         // Not JSON, assume direct ID
       }
 
@@ -45,7 +45,7 @@ export function QRScannerComponent() {
         toast.error(response.message)
         setLastResult({ success: false, message: response.message })
       }
-    } catch (error) {
+    } catch {
       toast.error('Invalid QR Code')
       setLastResult({ success: false, message: 'Invalid QR Code' })
     }
@@ -65,10 +65,14 @@ export function QRScannerComponent() {
         <CardContent className="flex flex-col items-center">
           {scanning ? (
             <div className="w-full max-w-sm aspect-square overflow-hidden rounded-lg border-2 border-primary relative">
-              <QrScanner
-                onDecode={(result) => handleDecode(result)}
-                onError={(error) => console.log(error?.message)}
-                containerStyle={{ width: '100%', height: '100%' }}
+              <Scanner
+                onScan={(results) => {
+                  if (results && results.length > 0) {
+                    handleDecode(results[0].rawValue || '')
+                  }
+                }}
+                onError={(error) => console.log('Scanner error:', error)}
+                constraints={{ facingMode: 'environment' }}
               />
               <div className="absolute inset-0 border-2 border-white/50 m-12 rounded-lg pointer-events-none animate-pulse" />
             </div>

@@ -9,7 +9,6 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 
 const initialState = {
-  message: '',
   error: '',
 }
 
@@ -28,9 +27,6 @@ export function RegisterForm() {
   useEffect(() => {
     if (state?.error) {
       toast.error(state.error)
-    }
-    if (state?.message) {
-      toast.success(state.message)
     }
   }, [state])
 

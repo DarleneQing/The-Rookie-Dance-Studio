@@ -13,7 +13,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table' // Need to create Table
-import { Search, MoreHorizontal, CreditCard } from 'lucide-react'
+import { Search, CreditCard } from 'lucide-react'
 
 interface User {
   id: string

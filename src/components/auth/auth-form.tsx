@@ -52,7 +52,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
   const [errors, setErrors] = useState<FormErrors>({});
 
   // Wrapper for login to match useFormState signature
-  const loginWithState = async (prevState: any, formData: FormData) => {
+  const loginWithState = async (prevState: unknown, formData: FormData) => {
     return await login(formData);
   };
 
@@ -66,9 +66,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
     if (currentState?.error) {
       toast.error(currentState.error);
       setIsLoading(false);
-    }
-    if (currentState?.message) {
-      toast.success(currentState.message);
     }
   }, [currentState]);
 

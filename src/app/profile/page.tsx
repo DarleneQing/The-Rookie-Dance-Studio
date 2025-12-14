@@ -2,14 +2,9 @@ import Image from "next/image"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
-import {
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"
+import { LogoutButton } from "@/components/profile/logout-button"
 import { FloatingElements } from "@/components/auth/floating-elements"
 import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap } from "lucide-react"
 
@@ -55,7 +50,7 @@ export default async function ProfilePage() {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     let currentStreak = 0
-    let checkDate = new Date(today)
+    const checkDate = new Date(today)
     
     for (const checkin of checkins) {
       const checkinDate = new Date(checkin.created_at)
@@ -238,6 +233,11 @@ export default async function ProfilePage() {
           </div>
           <ArrowRight className="h-5 w-5 text-white/60" />
         </button>
+
+        {/* 6. Logout Button */}
+        <div className="pt-2">
+          <LogoutButton />
+        </div>
       </div>
     </main>
   )

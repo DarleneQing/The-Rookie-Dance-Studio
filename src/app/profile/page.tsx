@@ -25,14 +25,6 @@ export default async function ProfilePage() {
     .eq("id", user.id)
     .single()
 
-  // Fetch Active Subscription
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .single()
-
   // Fetch checkins for statistics
   const { data: checkins } = await supabase
     .from("checkins")

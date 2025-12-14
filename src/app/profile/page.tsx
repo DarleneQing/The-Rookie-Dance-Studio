@@ -134,59 +134,38 @@ export default async function ProfilePage() {
             <h3 className="font-syne font-semibold text-white/90">Current Plan</h3>
           </div>
           
-          {subscription ? (
-            <div className="bg-white/50 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-green-500/80 text-white text-xs font-bold px-2.5 py-1 rounded-full font-outfit">
-                      ACTIVE
-                    </span>
-                  </div>
-                  <h4 className="font-syne font-bold text-xl text-white mb-1">
-                    {subscription.type === "monthly" 
-                      ? "Monthly Pass" 
-                      : subscription.type === "5_times" 
-                      ? "5-Class Pass" 
-                      : "10-Class Pass"}
-                  </h4>
-                  {subscription.type === "monthly" ? (
-                    <p className="text-white/60 font-outfit text-sm">
-                      Valid until {new Date(subscription.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  ) : (
-                    <p className="text-white/60 font-outfit text-sm">
-                      Valid until Dec 31, 2024
-                    </p>
-                  )}
+          <div className="bg-white rounded-3xl p-5 shadow-lg border border-gray-100">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full font-outfit">
+                    ACTIVE
+                  </span>
                 </div>
-                <div className="bg-gradient-to-br from-rookie-purple to-rookie-blue rounded-full p-3">
-                  <Zap className="h-6 w-6 text-white" />
-                </div>
+                <h4 className="font-syne font-bold text-xl text-gray-900 mb-1">
+                  10-Class Pass
+                </h4>
               </div>
-              
-              {subscription.type !== "monthly" && (
-                <div className="mt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-white/70 font-outfit text-sm">Sessions Left</span>
-                    <span className="font-syne font-bold text-rookie-purple">
-                      {subscription.remaining_credits} / {subscription.total_credits}
-                    </span>
-                  </div>
-                  <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-rookie-purple to-rookie-pink rounded-full transition-all duration-300"
-                      style={{ width: `${(subscription.remaining_credits / subscription.total_credits) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              )}
+              <div className="bg-gradient-to-br from-rookie-blue to-rookie-purple rounded-full p-3">
+                <Zap className="h-6 w-6 text-white" />
+              </div>
             </div>
-          ) : (
-            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
-              <p className="text-white/70 font-outfit">No active subscription found.</p>
+            
+            <div className="mt-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-gray-700 font-outfit text-sm">Sessions Left</span>
+                <span className="font-syne font-bold text-rookie-purple">
+                  4 / 10
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-rookie-blue to-rookie-purple rounded-full transition-all duration-300"
+                  style={{ width: "40%" }}
+                />
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* 4. Activity Statistics Section */}

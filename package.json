@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-slot": "^1.2.4",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.87.1",
     "class-variance-authority": "^0.7.1",
@@ -17,10 +20,12 @@
     "next": "14.2.15",
     "react": "^18",
     "react-dom": "^18",
+    "react-hook-form": "^7.68.0",
     "react-qr-code": "^2.0.18",
     "react-qr-scanner": "^1.0.0-alpha.11",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -23,7 +23,8 @@ export async function login(formData: FormData) {
   redirect('/profile')
 }
 
-export async function signup(formData: FormData) {
+// Updated signature for useFormState
+export async function signup(prevState: any, formData: FormData) {
   const supabase = createClient()
 
   const data = {
@@ -47,8 +48,7 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  // Depending on email verification settings, you might want to redirect to a verification page
-  return { message: 'Check email to continue sign in process' }
+  redirect('/verify-email')
 }
 
 export async function logout() {
@@ -57,4 +57,3 @@ export async function logout() {
   revalidatePath('/', 'layout')
   redirect('/login')
 }
-

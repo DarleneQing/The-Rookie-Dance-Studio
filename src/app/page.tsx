@@ -1,25 +1,54 @@
+import Image from "next/image"
 import Link from "next/link"
+import { FloatingElements } from "@/components/auth/floating-elements"
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-background text-foreground">
-      <h1 className="text-4xl font-bold mb-8 text-primary">The Rookies</h1>
-      <p className="mb-8 text-lg text-muted-foreground text-center max-w-md">
-        Welcome to the dance group check-in system.
-      </p>
-      <div className="flex gap-4">
-        <Link 
-          href="/login" 
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition"
-        >
-          Login
-        </Link>
-        <Link 
-          href="/register" 
-          className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition"
-        >
-          Register
-        </Link>
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black">
+      {/* Floating decorative elements */}
+      <FloatingElements />
+
+      {/* Content Container */}
+      <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-6 min-h-screen">
+        {/* Title Section */}
+        <div className="w-full text-center pt-6 pb-4 px-4">
+          <h1 className="font-syne font-bold text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-1 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+            The Rookie Dance Studio
+          </h1>
+          <p className="text-white/70 font-outfit font-light text-base md:text-lg mt-1">
+            Welcome to our check-in system.
+          </p>
+        </div>
+
+        {/* Illustration Section */}
+        <div className="flex-1 flex items-center justify-center w-full px-4 my-4">
+          <div className="relative w-full max-w-[180px] md:max-w-[240px]">
+            <Image
+              src="/assets/pose1.png"
+              alt="Welcome illustration"
+              width={200}
+              height={200}
+              className="w-full h-auto object-contain"
+              priority
+            />
+          </div>
+        </div>
+
+        {/* Buttons Section */}
+        <div className="w-full max-w-md px-4 pb-6 space-y-3">
+          <Link
+            href="/login"
+            className="block w-full h-14 bg-white/10 hover:bg-white/20 border-2 border-black rounded-xl font-syne font-bold text-white text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/register"
+            className="block w-full h-14 bg-rookie-blue hover:bg-rookie-blue/90 border-2 border-black rounded-xl font-syne font-bold text-black text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+          >
+            Sign Up
+          </Link>
+        </div>
       </div>
     </main>
   )

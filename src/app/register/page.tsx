@@ -1,62 +1,39 @@
-import Link from "next/link"
-import { signup } from "@/app/auth/actions"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import Image from "next/image"
+import { AuthForm } from "@/components/auth/auth-form"
+import { FloatingElements } from "@/components/auth/floating-elements"
+import { AuthMode } from "@/types/auth"
 
 export default function RegisterPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <Card className="mx-auto w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Sign Up</CardTitle>
-          <CardDescription>
-            Enter your information to create an account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={signup} className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="full_name">Full Name</Label>
-              <Input id="full_name" name="full_name" placeholder="John Doe" required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required />
-            </div>
-            <Button type="submit" className="w-full">
-              Create an account
-            </Button>
-            <Button variant="outline" className="w-full">
-              Sign up with Google
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
-            <Link href="/login" className="underline">
-              Sign in
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/assets/k-pop-dance-open-class.webp"
+          alt="K-Pop Dance Open Class"
+          fill
+          className="object-cover"
+          priority
+          quality={90}
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black/60" />
+      </div>
+
+      {/* Floating decorative elements */}
+      <FloatingElements />
+
+      {/* Studio Name Header */}
+      <div className="relative z-10 w-full text-center pt-12 pb-8 px-4">
+        <h1 className="font-syne font-bold text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-2 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+          The Rookie Dance Studio
+        </h1>
+      </div>
+
+      {/* Auth Form - Centered (starts in register mode) */}
+      <div className="relative z-10 w-full flex items-center justify-center px-4 pb-12">
+        <AuthForm initialMode={AuthMode.REGISTER} />
+      </div>
+    </main>
   )
 }
-

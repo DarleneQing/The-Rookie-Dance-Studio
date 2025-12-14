@@ -134,7 +134,7 @@ export default async function ProfilePage() {
             <h3 className="font-syne font-semibold text-white/90">Current Plan</h3>
           </div>
           
-          <div className="bg-white rounded-3xl p-5 shadow-lg border border-gray-100">
+          <div className="bg-white/60 rounded-3xl p-5 shadow-lg border border-gray-100">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -171,7 +171,7 @@ export default async function ProfilePage() {
         {/* 4. Activity Statistics Section */}
         <div className="grid grid-cols-2 gap-4">
           {/* Total Classes Card */}
-          <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+          <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
             <div className="flex justify-center mb-3">
               <div className="bg-orange-500/80 rounded-full p-3">
                 <Clock className="h-6 w-6 text-orange-300" />
@@ -182,14 +182,14 @@ export default async function ProfilePage() {
           </div>
 
           {/* Streak Days Card */}
-          <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+          <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
             <div className="flex justify-center mb-3">
-              <div className="bg-rookie-pink/80 rounded-full p-3">
+              <div className="bg-rookie-pink rounded-full p-3">
                 <Heart className="h-6 w-6 text-rookie-pink-200" />
               </div>
             </div>
             <div className="font-syne font-bold text-3xl text-white mb-1">{streakDays}</div>
-            <div className="font-outfit text-xs text-white/60 uppercase tracking-wide">Streak</div>
+            <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Streak</div>
           </div>
         </div>
 

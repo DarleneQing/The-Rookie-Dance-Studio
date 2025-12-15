@@ -11,6 +11,50 @@ import { CheckinHistoryDialog } from "@/components/profile/checkin-history-dialo
 import { FloatingElements } from "@/components/auth/floating-elements"
 import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap, GraduationCap, CheckCircle2, XCircle, Clock as ClockIcon, AlertTriangle } from "lucide-react"
 
+// Helper functions for weekly streak calculation (Europe/Zurich timezone, Monday start)
+function getZurichYMD(date: Date): { y: number; m: number; d: number } {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Zurich",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  })
+  const parts = formatter.formatToParts(date)
+  const y = parseInt(parts.find((p) => p.type === "year")?.value || "0", 10)
+  const m = parseInt(parts.find((p) => p.type === "month")?.value || "0", 10)
+  const d = parseInt(parts.find((p) => p.type === "day")?.value || "0", 10)
+  return { y, m, d }
+}
+
+function isoDayOfWeekFromYMD(y: number, m: number, d: number): number {
+  // Returns 1=Monday, 2=Tuesday, ..., 7=Sunday
+  const utcDate = new Date(Date.UTC(y, m - 1, d))
+  const dayOfWeek = utcDate.getUTCDay()
+  // Convert from 0=Sunday, 1=Monday, ... to 1=Monday, 2=Tuesday, ..., 7=Sunday
+  return dayOfWeek === 0 ? 7 : dayOfWeek
+}
+
+function ymdToDayNumberUTC(y: number, m: number, d: number): number {
+  return Math.floor(Date.UTC(y, m - 1, d) / 86400000)
+}
+
+function dayNumberToYMDUTC(day: number): { y: number; m: number; d: number } {
+  const date = new Date(day * 86400000)
+  return {
+    y: date.getUTCFullYear(),
+    m: date.getUTCMonth() + 1,
+    d: date.getUTCDate(),
+  }
+}
+
+function weekStartKeyFromYMD(y: number, m: number, d: number): string {
+  const dayNumber = ymdToDayNumberUTC(y, m, d)
+  const isoDow = isoDayOfWeekFromYMD(y, m, d)
+  const weekStartDay = dayNumber - (isoDow - 1) // Monday is day 1, so subtract (isoDow - 1)
+  const weekStartYMD = dayNumberToYMDUTC(weekStartDay)
+  return `${weekStartYMD.y}-${String(weekStartYMD.m).padStart(2, "0")}-${String(weekStartYMD.d).padStart(2, "0")}`
+}
+
 export default async function ProfilePage() {
   const supabase = createClient()
 
@@ -106,26 +150,35 @@ export default async function ProfilePage() {
   // Calculate statistics
   const totalClasses = checkins?.length || 0
   
-  // Calculate streak days (consecutive days with check-ins)
-  let streakDays = 0
+  // Calculate streak weeks (consecutive weeks with check-ins, Monday start, Europe/Zurich timezone)
+  let streakWeeks = 0
   if (checkins && checkins.length > 0) {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    let currentStreak = 0
-    const checkDate = new Date(today)
-    
+    // Build set of week keys (YYYY-MM-DD of Monday) for all check-ins
+    const weekKeys = new Set<string>()
     for (const checkin of checkins) {
       const checkinDate = new Date(checkin.created_at)
-      checkinDate.setHours(0, 0, 0, 0)
-      
-      if (checkinDate.getTime() === checkDate.getTime()) {
-        currentStreak++
-        checkDate.setDate(checkDate.getDate() - 1)
-      } else if (checkinDate.getTime() < checkDate.getTime()) {
+      const zurichYMD = getZurichYMD(checkinDate)
+      const weekKey = weekStartKeyFromYMD(zurichYMD.y, zurichYMD.m, zurichYMD.d)
+      weekKeys.add(weekKey)
+    }
+    
+    // Get current week start key
+    const now = new Date()
+    const currentZurichYMD = getZurichYMD(now)
+    
+    // Count consecutive weeks backwards from current week
+    const currentWeekStartDay = ymdToDayNumberUTC(currentZurichYMD.y, currentZurichYMD.m, currentZurichYMD.d) - (isoDayOfWeekFromYMD(currentZurichYMD.y, currentZurichYMD.m, currentZurichYMD.d) - 1)
+    let checkWeekStartDay = currentWeekStartDay
+    
+    while (true) {
+      const checkYMD = dayNumberToYMDUTC(checkWeekStartDay)
+      const weekKey = weekStartKeyFromYMD(checkYMD.y, checkYMD.m, checkYMD.d)
+      if (!weekKeys.has(weekKey)) {
         break
       }
+      streakWeeks++
+      checkWeekStartDay -= 7
     }
-    streakDays = currentStreak
   }
 
   const userInitials = profile?.full_name
@@ -322,14 +375,14 @@ export default async function ProfilePage() {
             <div className="font-outfit text-xs text-black uppercase tracking-wide">Total Classes</div>
           </div>
 
-          {/* Streak Days Card */}
+          {/* Streak Weeks Card */}
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
             <div className="flex justify-center mb-3">
               <div className="bg-rookie-pink rounded-full p-3">
                 <Heart className="h-6 w-6 text-rookie-pink-200" />
               </div>
             </div>
-            <div className="font-syne font-bold text-3xl text-black mb-1">{streakDays}</div>
+            <div className="font-syne font-bold text-3xl text-black mb-1">{streakWeeks}</div>
             <div className="font-outfit text-xs text-black uppercase tracking-wide">Streak</div>
           </div>
         </div>

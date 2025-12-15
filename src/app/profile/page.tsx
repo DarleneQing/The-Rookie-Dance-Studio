@@ -6,6 +6,8 @@ import { AvatarUploadDialog } from "@/components/profile/avatar-upload-dialog"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"
 import { LogoutButton } from "@/components/profile/logout-button"
 import { StudentVerificationDialog } from "@/components/profile/student-verification-dialog"
+import { SubscriptionHistoryDialog } from "@/components/profile/subscription-history-dialog"
+import { CheckinHistoryDialog } from "@/components/profile/checkin-history-dialog"
 import { FloatingElements } from "@/components/auth/floating-elements"
 import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap, GraduationCap, CheckCircle2, XCircle, Clock as ClockIcon, AlertTriangle } from "lucide-react"
 
@@ -41,6 +43,65 @@ export default async function ProfilePage() {
     .select("created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
+
+  // Fetch check-in history for this user (for the dialog)
+  const { data: checkinHistoryData, error: checkinHistoryError } = await supabase
+    .from("checkins")
+    .select("id, created_at, subscription_id, subscription:subscriptions(type)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(50)
+
+  if (checkinHistoryError) {
+    console.error("Check-in history fetch error:", checkinHistoryError)
+  }
+
+  // Fetch subscription history for this user
+  const { data: subscriptionsData, error: subscriptionsError } = await supabase
+    .from("subscriptions")
+    .select(
+      `
+        id,
+        type,
+        status,
+        start_date,
+        end_date,
+        total_credits,
+        remaining_credits,
+        created_at
+      `
+    )
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  if (subscriptionsError) {
+    console.error("Subscription history fetch error:", subscriptionsError)
+  }
+
+  // Fetch check-ins per subscription for this user
+  const { data: checkinsBySubData, error: checkinsBySubError } = await supabase
+    .from("checkins")
+    .select("subscription_id")
+    .eq("user_id", user.id)
+
+  if (checkinsBySubError) {
+    console.error("Check-ins by subscription fetch error:", checkinsBySubError)
+  }
+
+  type CheckinSubscriptionRow = { subscription_id: string }
+
+  const checkinCountBySubscriptionId = (checkinsBySubData || []).reduce<
+    Record<string, number>
+  >((acc, row) => {
+    const id = (row as CheckinSubscriptionRow).subscription_id
+    acc[id] = (acc[id] || 0) + 1
+    return acc
+  }, {})
+
+  const subscriptionHistory = (subscriptionsData || []).map((sub: any) => ({
+    ...sub,
+    checkin_count: checkinCountBySubscriptionId[sub.id] || 0,
+  }))
 
   // Calculate statistics
   const totalClasses = checkins?.length || 0
@@ -273,16 +334,29 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        {/* 5. Subscription History Section */}
-        <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
-          <div className="flex items-center gap-3">
-            <Calendar className="h-5 w-5 text-white/60" />
-            <span className="font-outfit text-white/90 font-medium">Subscription History</span>
-          </div>
-          <ArrowRight className="h-5 w-5 text-white/60" />
-        </button>
+        {/* 5. Check-in History Section */}
+        <CheckinHistoryDialog checkins={(checkinHistoryData as any) || []}>
+          <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
+            <div className="flex items-center gap-3">
+              <ClockIcon className="h-5 w-5 text-white/60" />
+              <span className="font-outfit text-white/90 font-medium">Check-in History</span>
+            </div>
+            <ArrowRight className="h-5 w-5 text-white/60" />
+          </button>
+        </CheckinHistoryDialog>
 
-        {/* 6. Student Verification Section */}
+        {/* 6. Subscription History Section */}
+        <SubscriptionHistoryDialog subscriptions={subscriptionHistory}>
+          <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
+            <div className="flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-white/60" />
+              <span className="font-outfit text-white/90 font-medium">Subscription History</span>
+            </div>
+            <ArrowRight className="h-5 w-5 text-white/60" />
+          </button>
+        </SubscriptionHistoryDialog>
+
+        {/* 7. Student Verification Section */}
         {profile?.verification_status === 'none' || profile?.verification_status === 'rejected' ? (
           <StudentVerificationDialog
             currentStatus={profile?.verification_status || 'none'}
@@ -331,7 +405,7 @@ export default async function ProfilePage() {
           </StudentVerificationDialog>
         ) : null}
 
-        {/* 7. Logout Button */}
+        {/* 8. Logout Button */}
         <div className="pt-2">
           <LogoutButton />
         </div>

@@ -14,6 +14,13 @@ interface AvatarUploadDialogProps {
   children: React.ReactNode
 }
 
+type Area = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 function getCroppedImg(imageSrc: string, crop: { x: number; y: number }, zoom: number, pixelCrop: { width: number; height: number; x: number; y: number }): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -77,7 +84,7 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
 
   const router = useRouter()
 
-  const onCropComplete = useCallback((_: any, croppedAreaPixelsValue: any) => {
+  const onCropComplete = useCallback((_: Area, croppedAreaPixelsValue: Area) => {
     setCroppedAreaPixels(croppedAreaPixelsValue)
   }, [])
 

@@ -83,7 +83,7 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
 
     if (uploadError) {
       console.error('Supabase upload error:', JSON.stringify(uploadError, null, 2))
-      const errorMessage = uploadError.message || uploadError.error || 'Unknown error'
+      const errorMessage = uploadError.message || 'Unknown error'
       const errorDetails = uploadError.statusCode ? ` (Status: ${uploadError.statusCode})` : ''
       return {
         success: false,

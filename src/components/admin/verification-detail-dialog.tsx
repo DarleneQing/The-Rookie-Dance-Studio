@@ -63,7 +63,7 @@ export function VerificationDetailDialog({
       } else {
         toast.error(result.message)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to approve verification')
     } finally {
       setLoading(null)
@@ -87,7 +87,7 @@ export function VerificationDetailDialog({
       } else {
         toast.error(result.message)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to reject verification')
     } finally {
       setLoading(null)

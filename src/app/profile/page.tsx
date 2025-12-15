@@ -6,10 +6,10 @@ import { AvatarUploadDialog } from "@/components/profile/avatar-upload-dialog"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"
 import { LogoutButton } from "@/components/profile/logout-button"
 import { StudentVerificationDialog } from "@/components/profile/student-verification-dialog"
-import { SubscriptionHistoryDialog } from "@/components/profile/subscription-history-dialog"
-import { CheckinHistoryDialog } from "@/components/profile/checkin-history-dialog"
+import { SubscriptionHistoryDialog, type SubscriptionHistoryItem } from "@/components/profile/subscription-history-dialog"
+import { CheckinHistoryDialog, type CheckinHistoryItem } from "@/components/profile/checkin-history-dialog"
 import { FloatingElements } from "@/components/auth/floating-elements"
-import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap, GraduationCap, CheckCircle2, XCircle, Clock as ClockIcon, AlertTriangle } from "lucide-react"
+import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap, GraduationCap, CheckCircle2, Clock as ClockIcon, AlertTriangle } from "lucide-react"
 
 // Helper functions for weekly streak calculation (Europe/Zurich timezone, Monday start)
 function getZurichYMD(date: Date): { y: number; m: number; d: number } {
@@ -142,7 +142,7 @@ export default async function ProfilePage() {
     return acc
   }, {})
 
-  const subscriptionHistory = (subscriptionsData || []).map((sub: any) => ({
+  const subscriptionHistory: SubscriptionHistoryItem[] = (subscriptionsData || []).map((sub) => ({
     ...sub,
     checkin_count: checkinCountBySubscriptionId[sub.id] || 0,
   }))
@@ -388,7 +388,7 @@ export default async function ProfilePage() {
         </div>
 
         {/* 5. Check-in History Section */}
-        <CheckinHistoryDialog checkins={(checkinHistoryData as any) || []}>
+        <CheckinHistoryDialog checkins={(checkinHistoryData as CheckinHistoryItem[]) || []}>
           <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
             <div className="flex items-center gap-3">
               <ClockIcon className="h-5 w-5 text-white/60" />

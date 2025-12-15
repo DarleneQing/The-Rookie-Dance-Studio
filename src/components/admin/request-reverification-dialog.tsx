@@ -46,7 +46,7 @@ export function RequestReVerificationDialog({
       } else {
         toast.error(result.message)
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to request re-verification')
     } finally {
       setLoading(false)

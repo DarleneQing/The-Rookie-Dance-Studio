@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { AvatarUploadDialog } from "@/components/profile/avatar-upload-dialog"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"
 import { LogoutButton } from "@/components/profile/logout-button"
 import { FloatingElements } from "@/components/auth/floating-elements"
@@ -95,10 +96,12 @@ export default async function ProfilePage() {
                 {userInitials}
               </AvatarFallback>
             </Avatar>
-            {/* Edit Icon */}
-            <button className="absolute bottom-0 right-0 bg-rookie-pink rounded-lg p-2 border-2 border-white/20 shadow-lg hover:scale-110 transition-transform">
-              <Pencil className="h-4 w-4 text-white" />
-            </button>
+            {/* Edit Icon with upload dialog */}
+            <AvatarUploadDialog>
+              <button className="absolute bottom-0 right-0 bg-rookie-pink rounded-lg p-2 border-2 border-white/20 shadow-lg hover:scale-110 transition-transform">
+                <Pencil className="h-4 w-4 text-white" />
+              </button>
+            </AvatarUploadDialog>
           </div>
           
           {/* Name with Gradient */}

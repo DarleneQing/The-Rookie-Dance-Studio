@@ -98,8 +98,8 @@ export default async function ProfilePage() {
             </Avatar>
             {/* Edit Icon with upload dialog */}
             <AvatarUploadDialog>
-              <button className="absolute bottom-0 right-0 bg-rookie-pink rounded-lg p-2 border-2 border-white/20 shadow-lg hover:scale-110 transition-transform">
-                <Pencil className="h-4 w-4 text-white" />
+              <button className="absolute bottom-0 right-0 bg-rookie-pink rounded-md p-1.5 border border-white/30 shadow-md hover:scale-110 transition-transform">
+                <Pencil className="h-3 w-3 text-white" />
               </button>
             </AvatarUploadDialog>
           </div>

@@ -19,6 +19,24 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
+  // Check if user is admin and redirect accordingly
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+
+    const redirectPath = profile?.role === "admin" ? "/admin" : "/profile"
+    revalidatePath('/', 'layout')
+    redirect(redirectPath)
+  }
+
+  // Fallback to profile if user fetch fails
   revalidatePath('/', 'layout')
   redirect('/profile')
 }

@@ -59,7 +59,11 @@ export function AssignSubscriptionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      {/* 
+        Mobile note:
+        - Keep dialog width consistent and prevent any horizontal overflow
+      */}
+      <DialogContent className="w-[95vw] max-w-[340px] sm:max-w-[425px] max-h-[80vh] overflow-y-auto overflow-x-hidden px-4">
         <DialogHeader>
           <DialogTitle>Assign Subscription</DialogTitle>
           <DialogDescription>
@@ -81,22 +85,37 @@ export function AssignSubscriptionDialog({
             </Select>
           </div>
           {type === 'monthly' && (
-            <div className="grid gap-2">
+            <div className="grid gap-2 w-full min-w-0">
               <Label htmlFor="start-date">Start Date</Label>
-              <Input
-                id="start-date"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
+              {/* 
+                Wrap the native date input so it visually matches the select
+                and cannot draw outside the border on iOS.
+              */}
+              <div className="rounded-2xl border border-rookie-purple px-3 py-2">
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
             </div>
           )}
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-2">
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="w-full sm:w-auto"
+          >
             Cancel
           </Button>
-          <Button onClick={handleAssign} disabled={loading}>
+          <Button
+            onClick={handleAssign}
+            disabled={loading}
+            className="w-full sm:w-auto"
+          >
             {loading ? 'Assigning...' : 'Confirm Assignment'}
           </Button>
         </DialogFooter>

@@ -62,21 +62,14 @@ export default async function UserManagementPage() {
       {/* Floating decorative elements */}
       <FloatingElements />
 
-      {/* Studio Name Header */}
-      <div className="relative z-10 w-full text-center pt-12 pb-8 px-4">
-        <h1 className="font-syne font-bold text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-2 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
-          The Rookie Dance Studio
-        </h1>
-      </div>
-
       {/* Content */}
-      <div className="relative z-10 container mx-auto py-8 px-4">
+      <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">
         <div className="relative">
           <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
-          <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-6 shadow-2xl overflow-hidden">
+          <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-4 md:p-6 shadow-2xl overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
             
-            <h2 className="font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-6">
+            <h2 className="font-syne font-bold text-2xl md:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-4 md:mb-6 px-2">
               User Management
             </h2>
             <UsersTable users={users} />

@@ -62,7 +62,11 @@ export default async function AdminScannerPage() {
             <h2 className="font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-6 text-center">
               Check-in Scanner
             </h2>
-            <QRScannerComponent />
+            <QRScannerComponent>
+              <button className="w-full h-14 bg-gradient-to-r from-rookie-purple to-rookie-blue hover:opacity-90 border-2 border-white/20 rounded-xl font-syne font-bold text-white text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
+                Open Scanner
+              </button>
+            </QRScannerComponent>
           </div>
         </div>
         <Toaster position="top-center" />

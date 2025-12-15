@@ -46,9 +46,16 @@ export async function signup(prevState: unknown, formData: FormData) {
   const supabase = createClient()
 
   const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-    full_name: formData.get('full_name') as string,
+    email: (formData.get('email') as string) ?? '',
+    password: (formData.get('password') as string) ?? '',
+    full_name: (formData.get('full_name') as string) ?? '',
+    dob: (formData.get('dob') as string) ?? '',
+  }
+
+  if (!data.email || !data.password || !data.full_name || !data.dob) {
+    return {
+      error: 'All fields (email, full name, password, and date of birth) are required.',
+    }
   }
 
   const { error } = await supabase.auth.signUp({
@@ -57,6 +64,7 @@ export async function signup(prevState: unknown, formData: FormData) {
     options: {
       data: {
         full_name: data.full_name,
+        dob: data.dob,
       },
     }
   })

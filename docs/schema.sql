@@ -136,8 +136,13 @@ ON checkins FOR INSERT WITH CHECK (is_admin());
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, role)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', 'member');
+  INSERT INTO public.profiles (id, full_name, role, dob)
+  VALUES (
+    new.id,
+    new.raw_user_meta_data->>'full_name',
+    'member',
+    (new.raw_user_meta_data->>'dob')::DATE
+  );
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

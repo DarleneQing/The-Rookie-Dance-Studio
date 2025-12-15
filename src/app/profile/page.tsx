@@ -18,6 +18,14 @@ export default async function ProfilePage() {
     return redirect("/login")
   }
 
+  // Fetch active subscription for this user
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .maybeSingle()
+
   // Fetch Profile
   const { data: profile } = await supabase
     .from("profiles")
@@ -102,6 +110,14 @@ export default async function ProfilePage() {
           <p className="mt-1 text-white/60 font-outfit text-sm">
             {profile?.member_type === "student" ? "Student" : "Adult"} • {profile?.role === "admin" ? "Admin" : "Member"}
           </p>
+
+          {/* Date of Birth */}
+          <p className="mt-1 text-white/50 font-outfit text-xs">
+            Date of birth:{" "}
+            {profile?.dob
+              ? new Date(profile.dob as string).toLocaleDateString()
+              : "—"}
+          </p>
         </div>
 
         {/* 2. Member QR Code Section - Dark Purple Card */}
@@ -131,11 +147,19 @@ export default async function ProfilePage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full font-outfit">
-                    ACTIVE
+                    {subscription ? subscription.status?.toUpperCase() || "ACTIVE" : "INACTIVE"}
                   </span>
                 </div>
                 <h4 className="font-syne font-bold text-xl text-gray-900 mb-1">
-                  10-Class Pass
+                  {subscription
+                    ? subscription.type === "monthly"
+                      ? "Monthly Card"
+                      : subscription.type === "5_times"
+                        ? "5-Times Card"
+                        : subscription.type === "10_times"
+                          ? "10-Times Card"
+                          : subscription.type
+                    : "No active plan"}
                 </h4>
               </div>
               <div className="bg-gradient-to-br from-rookie-blue to-rookie-purple rounded-full p-3">
@@ -145,15 +169,45 @@ export default async function ProfilePage() {
             
             <div className="mt-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-700 font-outfit text-sm">Sessions Left</span>
+                <span className="text-gray-700 font-outfit text-sm">
+                  {subscription?.type === "monthly" ? "Valid Until" : "Sessions Left"}
+                </span>
                 <span className="font-syne font-bold text-rookie-purple">
-                  4 / 10
+                  {subscription
+                    ? subscription.type === "monthly"
+                      ? (subscription.end_date
+                          ? new Date(subscription.end_date).toLocaleDateString()
+                          : "N/A")
+                      : (() => {
+                          const remaining = subscription.remaining_credits ?? 0
+                          const total =
+                            subscription.type === "5_times"
+                              ? 5
+                              : subscription.type === "10_times"
+                                ? 10
+                                : subscription.remaining_credits ?? 0
+                          return `${remaining} / ${total}`
+                        })()
+                    : "—"}
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-rookie-blue to-rookie-purple rounded-full transition-all duration-300"
-                  style={{ width: "40%" }}
+                  style={{
+                    width: subscription && subscription.type !== "monthly"
+                      ? (() => {
+                          const remaining = subscription.remaining_credits ?? 0
+                          const total =
+                            subscription.type === "5_times"
+                              ? 5
+                              : subscription.type === "10_times"
+                                ? 10
+                                : subscription.remaining_credits ?? 0
+                          return total > 0 ? `${(remaining / total) * 100}%` : "0%"
+                        })()
+                      : "100%",
+                  }}
                 />
               </div>
             </div>

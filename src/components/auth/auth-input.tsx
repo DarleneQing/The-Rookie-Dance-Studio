@@ -14,7 +14,7 @@ export const Input: React.FC<InputProps> = ({ label, icon: Icon, error, classNam
       <label className="block text-rookie-pink text-xs font-outfit uppercase tracking-widest mb-1.5 ml-1">
         {label}
       </label>
-      <div className="relative group">
+      <div className="relative group min-w-0">
         {Icon && (
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-rookie-purple group-focus-within:text-white transition-colors">
             <Icon size={18} />
@@ -23,7 +23,7 @@ export const Input: React.FC<InputProps> = ({ label, icon: Icon, error, classNam
         <input
           {...props}
           className={`
-            w-full bg-white/5 border border-white/10 rounded-xl py-3 
+            w-full min-w-0 bg-white/5 border border-white/10 rounded-xl py-3 
             ${Icon ? 'pl-10' : 'pl-4'} pr-4 
             text-white placeholder-white/30 font-outfit
             focus:outline-none focus:border-rookie-purple/60 focus:bg-white/10 focus:ring-1 focus:ring-rookie-purple/50

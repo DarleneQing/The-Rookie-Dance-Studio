@@ -5,8 +5,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { AvatarUploadDialog } from "@/components/profile/avatar-upload-dialog"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"
 import { LogoutButton } from "@/components/profile/logout-button"
+import { StudentVerificationDialog } from "@/components/profile/student-verification-dialog"
 import { FloatingElements } from "@/components/auth/floating-elements"
-import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap } from "lucide-react"
+import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap, GraduationCap, CheckCircle2, XCircle, Clock as ClockIcon, AlertTriangle } from "lucide-react"
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -85,6 +86,34 @@ export default async function ProfilePage() {
 
       {/* Content */}
       <div className="relative z-10 container max-w-lg mx-auto pt-8 pb-8 px-4 space-y-4">
+        {/* Re-verification Required Banner */}
+        {profile?.verification_status === 'reupload_required' && (
+          <div className="bg-orange-500/10 backdrop-blur-sm rounded-3xl p-4 border border-orange-500/20 shadow-lg">
+            <div className="flex items-start gap-3">
+              <div className="bg-orange-500/20 rounded-full p-2 flex-shrink-0 mt-0.5">
+                <AlertTriangle className="h-5 w-5 text-orange-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-syne font-semibold text-orange-300 text-lg">
+                  Student Verification Required
+                </h3>
+                <p className="font-outfit text-orange-200/80 text-sm mt-1">
+                  {profile?.rejection_reason || 'Please upload a current student card to maintain your student status.'}
+                </p>
+                <StudentVerificationDialog
+                  currentStatus="reupload_required"
+                  rejectionReason={profile?.rejection_reason}
+                >
+                  <button className="mt-3 inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-outfit font-medium text-sm px-4 py-2 rounded-full transition-colors">
+                    <GraduationCap className="h-4 w-4" />
+                    Upload Student Card
+                  </button>
+                </StudentVerificationDialog>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 1. User Profile Section - Centered Avatar with Gradient Ring */}
         <div className="flex flex-col items-center pt-4 pb-6">
           <div className="relative">
@@ -253,7 +282,56 @@ export default async function ProfilePage() {
           <ArrowRight className="h-5 w-5 text-white/60" />
         </button>
 
-        {/* 6. Logout Button */}
+        {/* 6. Student Verification Section */}
+        {profile?.verification_status === 'none' || profile?.verification_status === 'rejected' ? (
+          <StudentVerificationDialog
+            currentStatus={profile?.verification_status || 'none'}
+            rejectionReason={profile?.rejection_reason}
+          >
+            <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-5 w-5 text-white/60" />
+                <span className="font-outfit text-white/90 font-medium">Verify as Student</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-white/60" />
+            </button>
+          </StudentVerificationDialog>
+        ) : profile?.verification_status === 'pending' ? (
+          <div className="w-full bg-yellow-500/10 backdrop-blur-sm rounded-3xl p-4 border border-yellow-500/20 shadow-lg flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ClockIcon className="h-5 w-5 text-yellow-400" />
+              <span className="font-outfit text-yellow-300 font-medium">Verification Pending</span>
+            </div>
+            <div className="bg-yellow-500/20 rounded-full px-3 py-1">
+              <span className="text-xs font-outfit text-yellow-300 font-semibold">PENDING</span>
+            </div>
+          </div>
+        ) : profile?.verification_status === 'approved' && profile?.member_type === 'student' ? (
+          <div className="w-full bg-green-500/10 backdrop-blur-sm rounded-3xl p-4 border border-green-500/20 shadow-lg flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-400" />
+              <span className="font-outfit text-green-300 font-medium">Student Status Verified</span>
+            </div>
+            <div className="bg-green-500/20 rounded-full px-3 py-1">
+              <span className="text-xs font-outfit text-green-300 font-semibold">VERIFIED</span>
+            </div>
+          </div>
+        ) : profile?.verification_status === 'reupload_required' ? (
+          <StudentVerificationDialog
+            currentStatus="reupload_required"
+            rejectionReason={profile?.rejection_reason}
+          >
+            <button className="w-full bg-orange-500/10 backdrop-blur-sm rounded-3xl p-4 border border-orange-500/20 shadow-lg flex items-center justify-between hover:bg-orange-500/15 transition-colors">
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-5 w-5 text-orange-400" />
+                <span className="font-outfit text-orange-300 font-medium">Re-upload Student Card</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-orange-400" />
+            </button>
+          </StudentVerificationDialog>
+        ) : null}
+
+        {/* 7. Logout Button */}
         <div className="pt-2">
           <LogoutButton />
         </div>

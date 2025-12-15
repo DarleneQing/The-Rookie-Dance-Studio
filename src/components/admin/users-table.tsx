@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { AssignSubscriptionDialog } from './assign-subscription-dialog'
+import { RequestReVerificationDialog } from './request-reverification-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,8 +15,8 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from '@/components/ui/table' // Need to create Table
-import { Search, CreditCard } from 'lucide-react'
+} from '@/components/ui/table'
+import { Search, CreditCard, GraduationCap, RefreshCw } from 'lucide-react'
 
 interface User {
   id: string
@@ -21,6 +24,8 @@ interface User {
   email: string
   avatar_url: string
   role: string
+  member_type?: string
+  verification_status?: string
   subscription?: {
     type: string
     status: string
@@ -102,15 +107,34 @@ export function UsersTable({ users }: UsersTableProps) {
                 )}
               </div>
 
-              <AssignSubscriptionDialog userId={user.id} userName={user.full_name}>
-                <Button
-                  variant="outline"
-                  className="w-full h-11 bg-white/10 hover:bg-white/20 border-white/20 text-white font-outfit"
-                >
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  Assign Plan
-                </Button>
-              </AssignSubscriptionDialog>
+              <div className="flex flex-col gap-2">
+                <AssignSubscriptionDialog userId={user.id} userName={user.full_name}>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 bg-white/10 hover:bg-white/20 border-white/20 text-white font-outfit"
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Assign Plan
+                  </Button>
+                </AssignSubscriptionDialog>
+                {user.member_type === 'student' && user.verification_status === 'approved' && (
+                  <RequestReVerificationDialog userId={user.id} userName={user.full_name || 'User'}>
+                    <Button
+                      variant="outline"
+                      className="w-full h-11 bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30 text-orange-300 font-outfit"
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Request Re-verification
+                    </Button>
+                  </RequestReVerificationDialog>
+                )}
+                {user.verification_status === 'reupload_required' && (
+                  <div className="flex items-center justify-center gap-2 px-3 py-2 bg-orange-500/20 rounded-lg border border-orange-500/30">
+                    <GraduationCap className="h-4 w-4 text-orange-400" />
+                    <span className="text-xs text-orange-300 font-outfit font-medium">Re-upload Required</span>
+                  </div>
+                )}
+              </div>
             </div>
           ))
         )}
@@ -169,16 +193,35 @@ export function UsersTable({ users }: UsersTableProps) {
                       )}
                     </TableCell>
                     <TableCell className="text-right px-6 py-4">
-                      <AssignSubscriptionDialog userId={user.id} userName={user.full_name}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-white hover:bg-white/20 font-outfit"
-                        >
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          Assign Plan
-                        </Button>
-                      </AssignSubscriptionDialog>
+                      <div className="flex items-center justify-end gap-2">
+                        {user.verification_status === 'reupload_required' && (
+                          <span className="text-xs text-orange-300 font-outfit bg-orange-500/20 px-2 py-1 rounded-full border border-orange-500/30">
+                            Re-upload Required
+                          </span>
+                        )}
+                        {user.member_type === 'student' && user.verification_status === 'approved' && (
+                          <RequestReVerificationDialog userId={user.id} userName={user.full_name || 'User'}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-orange-300 hover:bg-orange-500/20 font-outfit"
+                            >
+                              <RefreshCw className="mr-2 h-4 w-4" />
+                              Re-verify
+                            </Button>
+                          </RequestReVerificationDialog>
+                        )}
+                        <AssignSubscriptionDialog userId={user.id} userName={user.full_name}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white hover:bg-white/20 font-outfit"
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Assign Plan
+                          </Button>
+                        </AssignSubscriptionDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

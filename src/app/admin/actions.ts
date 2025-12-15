@@ -110,3 +110,204 @@ export async function assignUserSubscription(
   revalidatePath('/admin/users')
   return { success: true, message: 'Subscription assigned successfully' }
 }
+
+export async function approveStudentVerification(
+  userId: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  // Check if admin
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (adminProfile?.role !== 'admin') {
+    return { success: false, message: 'Only admins can approve verifications' }
+  }
+
+  // Verify target user exists and has pending status
+  const { data: targetProfile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('verification_status')
+    .eq('id', userId)
+    .single()
+
+  if (fetchError || !targetProfile) {
+    return { success: false, message: 'User not found' }
+  }
+
+  if (targetProfile.verification_status !== 'pending') {
+    return {
+      success: false,
+      message: `Cannot approve verification. Current status: ${targetProfile.verification_status}`,
+    }
+  }
+
+  // Update profile
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      member_type: 'student',
+      verification_status: 'approved',
+    })
+    .eq('id', userId)
+
+  if (updateError) {
+    console.error('Approve verification error:', updateError)
+    return { success: false, message: updateError.message || 'Failed to approve verification' }
+  }
+
+  revalidatePath('/admin/verifications')
+  revalidatePath('/admin/users')
+  revalidatePath('/profile')
+
+  return { success: true, message: 'Student verification approved successfully' }
+}
+
+export async function rejectStudentVerification(
+  userId: string,
+  reason: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  // Check if admin
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (adminProfile?.role !== 'admin') {
+    return { success: false, message: 'Only admins can reject verifications' }
+  }
+
+  // Validate reason
+  if (!reason || !reason.trim()) {
+    return { success: false, message: 'Rejection reason is required' }
+  }
+
+  // Verify target user exists and has pending status
+  const { data: targetProfile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('verification_status, member_type')
+    .eq('id', userId)
+    .single()
+
+  if (fetchError || !targetProfile) {
+    return { success: false, message: 'User not found' }
+  }
+
+  if (targetProfile.verification_status !== 'pending') {
+    return {
+      success: false,
+      message: `Cannot reject verification. Current status: ${targetProfile.verification_status}`,
+    }
+  }
+
+  // Update profile (keep member_type as is, set status to rejected)
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      verification_status: 'rejected',
+      rejection_reason: reason.trim(),
+    })
+    .eq('id', userId)
+
+  if (updateError) {
+    console.error('Reject verification error:', updateError)
+    return { success: false, message: updateError.message || 'Failed to reject verification' }
+  }
+
+  revalidatePath('/admin/verifications')
+  revalidatePath('/admin/users')
+  revalidatePath('/profile')
+
+  return { success: true, message: 'Student verification rejected successfully' }
+}
+
+export async function requestStudentReVerification(
+  userId: string,
+  reason?: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  // Check if admin
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (adminProfile?.role !== 'admin') {
+    return { success: false, message: 'Only admins can request re-verification' }
+  }
+
+  // Verify target user exists and is an approved student
+  const { data: targetProfile, error: fetchError } = await supabase
+    .from('profiles')
+    .select('verification_status, member_type')
+    .eq('id', userId)
+    .single()
+
+  if (fetchError || !targetProfile) {
+    return { success: false, message: 'User not found' }
+  }
+
+  if (targetProfile.member_type !== 'student') {
+    return { success: false, message: 'User is not a student' }
+  }
+
+  if (targetProfile.verification_status !== 'approved') {
+    return {
+      success: false,
+      message: `Cannot request re-verification. Current status: ${targetProfile.verification_status}`,
+    }
+  }
+
+  const defaultReason = 'Your student verification has expired. Please upload a current student card to maintain your student status.'
+  
+  // Update profile
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      verification_status: 'reupload_required',
+      rejection_reason: reason?.trim() || defaultReason,
+    })
+    .eq('id', userId)
+
+  if (updateError) {
+    console.error('Request re-verification error:', updateError)
+    return { success: false, message: updateError.message || 'Failed to request re-verification' }
+  }
+
+  revalidatePath('/admin/users')
+  revalidatePath('/profile')
+
+  return { success: true, message: 'Re-verification request sent successfully' }
+}

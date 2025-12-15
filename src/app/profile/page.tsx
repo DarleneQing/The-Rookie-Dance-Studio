@@ -198,18 +198,20 @@ export default async function ProfilePage() {
                 <div 
                   className="h-full bg-gradient-to-r from-rookie-blue to-rookie-purple rounded-full transition-all duration-300"
                   style={{
-                    width: subscription && subscription.type !== "monthly"
-                      ? (() => {
-                          const remaining = subscription.remaining_credits ?? 0
-                          const total =
-                            subscription.type === "5_times"
-                              ? 5
-                              : subscription.type === "10_times"
-                                ? 10
-                                : subscription.remaining_credits ?? 0
-                          return total > 0 ? `${(remaining / total) * 100}%` : "0%"
-                        })()
-                      : "100%",
+                    width: !subscription
+                      ? "0%"
+                      : subscription.type === "monthly"
+                        ? "100%"
+                        : (() => {
+                            const remaining = subscription.remaining_credits ?? 0
+                            const total =
+                              subscription.type === "5_times"
+                                ? 5
+                                : subscription.type === "10_times"
+                                  ? 10
+                                  : subscription.remaining_credits ?? 0
+                            return total > 0 ? `${(remaining / total) * 100}%` : "0%"
+                          })(),
                   }}
                 />
               </div>

@@ -29,6 +29,56 @@ export async function checkInUser(userId: string) {
   return data as { success: boolean; message: string; checkin_id?: string; remaining?: number }
 }
 
+export async function getMemberProfile(userId: string): Promise<{
+  success: boolean
+  message?: string
+  profile?: {
+    id: string
+    full_name: string | null
+    avatar_url: string | null
+    dob: string | null
+  }
+}> {
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  // Query profiles table for the userId
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url, dob')
+    .eq('id', userId)
+    .single()
+
+  if (error) {
+    console.error('Get member profile error:', error)
+    if (error.code === 'PGRST116') {
+      return { success: false, message: 'Member not found' }
+    }
+    return { success: false, message: error.message || 'Failed to fetch member profile' }
+  }
+
+  if (!profile) {
+    return { success: false, message: 'Member not found' }
+  }
+
+  return {
+    success: true,
+    profile: {
+      id: profile.id,
+      full_name: profile.full_name,
+      avatar_url: profile.avatar_url,
+      dob: profile.dob,
+    },
+  }
+}
+
 export async function assignUserSubscription(
   userId: string, 
   type: 'monthly' | '5_times' | '10_times', 

@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { FloatingElements } from '@/components/auth/floating-elements';
 import { Lock, ArrowRight } from 'lucide-react';
 
-export default function UpdatePasswordPage() {
+export default function ResetPasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -51,9 +51,9 @@ export default function UpdatePasswordPage() {
 
       toast.success('Password updated successfully!');
       
-      // Redirect to profile after successful password update
+      // Redirect to login after successful password update
       setTimeout(() => {
-        router.push('/profile');
+        router.push('/login');
       }, 1000);
     } catch {
       toast.error('An unexpected error occurred. Please try again.');
@@ -80,7 +80,7 @@ export default function UpdatePasswordPage() {
           
           <div className="mb-8 text-center">
             <h2 className="font-syne font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-2">
-              UPDATE PASSWORD
+              RESET PASSWORD
             </h2>
             <p className="text-white/60 font-outfit font-light">
               Enter your new password below
@@ -140,7 +140,7 @@ export default function UpdatePasswordPage() {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  UPDATE PASSWORD
+                  RESET PASSWORD
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </>
               )}

@@ -85,18 +85,8 @@ export async function resetPassword(prevState: unknown, formData: FormData): Pro
     return { error: 'Email is required.' }
   }
 
-  // Use headers to get the origin
-  // In Server Actions, we can't easily access request headers directly like in API routes
-  // So we'll rely on an environment variable or a default
-  // Ideally, we should use the `headers()` function from `next/headers` but it's read-only
-  
-  // For now, let's assume the site URL is configured in Supabase or we use a relative path if works,
-  // or use a generic local default for dev.
-  // Actually, Supabase handles the site URL base if not provided full URL?
-  // Let's provide a relative URL which Supabase resolves against the Site URL.
-  
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?next=/profile/update-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/profile/update-password`,
   })
 
   if (error) {

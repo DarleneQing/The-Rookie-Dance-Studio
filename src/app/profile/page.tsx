@@ -10,50 +10,7 @@ import { SubscriptionHistoryDialog, type SubscriptionHistoryItem } from "@/compo
 import { CheckinHistoryDialog, type CheckinHistoryItem } from "@/components/profile/checkin-history-dialog"
 import { FloatingElements } from "@/components/auth/floating-elements"
 import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap, GraduationCap, CheckCircle2, Clock as ClockIcon, AlertTriangle } from "lucide-react"
-
-// Helper functions for weekly streak calculation (Europe/Zurich timezone, Monday start)
-function getZurichYMD(date: Date): { y: number; m: number; d: number } {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Europe/Zurich",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-  })
-  const parts = formatter.formatToParts(date)
-  const y = parseInt(parts.find((p) => p.type === "year")?.value || "0", 10)
-  const m = parseInt(parts.find((p) => p.type === "month")?.value || "0", 10)
-  const d = parseInt(parts.find((p) => p.type === "day")?.value || "0", 10)
-  return { y, m, d }
-}
-
-function isoDayOfWeekFromYMD(y: number, m: number, d: number): number {
-  // Returns 1=Monday, 2=Tuesday, ..., 7=Sunday
-  const utcDate = new Date(Date.UTC(y, m - 1, d))
-  const dayOfWeek = utcDate.getUTCDay()
-  // Convert from 0=Sunday, 1=Monday, ... to 1=Monday, 2=Tuesday, ..., 7=Sunday
-  return dayOfWeek === 0 ? 7 : dayOfWeek
-}
-
-function ymdToDayNumberUTC(y: number, m: number, d: number): number {
-  return Math.floor(Date.UTC(y, m - 1, d) / 86400000)
-}
-
-function dayNumberToYMDUTC(day: number): { y: number; m: number; d: number } {
-  const date = new Date(day * 86400000)
-  return {
-    y: date.getUTCFullYear(),
-    m: date.getUTCMonth() + 1,
-    d: date.getUTCDate(),
-  }
-}
-
-function weekStartKeyFromYMD(y: number, m: number, d: number): string {
-  const dayNumber = ymdToDayNumberUTC(y, m, d)
-  const isoDow = isoDayOfWeekFromYMD(y, m, d)
-  const weekStartDay = dayNumber - (isoDow - 1) // Monday is day 1, so subtract (isoDow - 1)
-  const weekStartYMD = dayNumberToYMDUTC(weekStartDay)
-  return `${weekStartYMD.y}-${String(weekStartYMD.m).padStart(2, "0")}-${String(weekStartYMD.d).padStart(2, "0")}`
-}
+import { calculateStreakWeeks } from "@/lib/utils/streak-calculator"
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -66,45 +23,41 @@ export default async function ProfilePage() {
     return redirect("/login")
   }
 
-  // Fetch active subscription for this user
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle()
-
-  // Fetch Profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single()
-
-  // Fetch checkins for statistics
-  const { data: checkins } = await supabase
-    .from("checkins")
-    .select("created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-
-  // Fetch check-in history for this user (for the dialog)
-  const { data: checkinHistoryData, error: checkinHistoryError } = await supabase
-    .from("checkins")
-    .select("id, created_at, subscription_id, subscription:subscriptions(type)")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(50)
-
-  if (checkinHistoryError) {
-    console.error("Check-in history fetch error:", checkinHistoryError)
-  }
-
-  // Fetch subscription history for this user
-  const { data: subscriptionsData, error: subscriptionsError } = await supabase
-    .from("subscriptions")
-    .select(
-      `
+  // Parallelize all database queries for better performance
+  const [
+    { data: subscription },
+    { data: profile },
+    { data: checkins },
+    { data: checkinHistoryData },
+    { data: subscriptionsData },
+    { data: checkinsBySubData },
+  ] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("checkins")
+      .select("created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("checkins")
+      .select("id, created_at, subscription_id, subscription:subscriptions(type)")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("subscriptions")
+      .select(
+        `
         id,
         type,
         status,
@@ -114,23 +67,14 @@ export default async function ProfilePage() {
         remaining_credits,
         created_at
       `
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-
-  if (subscriptionsError) {
-    console.error("Subscription history fetch error:", subscriptionsError)
-  }
-
-  // Fetch check-ins per subscription for this user
-  const { data: checkinsBySubData, error: checkinsBySubError } = await supabase
-    .from("checkins")
-    .select("subscription_id")
-    .eq("user_id", user.id)
-
-  if (checkinsBySubError) {
-    console.error("Check-ins by subscription fetch error:", checkinsBySubError)
-  }
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("checkins")
+      .select("subscription_id")
+      .eq("user_id", user.id),
+  ])
 
   type CheckinSubscriptionRow = { subscription_id: string }
 
@@ -149,37 +93,7 @@ export default async function ProfilePage() {
 
   // Calculate statistics
   const totalClasses = checkins?.length || 0
-  
-  // Calculate streak weeks (consecutive weeks with check-ins, Monday start, Europe/Zurich timezone)
-  let streakWeeks = 0
-  if (checkins && checkins.length > 0) {
-    // Build set of week keys (YYYY-MM-DD of Monday) for all check-ins
-    const weekKeys = new Set<string>()
-    for (const checkin of checkins) {
-      const checkinDate = new Date(checkin.created_at)
-      const zurichYMD = getZurichYMD(checkinDate)
-      const weekKey = weekStartKeyFromYMD(zurichYMD.y, zurichYMD.m, zurichYMD.d)
-      weekKeys.add(weekKey)
-    }
-    
-    // Get current week start key
-    const now = new Date()
-    const currentZurichYMD = getZurichYMD(now)
-    
-    // Count consecutive weeks backwards from current week
-    const currentWeekStartDay = ymdToDayNumberUTC(currentZurichYMD.y, currentZurichYMD.m, currentZurichYMD.d) - (isoDayOfWeekFromYMD(currentZurichYMD.y, currentZurichYMD.m, currentZurichYMD.d) - 1)
-    let checkWeekStartDay = currentWeekStartDay
-    
-    while (true) {
-      const checkYMD = dayNumberToYMDUTC(checkWeekStartDay)
-      const weekKey = weekStartKeyFromYMD(checkYMD.y, checkYMD.m, checkYMD.d)
-      if (!weekKeys.has(weekKey)) {
-        break
-      }
-      streakWeeks++
-      checkWeekStartDay -= 7
-    }
-  }
+  const streakWeeks = calculateStreakWeeks(checkins || [])
 
   const userInitials = profile?.full_name
     ? profile.full_name

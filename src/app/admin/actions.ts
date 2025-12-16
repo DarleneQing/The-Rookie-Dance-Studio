@@ -21,7 +21,6 @@ export async function checkInUser(userId: string) {
   })
 
   if (error) {
-    console.error('Check-in error:', error)
     return { success: false, message: error.message }
   }
 
@@ -57,7 +56,6 @@ export async function getMemberProfile(userId: string): Promise<{
     .single()
 
   if (error) {
-    console.error('Get member profile error:', error)
     if (error.code === 'PGRST116') {
       return { success: false, message: 'Member not found' }
     }
@@ -103,7 +101,6 @@ export async function assignUserSubscription(
   })
 
   if (error) {
-    console.error('Assign sub error:', error)
     return { success: false, message: error.message }
   }
 
@@ -163,7 +160,6 @@ export async function approveStudentVerification(
     .eq('id', userId)
 
   if (updateError) {
-    console.error('Approve verification error:', updateError)
     return { success: false, message: updateError.message || 'Failed to approve verification' }
   }
 
@@ -232,7 +228,6 @@ export async function rejectStudentVerification(
     .eq('id', userId)
 
   if (updateError) {
-    console.error('Reject verification error:', updateError)
     return { success: false, message: updateError.message || 'Failed to reject verification' }
   }
 
@@ -302,7 +297,6 @@ export async function requestStudentReVerification(
     .eq('id', userId)
 
   if (updateError) {
-    console.error('Request re-verification error:', updateError)
     return { success: false, message: updateError.message || 'Failed to request re-verification' }
   }
 

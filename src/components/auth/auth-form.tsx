@@ -78,7 +78,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
 
   const validate = (): boolean => {
     const newErrors: FormErrors = {};
-    if (!formData.email.includes('@')) newErrors.email = "Invalid email address";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email.trim())) {
+      newErrors.email = "Invalid email address"
+    }
     if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
     
     if (mode === AuthMode.REGISTER) {

@@ -140,7 +140,6 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
   }
 
   const handleCameraError = (error: unknown) => {
-    console.error('Scanner error:', error)
     const message =
       error instanceof Error ? error.message : 'Failed to access camera'
     setCameraError(message)

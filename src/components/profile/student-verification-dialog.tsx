@@ -115,7 +115,6 @@ export function StudentVerificationDialog({
         toast.error(result.message)
       }
     } catch (error) {
-      console.error('Error in handleUpload:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       toast.error(`Failed to upload student card: ${errorMessage}`)
     } finally {

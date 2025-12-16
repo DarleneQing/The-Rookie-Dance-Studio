@@ -25,12 +25,12 @@ export default async function ProfilePage() {
 
   // Parallelize all database queries for better performance
   const [
-    { data: subscription },
-    { data: profile },
-    { data: checkins },
-    { data: checkinHistoryData },
-    { data: subscriptionsData },
-    { data: checkinsBySubData },
+    { data: subscription, error: subscriptionError },
+    { data: profile, error: profileError },
+    { data: checkins, error: checkinsError },
+    { data: checkinHistoryData, error: checkinHistoryError },
+    { data: subscriptionsData, error: subscriptionsError },
+    { data: checkinsBySubData, error: checkinsBySubError },
   ] = await Promise.all([
     supabase
       .from("subscriptions")
@@ -75,6 +75,19 @@ export default async function ProfilePage() {
       .select("subscription_id")
       .eq("user_id", user.id),
   ])
+
+  // Handle critical errors (profile is essential)
+  if (profileError) {
+    console.error('Failed to fetch profile:', profileError)
+    return redirect("/login")
+  }
+
+  // Log non-critical errors for monitoring
+  if (subscriptionError) console.error('Failed to fetch subscription:', subscriptionError)
+  if (checkinsError) console.error('Failed to fetch checkins:', checkinsError)
+  if (checkinHistoryError) console.error('Failed to fetch checkin history:', checkinHistoryError)
+  if (subscriptionsError) console.error('Failed to fetch subscriptions:', subscriptionsError)
+  if (checkinsBySubError) console.error('Failed to fetch checkins by subscription:', checkinsBySubError)
 
   type CheckinSubscriptionRow = { subscription_id: string }
 

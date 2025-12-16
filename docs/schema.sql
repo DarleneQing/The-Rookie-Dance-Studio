@@ -141,7 +141,7 @@ BEGIN
     new.id,
     new.raw_user_meta_data->>'full_name',
     'member',
-    (new.raw_user_meta_data->>'dob')::DATE
+    NULLIF(new.raw_user_meta_data->>'dob', '')::DATE
   );
   RETURN new;
 END;

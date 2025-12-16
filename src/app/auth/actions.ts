@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 
-export async function login(formData: FormData) {
+export async function login(formData: FormData): Promise<{ error?: string; message?: string }> {
   const supabase = createClient()
 
   const data = {
@@ -42,7 +42,7 @@ export async function login(formData: FormData) {
 }
 
 // Updated signature for useFormState
-export async function signup(prevState: unknown, formData: FormData) {
+export async function signup(prevState: unknown, formData: FormData): Promise<{ error?: string; message?: string }> {
   const supabase = createClient()
 
   const data = {
@@ -77,7 +77,7 @@ export async function signup(prevState: unknown, formData: FormData) {
   redirect('/verify-email')
 }
 
-export async function resetPassword(prevState: unknown, formData: FormData) {
+export async function resetPassword(prevState: unknown, formData: FormData): Promise<{ error?: string; message?: string }> {
   const supabase = createClient()
   const email = formData.get('email') as string
 

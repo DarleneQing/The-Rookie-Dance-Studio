@@ -10,8 +10,8 @@ import { Input } from './auth-input';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 
 const initialState = {
-  message: '',
-  error: '',
+  message: undefined as string | undefined,
+  error: undefined as string | undefined,
 };
 
 function SubmitButton({ mode, isLoading }: { mode: AuthMode; isLoading: boolean }) {

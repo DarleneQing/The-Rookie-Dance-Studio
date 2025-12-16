@@ -55,7 +55,7 @@ export default function UpdatePasswordPage() {
       setTimeout(() => {
         router.push('/profile');
       }, 1000);
-    } catch (error) {
+    } catch {
       toast.error('An unexpected error occurred. Please try again.');
       setIsLoading(false);
     }

@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "The Rookies",
+  title: "Rookie Dance Studio",
   description: "Dance Group Check-in System",
 };
 

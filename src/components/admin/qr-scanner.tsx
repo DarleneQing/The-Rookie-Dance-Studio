@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Scanner } from '@yudiel/react-qr-scanner'
 import { toast } from 'sonner'
-import { checkInUser } from '@/app/admin/actions'
+import { checkInUser, getMemberProfile } from '@/app/admin/actions'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,8 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog'
-import { CheckCircle2, XCircle, RefreshCcw, Camera } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2 } from 'lucide-react'
 
 interface QRScannerComponentProps {
   children?: React.ReactNode
@@ -27,6 +29,15 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     message: string
     remaining?: number
   } | null>(null)
+  const [scannedMember, setScannedMember] = useState<{
+    id: string
+    full_name: string | null
+    avatar_url: string | null
+    dob: string | null
+  } | null>(null)
+  const [loadingProfile, setLoadingProfile] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null)
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen)
@@ -36,6 +47,11 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
       setLastResult(null)
     } else {
       setScanning(false)
+      // Reset confirmation state when dialog closes
+      setShowConfirmation(false)
+      setScannedMember(null)
+      setPendingUserId(null)
+      setLoadingProfile(false)
     }
   }
 
@@ -53,24 +69,23 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
         // Not JSON, assume direct ID
       }
 
-      toast.loading('Processing check-in...')
-      const response = await checkInUser(userId)
-      toast.dismiss()
+      setLoadingProfile(true)
+      setPendingUserId(userId)
 
-      if (response.success) {
-        toast.success(response.message)
-        setLastResult({ 
-          success: true, 
-          message: response.message, 
-          remaining: response.remaining 
-        })
+      const profileResponse = await getMemberProfile(userId)
+      setLoadingProfile(false)
+
+      if (profileResponse.success && profileResponse.profile) {
+        setScannedMember(profileResponse.profile)
+        setShowConfirmation(true)
       } else {
-        toast.error(response.message)
-        setLastResult({ success: false, message: response.message })
+        toast.error(profileResponse.message || 'Failed to load member profile')
+        resetScanner()
       }
     } catch {
       toast.error('Invalid QR Code')
-      setLastResult({ success: false, message: 'Invalid QR Code' })
+      setLoadingProfile(false)
+      resetScanner()
     }
   }
 
@@ -78,6 +93,46 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     setLastResult(null)
     setCameraError(null)
     setScanning(true)
+    setShowConfirmation(false)
+    setScannedMember(null)
+    setPendingUserId(null)
+    setLoadingProfile(false)
+  }
+
+  const handleConfirmCheckIn = async () => {
+    if (!pendingUserId) return
+
+    setLoadingProfile(true)
+    try {
+      const response = await checkInUser(pendingUserId)
+
+      if (response.success) {
+        toast.success(response.message)
+        setLastResult({
+          success: true,
+          message: response.message,
+          remaining: response.remaining,
+        })
+      } else {
+        toast.error(response.message)
+        setLastResult({ success: false, message: response.message })
+      }
+    } catch {
+      toast.error('Failed to process check-in')
+      setLastResult({ success: false, message: 'Failed to process check-in' })
+    } finally {
+      setLoadingProfile(false)
+      setShowConfirmation(false)
+      setScannedMember(null)
+      setPendingUserId(null)
+    }
+  }
+
+  const handleCancelConfirmation = () => {
+    setShowConfirmation(false)
+    setScannedMember(null)
+    setPendingUserId(null)
+    resetScanner()
   }
 
   const handleScanNext = () => {
@@ -85,7 +140,6 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
   }
 
   const handleCameraError = (error: unknown) => {
-    console.error('Scanner error:', error)
     const message =
       error instanceof Error ? error.message : 'Failed to access camera'
     setCameraError(message)
@@ -105,11 +159,71 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
       <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="text-center font-syne text-white">
-            Check-in Scanner
+            {showConfirmation ? 'Confirm Check-in' : 'Check-in Scanner'}
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-6 space-y-4">
-          {scanning && !cameraError ? (
+          {showConfirmation && scannedMember ? (
+            <div className="w-full max-w-sm flex flex-col items-center justify-center space-y-4">
+              <Avatar className="h-24 w-24 border-4 border-white/20">
+                <AvatarImage src={scannedMember.avatar_url || undefined} alt={scannedMember.full_name || 'Member'} />
+                <AvatarFallback className="text-2xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
+                  {scannedMember.full_name ? scannedMember.full_name.charAt(0).toUpperCase() : '?'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="text-center">
+                <h3 className="text-xl font-bold font-syne text-white">
+                  {scannedMember.full_name || 'Unknown Member'}
+                </h3>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-white/70 font-outfit text-sm">
+                  Date of Birth: {scannedMember.dob
+                    ? new Date(scannedMember.dob).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : 'Not provided'}
+                </p>
+              </div>
+              
+              <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 w-full pt-4">
+                <Button
+                  onClick={handleCancelConfirmation}
+                  variant="outline"
+                  className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border-white/20"
+                  disabled={loadingProfile}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmCheckIn}
+                  className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90 text-white"
+                  disabled={loadingProfile}
+                >
+                  {loadingProfile ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    'Confirm Check-in'
+                  )}
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : loadingProfile ? (
+            <div className="w-full max-w-sm aspect-square flex flex-col items-center justify-center bg-white/10 rounded-lg space-y-4 p-6 text-center">
+              <Loader2 className="h-20 w-20 text-white animate-spin" />
+              <div>
+                <h3 className="text-xl font-bold font-syne text-white">Loading Member Profile</h3>
+                <p className="text-white/70 font-outfit mt-2">Please wait...</p>
+              </div>
+            </div>
+          ) : scanning && !cameraError ? (
             <div className="w-full max-w-sm aspect-square overflow-hidden rounded-lg border-2 border-white/30 relative">
               <Scanner
                 onScan={(results) => {

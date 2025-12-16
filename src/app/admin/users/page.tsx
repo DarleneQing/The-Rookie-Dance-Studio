@@ -38,21 +38,20 @@ export default async function UserManagementPage() {
 
   if (!profiles) return <div>No users found</div>
 
-  // Fetch active subscriptions for all users (or we could do this via a View/Function for performance)
-  // For MVP, client-side join or second query is fine.
+  // Fetch active subscriptions for all users
   const { data: subscriptions } = await supabase
     .from("subscriptions")
     .select("*")
     .eq("status", "active")
 
-  // Merge data
-  const users = profiles.map((p) => {
-    const sub = subscriptions?.find((s) => s.user_id === p.id)
-    return {
-      ...p,
-      subscription: sub,
-    }
-  })
+  // Merge data using Map for O(n) lookup instead of O(n²) find inside map
+  const subscriptionMap = new Map(
+    (subscriptions || []).map((sub) => [sub.user_id, sub])
+  )
+  const users = profiles.map((p) => ({
+    ...p,
+    subscription: subscriptionMap.get(p.id) || null,
+  }))
 
   return (
     <main className="relative min-h-screen overflow-hidden">

@@ -5,8 +5,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { AvatarUploadDialog } from "@/components/profile/avatar-upload-dialog"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"
 import { LogoutButton } from "@/components/profile/logout-button"
+import { StudentVerificationDialog } from "@/components/profile/student-verification-dialog"
+import { SubscriptionHistoryDialog, type SubscriptionHistoryItem } from "@/components/profile/subscription-history-dialog"
+import { CheckinHistoryDialog, type CheckinHistoryItem } from "@/components/profile/checkin-history-dialog"
 import { FloatingElements } from "@/components/auth/floating-elements"
-import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap } from "lucide-react"
+import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap, GraduationCap, CheckCircle2, Clock as ClockIcon, AlertTriangle } from "lucide-react"
+import { calculateStreakWeeks } from "@/lib/utils/streak-calculator"
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -19,52 +23,77 @@ export default async function ProfilePage() {
     return redirect("/login")
   }
 
-  // Fetch active subscription for this user
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle()
+  // Parallelize all database queries for better performance
+  const [
+    { data: subscription },
+    { data: profile },
+    { data: checkins },
+    { data: checkinHistoryData },
+    { data: subscriptionsData },
+    { data: checkinsBySubData },
+  ] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("checkins")
+      .select("created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("checkins")
+      .select("id, created_at, subscription_id, subscription:subscriptions(type)")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("subscriptions")
+      .select(
+        `
+        id,
+        type,
+        status,
+        start_date,
+        end_date,
+        total_credits,
+        remaining_credits,
+        created_at
+      `
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("checkins")
+      .select("subscription_id")
+      .eq("user_id", user.id),
+  ])
 
-  // Fetch Profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single()
+  type CheckinSubscriptionRow = { subscription_id: string }
 
-  // Fetch checkins for statistics
-  const { data: checkins } = await supabase
-    .from("checkins")
-    .select("created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
+  const checkinCountBySubscriptionId = (checkinsBySubData || []).reduce<
+    Record<string, number>
+  >((acc, row) => {
+    const id = (row as CheckinSubscriptionRow).subscription_id
+    acc[id] = (acc[id] || 0) + 1
+    return acc
+  }, {})
+
+  const subscriptionHistory: SubscriptionHistoryItem[] = (subscriptionsData || []).map((sub) => ({
+    ...sub,
+    checkin_count: checkinCountBySubscriptionId[sub.id] || 0,
+  }))
 
   // Calculate statistics
   const totalClasses = checkins?.length || 0
-  
-  // Calculate streak days (consecutive days with check-ins)
-  let streakDays = 0
-  if (checkins && checkins.length > 0) {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    let currentStreak = 0
-    const checkDate = new Date(today)
-    
-    for (const checkin of checkins) {
-      const checkinDate = new Date(checkin.created_at)
-      checkinDate.setHours(0, 0, 0, 0)
-      
-      if (checkinDate.getTime() === checkDate.getTime()) {
-        currentStreak++
-        checkDate.setDate(checkDate.getDate() - 1)
-      } else if (checkinDate.getTime() < checkDate.getTime()) {
-        break
-      }
-    }
-    streakDays = currentStreak
-  }
+  const streakWeeks = calculateStreakWeeks(checkins || [])
 
   const userInitials = profile?.full_name
     ? profile.full_name
@@ -85,6 +114,34 @@ export default async function ProfilePage() {
 
       {/* Content */}
       <div className="relative z-10 container max-w-lg mx-auto pt-8 pb-8 px-4 space-y-4">
+        {/* Re-verification Required Banner */}
+        {profile?.verification_status === 'reupload_required' && (
+          <div className="bg-orange-500/10 backdrop-blur-sm rounded-3xl p-4 border border-orange-500/20 shadow-lg">
+            <div className="flex items-start gap-3">
+              <div className="bg-orange-500/20 rounded-full p-2 flex-shrink-0 mt-0.5">
+                <AlertTriangle className="h-5 w-5 text-orange-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-syne font-semibold text-orange-300 text-lg">
+                  Student Verification Required
+                </h3>
+                <p className="font-outfit text-orange-200/80 text-sm mt-1">
+                  {profile?.rejection_reason || 'Please upload a current student card to maintain your student status.'}
+                </p>
+                <StudentVerificationDialog
+                  currentStatus="reupload_required"
+                  rejectionReason={profile?.rejection_reason}
+                >
+                  <button className="mt-3 inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-outfit font-medium text-sm px-4 py-2 rounded-full transition-colors">
+                    <GraduationCap className="h-4 w-4" />
+                    Upload Student Card
+                  </button>
+                </StudentVerificationDialog>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 1. User Profile Section - Centered Avatar with Gradient Ring */}
         <div className="flex flex-col items-center pt-4 pb-6">
           <div className="relative">
@@ -98,8 +155,8 @@ export default async function ProfilePage() {
             </Avatar>
             {/* Edit Icon with upload dialog */}
             <AvatarUploadDialog>
-              <button className="absolute bottom-0 right-0 bg-rookie-pink rounded-lg p-2 border-2 border-white/20 shadow-lg hover:scale-110 transition-transform">
-                <Pencil className="h-4 w-4 text-white" />
+              <button className="absolute bottom-0 right-0 bg-rookie-pink rounded-md p-1.5 border border-white/30 shadow-md hover:scale-110 transition-transform">
+                <Pencil className="h-3 w-3 text-white" />
               </button>
             </AvatarUploadDialog>
           </div>
@@ -145,7 +202,7 @@ export default async function ProfilePage() {
             <h3 className="font-syne font-semibold text-white/90">Current Plan</h3>
           </div>
           
-          <div className="bg-white/60 rounded-3xl p-5 shadow-lg border border-gray-100">
+          <div className="bg-white/80 rounded-3xl p-5 shadow-lg border border-gray-100">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -222,38 +279,100 @@ export default async function ProfilePage() {
         {/* 4. Activity Statistics Section */}
         <div className="grid grid-cols-2 gap-4">
           {/* Total Classes Card */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
             <div className="flex justify-center mb-3">
               <div className="bg-orange-500/80 rounded-full p-3">
-                <Clock className="h-6 w-6 text-orange-300" />
+                <Clock className="h-6 w-6 text-orange-100" />
               </div>
             </div>
-            <div className="font-syne font-bold text-3xl text-white mb-1">{totalClasses}</div>
-            <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Total Classes</div>
+            <div className="font-syne font-bold text-3xl text-black mb-1">{totalClasses}</div>
+            <div className="font-outfit text-xs text-black uppercase tracking-wide">Total Classes</div>
           </div>
 
-          {/* Streak Days Card */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+          {/* Streak Weeks Card */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
             <div className="flex justify-center mb-3">
               <div className="bg-rookie-pink rounded-full p-3">
                 <Heart className="h-6 w-6 text-rookie-pink-200" />
               </div>
             </div>
-            <div className="font-syne font-bold text-3xl text-white mb-1">{streakDays}</div>
-            <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Streak</div>
+            <div className="font-syne font-bold text-3xl text-black mb-1">{streakWeeks}</div>
+            <div className="font-outfit text-xs text-black uppercase tracking-wide">Streak</div>
           </div>
         </div>
 
-        {/* 5. Subscription History Section */}
-        <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
-          <div className="flex items-center gap-3">
-            <Calendar className="h-5 w-5 text-white/60" />
-            <span className="font-outfit text-white/90 font-medium">Subscription History</span>
-          </div>
-          <ArrowRight className="h-5 w-5 text-white/60" />
-        </button>
+        {/* 5. Check-in History Section */}
+        <CheckinHistoryDialog checkins={(checkinHistoryData as CheckinHistoryItem[]) || []}>
+          <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
+            <div className="flex items-center gap-3">
+              <ClockIcon className="h-5 w-5 text-white/60" />
+              <span className="font-outfit text-white/90 font-medium">Check-in History</span>
+            </div>
+            <ArrowRight className="h-5 w-5 text-white/60" />
+          </button>
+        </CheckinHistoryDialog>
 
-        {/* 6. Logout Button */}
+        {/* 6. Subscription History Section */}
+        <SubscriptionHistoryDialog subscriptions={subscriptionHistory}>
+          <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
+            <div className="flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-white/60" />
+              <span className="font-outfit text-white/90 font-medium">Subscription History</span>
+            </div>
+            <ArrowRight className="h-5 w-5 text-white/60" />
+          </button>
+        </SubscriptionHistoryDialog>
+
+        {/* 7. Student Verification Section */}
+        {profile?.verification_status === 'none' || profile?.verification_status === 'rejected' ? (
+          <StudentVerificationDialog
+            currentStatus={profile?.verification_status || 'none'}
+            rejectionReason={profile?.rejection_reason}
+          >
+            <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-5 w-5 text-white/60" />
+                <span className="font-outfit text-white/90 font-medium">Verify as Student</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-white/60" />
+            </button>
+          </StudentVerificationDialog>
+        ) : profile?.verification_status === 'pending' ? (
+          <div className="w-full bg-yellow-500/10 backdrop-blur-sm rounded-3xl p-4 border border-yellow-500/20 shadow-lg flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ClockIcon className="h-5 w-5 text-yellow-400" />
+              <span className="font-outfit text-yellow-300 font-medium">Verification Pending</span>
+            </div>
+            <div className="bg-yellow-500/20 rounded-full px-3 py-1">
+              <span className="text-xs font-outfit text-yellow-300 font-semibold">PENDING</span>
+            </div>
+          </div>
+        ) : profile?.verification_status === 'approved' && profile?.member_type === 'student' ? (
+          <div className="w-full bg-green-500/10 backdrop-blur-sm rounded-3xl p-4 border border-green-500/20 shadow-lg flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-400" />
+              <span className="font-outfit text-green-300 font-medium">Student Status Verified</span>
+            </div>
+            <div className="bg-green-500/20 rounded-full px-3 py-1">
+              <span className="text-xs font-outfit text-green-300 font-semibold">VERIFIED</span>
+            </div>
+          </div>
+        ) : profile?.verification_status === 'reupload_required' ? (
+          <StudentVerificationDialog
+            currentStatus="reupload_required"
+            rejectionReason={profile?.rejection_reason}
+          >
+            <button className="w-full bg-orange-500/10 backdrop-blur-sm rounded-3xl p-4 border border-orange-500/20 shadow-lg flex items-center justify-between hover:bg-orange-500/15 transition-colors">
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-5 w-5 text-orange-400" />
+                <span className="font-outfit text-orange-300 font-medium">Re-upload Student Card</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-orange-400" />
+            </button>
+          </StudentVerificationDialog>
+        ) : null}
+
+        {/* 8. Logout Button */}
         <div className="pt-2">
           <LogoutButton />
         </div>

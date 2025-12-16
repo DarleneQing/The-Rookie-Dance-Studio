@@ -117,9 +117,7 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
 
     try {
       setLoading(true)
-      console.log('Starting image crop...')
       const croppedBlob = await getCroppedImg(imageSrc, crop, zoom, croppedAreaPixels)
-      console.log('Image cropped, blob size:', croppedBlob.size, 'type:', croppedBlob.type)
       
       // Convert Blob to base64 string for Server Action
       const reader = new FileReader()
@@ -137,22 +135,18 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
               reject(new Error('Failed to extract base64 data'))
               return
             }
-            console.log('Base64 conversion successful, length:', base64Data.length)
             resolve(base64Data)
           } catch (err) {
             reject(err)
           }
         }
-        reader.onerror = (error) => {
-          console.error('FileReader error:', error)
+        reader.onerror = () => {
           reject(new Error('Failed to read blob as data URL'))
         }
         reader.readAsDataURL(croppedBlob)
       })
 
-      console.log('Calling updateProfileAvatar...')
       const result = await updateProfileAvatar(base64String, croppedBlob.type)
-      console.log('Server action result:', result)
 
       if (result.success) {
         toast.success(result.message)
@@ -160,11 +154,9 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
         setImageSrc(null)
         router.refresh()
       } else {
-        console.error('Server action failed:', result.message)
         toast.error(result.message)
       }
     } catch (error) {
-      console.error('Error in handleSave:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
       toast.error(`Failed to update profile picture: ${errorMessage}`)
     } finally {

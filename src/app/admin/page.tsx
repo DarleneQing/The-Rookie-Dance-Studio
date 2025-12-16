@@ -4,7 +4,7 @@ import Link from "next/link"
 import { FloatingElements } from "@/components/auth/floating-elements"
 import { LogoutButton } from "@/components/profile/logout-button"
 import { QRScannerComponent } from "@/components/admin/qr-scanner"
-import { QrCode, Users, CreditCard, Clock } from "lucide-react"
+import { QrCode, Users, CreditCard, Clock, GraduationCap } from "lucide-react"
 
 export default async function AdminDashboardPage() {
   const supabase = createClient()
@@ -63,6 +63,11 @@ export default async function AdminDashboardPage() {
     .gte("created_at", todayStart)
     .lte("created_at", todayEndISO)
 
+  const { count: pendingVerifications } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true })
+    .eq("verification_status", "pending")
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       {/* Background */}
@@ -80,7 +85,7 @@ export default async function AdminDashboardPage() {
           </h2>
           <div className="grid grid-cols-3 gap-4">
             {/* Total Users Stat */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
               <div className="flex justify-center mb-3">
                 <div className="bg-orange-500/80 rounded-full p-3">
                   <Users className="h-6 w-6 text-orange-300" />
@@ -91,7 +96,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Active Subscriptions Stat */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
               <div className="flex justify-center mb-3">
                 <div className="bg-rookie-blue/80 rounded-full p-3">
                   <CreditCard className="h-6 w-6 text-white" />
@@ -102,7 +107,7 @@ export default async function AdminDashboardPage() {
             </div>
 
             {/* Today's Check-ins Stat */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
               <div className="flex justify-center mb-3">
                 <div className="bg-rookie-pink/80 rounded-full p-3">
                   <Clock className="h-6 w-6 text-white" />
@@ -153,6 +158,32 @@ export default async function AdminDashboardPage() {
                       User Management
                     </div>
                     <p className="text-white/80 font-outfit text-sm">Manage members and subscriptions</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Student Verifications Card */}
+            <Link href="/admin/verifications" className="block">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-yellow-500 to-orange-500 opacity-20 blur-2xl rounded-[30px]" />
+                <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-6 shadow-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full p-4 relative">
+                      <GraduationCap className="h-8 w-8 text-white" />
+                      {pendingVerifications && pendingVerifications > 0 && (
+                        <div className="absolute -top-1 -right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">{pendingVerifications}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-full font-syne font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-yellow-300 to-orange-300">
+                      Student Verifications
+                    </div>
+                    <p className="text-white/80 font-outfit text-sm">
+                      Review and approve student status requests
+                    </p>
                   </div>
                 </div>
               </div>

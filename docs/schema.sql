@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- -----------------------------------------------------------------------------
 CREATE TYPE user_role AS ENUM ('admin', 'member');
 CREATE TYPE member_type AS ENUM ('adult', 'student');
-CREATE TYPE verification_status AS ENUM ('none', 'pending', 'approved', 'rejected');
+CREATE TYPE verification_status AS ENUM ('none', 'pending', 'approved', 'rejected', 'reupload_required');
 CREATE TYPE subscription_type AS ENUM ('monthly', '5_times', '10_times');
 CREATE TYPE subscription_status AS ENUM ('active', 'expired', 'depleted', 'archived');
 

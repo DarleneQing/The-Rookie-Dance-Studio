@@ -1,6 +1,7 @@
 export enum AuthMode {
   LOGIN = 'login',
   REGISTER = 'register',
+  FORGOT_PASSWORD = 'forgot_password',
 }
 
 export interface FormErrors {

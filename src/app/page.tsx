@@ -4,12 +4,12 @@ import { FloatingElements } from "@/components/auth/floating-elements"
 
 export default function Home() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black">
+    <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black">
       {/* Floating decorative elements */}
       <FloatingElements />
 
       {/* Content Container */}
-      <div className="relative z-10 w-full flex flex-col items-center justify-start px-4 pt-4 pb-6 min-h-screen">
+      <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-8">
         {/* Title Section */}
         <div className="w-full text-center pt-8 pb-4 px-4">
           <h1 className="font-syne font-bold text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-1 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
@@ -35,7 +35,7 @@ export default function Home() {
         </div>
 
         {/* Buttons Section */}
-        <div className="w-full max-w-md px-4 pb-6 space-y-3">
+        <div className="w-full max-w-md px-4 pb-2 space-y-3">
           <Link
             href="/login"
             className="block w-full h-14 bg-white/10 hover:bg-white/20 border-2 border-black rounded-xl font-syne font-bold text-white text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"

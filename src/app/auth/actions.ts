@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 
-export async function login(formData: FormData) {
+export async function login(formData: FormData): Promise<{ error?: string; message?: string }> {
   const supabase = createClient()
 
   const data = {
@@ -42,7 +42,7 @@ export async function login(formData: FormData) {
 }
 
 // Updated signature for useFormState
-export async function signup(prevState: unknown, formData: FormData) {
+export async function signup(prevState: unknown, formData: FormData): Promise<{ error?: string; message?: string }> {
   const supabase = createClient()
 
   const data = {
@@ -75,6 +75,25 @@ export async function signup(prevState: unknown, formData: FormData) {
 
   revalidatePath('/', 'layout')
   redirect('/verify-email')
+}
+
+export async function resetPassword(prevState: unknown, formData: FormData): Promise<{ error?: string; message?: string }> {
+  const supabase = createClient()
+  const email = formData.get('email') as string
+
+  if (!email) {
+    return { error: 'Email is required.' }
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/profile/update-password`,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { message: 'Password reset link sent to your email.' }
 }
 
 export async function logout() {

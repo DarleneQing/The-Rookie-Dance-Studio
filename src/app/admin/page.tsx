@@ -4,6 +4,10 @@ import Link from "next/link"
 import { FloatingElements } from "@/components/auth/floating-elements"
 import { LogoutButton } from "@/components/profile/logout-button"
 import { QRScannerComponent } from "@/components/admin/qr-scanner"
+import { UserStatsDialog } from "@/components/admin/user-stats-dialog"
+import { ActiveSubscriptionsDialog } from "@/components/admin/active-subscriptions-dialog"
+import { TodayCheckinsDialog } from "@/components/admin/today-checkins-dialog"
+import { CheckinHistoryCard } from "@/components/admin/checkin-history-card"
 import { QrCode, Users, CreditCard, Clock, GraduationCap } from "lucide-react"
 
 export default async function AdminDashboardPage() {
@@ -68,6 +72,67 @@ export default async function AdminDashboardPage() {
     .select("*", { count: "exact", head: true })
     .eq("verification_status", "pending")
 
+  // Fetch additional data for dialogs
+  // User breakdown by member_type
+  const { count: adultMembers } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true })
+    .eq("member_type", "adult")
+
+  const { count: studentMembers } = await supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true })
+    .eq("member_type", "student")
+
+  // Active subscriptions breakdown by type
+  const { count: monthlySubscriptions } = await supabase
+    .from("subscriptions")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "active")
+    .eq("type", "monthly")
+
+  const { count: fiveTimesSubscriptions } = await supabase
+    .from("subscriptions")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "active")
+    .eq("type", "5_times")
+
+  const { count: tenTimesSubscriptions } = await supabase
+    .from("subscriptions")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "active")
+    .eq("type", "10_times")
+
+  // Today's check-ins with user names
+  const { data: todayCheckinsData } = await supabase
+    .from("checkins")
+    .select("id, created_at, profiles!user_id(full_name)")
+    .gte("created_at", todayStart)
+    .lte("created_at", todayEndISO)
+    .order("created_at", { ascending: false })
+
+  // Transform today's check-ins data
+  type CheckinWithProfile = {
+    id: string
+    created_at: string
+    profiles: { full_name: string | null } | { full_name: string | null }[] | null
+  }
+
+  const todayCheckinsList =
+    todayCheckinsData?.map((item: CheckinWithProfile) => {
+      const profile = item.profiles
+      return {
+        id: item.id,
+        full_name:
+          profile && !Array.isArray(profile)
+            ? profile.full_name
+            : Array.isArray(profile) && profile[0]
+            ? profile[0].full_name
+            : null,
+        created_at: item.created_at,
+      }
+    }) || []
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       {/* Background */}
@@ -85,37 +150,62 @@ export default async function AdminDashboardPage() {
           </h2>
           <div className="grid grid-cols-3 gap-4">
             {/* Total Users Stat */}
-            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
-              <div className="flex justify-center mb-3">
-                <div className="bg-orange-500/80 rounded-full p-3">
-                  <Users className="h-6 w-6 text-orange-300" />
+            <UserStatsDialog
+              adultCount={adultMembers || 0}
+              studentCount={studentMembers || 0}
+            >
+              <div className="relative">
+                <div className="absolute -inset-2 bg-gradient-to-r from-orange-500 to-orange-600 opacity-20 blur-xl rounded-3xl" />
+                <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-3xl p-5 shadow-2xl overflow-hidden text-center cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+                  <div className="flex justify-center mb-3">
+                    <div className="bg-orange-500/80 rounded-full p-3">
+                      <Users className="h-6 w-6 text-orange-300" />
+                    </div>
+                  </div>
+                  <div className="font-syne font-bold text-3xl text-white mb-1">{totalUsers || 0}</div>
+                  <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Users</div>
                 </div>
               </div>
-              <div className="font-syne font-bold text-3xl text-white mb-1">{totalUsers || 0}</div>
-              <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Users</div>
-            </div>
+            </UserStatsDialog>
 
             {/* Active Subscriptions Stat */}
-            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
-              <div className="flex justify-center mb-3">
-                <div className="bg-rookie-blue/80 rounded-full p-3">
-                  <CreditCard className="h-6 w-6 text-white" />
+            <ActiveSubscriptionsDialog
+              monthlyCount={monthlySubscriptions || 0}
+              fiveTimesCount={fiveTimesSubscriptions || 0}
+              tenTimesCount={tenTimesSubscriptions || 0}
+            >
+              <div className="relative">
+                <div className="absolute -inset-2 bg-gradient-to-r from-rookie-blue to-blue-500 opacity-20 blur-xl rounded-3xl" />
+                <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-3xl p-5 shadow-2xl overflow-hidden text-center cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+                  <div className="flex justify-center mb-3">
+                    <div className="bg-rookie-blue/80 rounded-full p-3">
+                      <CreditCard className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="font-syne font-bold text-3xl text-white mb-1">{activeSubscriptions || 0}</div>
+                  <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Active</div>
                 </div>
               </div>
-              <div className="font-syne font-bold text-3xl text-white mb-1">{activeSubscriptions || 0}</div>
-              <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Active</div>
-            </div>
+            </ActiveSubscriptionsDialog>
 
             {/* Today's Check-ins Stat */}
-            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
-              <div className="flex justify-center mb-3">
-                <div className="bg-rookie-pink/80 rounded-full p-3">
-                  <Clock className="h-6 w-6 text-white" />
+            <TodayCheckinsDialog checkins={todayCheckinsList}>
+              <div className="relative">
+                <div className="absolute -inset-2 bg-gradient-to-r from-rookie-pink to-pink-500 opacity-20 blur-xl rounded-3xl" />
+                <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-3xl p-5 shadow-2xl overflow-hidden text-center cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+                  <div className="flex justify-center mb-3">
+                    <div className="bg-rookie-pink/80 rounded-full p-3">
+                      <Clock className="h-6 w-6 text-white" />
+                    </div>
+                  </div>
+                  <div className="font-syne font-bold text-3xl text-white mb-1">{todayCheckins || 0}</div>
+                  <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Today</div>
                 </div>
               </div>
-              <div className="font-syne font-bold text-3xl text-white mb-1">{todayCheckins || 0}</div>
-              <div className="font-outfit text-xs text-white/70 uppercase tracking-wide">Today</div>
-            </div>
+            </TodayCheckinsDialog>
           </div>
         </div>
 
@@ -188,6 +278,9 @@ export default async function AdminDashboardPage() {
                 </div>
               </div>
             </Link>
+
+            {/* Check-in History Card */}
+            <CheckinHistoryCard />
           </div>
         </div>
 

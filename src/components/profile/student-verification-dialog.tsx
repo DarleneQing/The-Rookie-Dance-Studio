@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { compressImage, formatFileSize } from '@/lib/utils/image-compression'
 
 interface StudentVerificationDialogProps {
   children: React.ReactNode
@@ -45,15 +46,15 @@ export function StudentVerificationDialog({
       return
     }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image is too large. Please select an image under 5MB.')
+    // Validate file size (warn if very large, but allow compression to handle it)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error(`This image is very large (${formatFileSize(file.size)}). Please choose a smaller image (under 10MB).`)
       return
     }
 
     // Validate specific image types
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      toast.error('Unsupported image format. Please use JPG, PNG, or WEBP.')
+      toast.error('This file type is not supported. Please select a JPG, PNG, or WEBP image.')
       return
     }
 
@@ -76,20 +77,29 @@ export function StudentVerificationDialog({
     try {
       setLoading(true)
 
-      // Convert file to base64
+      // Compress image to 70% quality
+      const compressionResult = await compressImage(selectedFile, 0.7)
+      
+      if (!compressionResult.success || !compressionResult.blob) {
+        toast.error(compressionResult.error || 'Failed to process image. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      // Convert compressed blob to base64
       const reader = new FileReader()
       const base64String = await new Promise<string>((resolve, reject) => {
         reader.onloadend = () => {
           try {
             const base64 = reader.result as string
             if (!base64) {
-              reject(new Error('FileReader returned empty result'))
+              reject(new Error('Failed to prepare image for upload. Please try again.'))
               return
             }
             // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
             const base64Data = base64.split(',')[1]
             if (!base64Data) {
-              reject(new Error('Failed to extract base64 data'))
+              reject(new Error('Failed to prepare image for upload. Please try again.'))
               return
             }
             resolve(base64Data)
@@ -98,12 +108,12 @@ export function StudentVerificationDialog({
           }
         }
         reader.onerror = () => {
-          reject(new Error('Failed to read file as data URL'))
+          reject(new Error('Unable to prepare image for upload. Please try again.'))
         }
-        reader.readAsDataURL(selectedFile)
+        reader.readAsDataURL(compressionResult.blob)
       })
 
-      const result = await uploadStudentCard(base64String, selectedFile.type)
+      const result = await uploadStudentCard(base64String, 'image/jpeg')
 
       if (result.success) {
         toast.success(result.message)
@@ -115,8 +125,8 @@ export function StudentVerificationDialog({
         toast.error(result.message)
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      toast.error(`Failed to upload student card: ${errorMessage}`)
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -148,7 +158,7 @@ export function StudentVerificationDialog({
             Verify as Student
           </DialogTitle>
           <DialogDescription>
-            Upload a photo of your student ID card. The image must be clear and under 5MB.
+            Upload a photo of your student ID card. The image will be automatically compressed to reduce file size while maintaining quality.
           </DialogDescription>
           {currentStatus === 'rejected' && rejectionReason && (
             <div className="mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">

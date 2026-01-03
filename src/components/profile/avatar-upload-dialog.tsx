@@ -9,6 +9,7 @@ import { updateProfileAvatar } from '@/app/profile/actions'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { formatFileSize } from '@/lib/utils/image-compression'
 
 interface AvatarUploadDialogProps {
   children: React.ReactNode
@@ -55,13 +56,13 @@ function getCroppedImg(imageSrc: string, crop: { x: number; y: number }, zoom: n
       canvas.toBlob(
         (blob) => {
           if (!blob) {
-            reject(new Error('Canvas is empty'))
+            reject(new Error('Unable to process the cropped image. Please try again.'))
             return
           }
           resolve(blob)
         },
         'image/jpeg',
-        0.9
+        0.7
       )
     }
     image.onerror = (error) => reject(error)
@@ -93,12 +94,12 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file.')
+      toast.error('Please select an image file (JPG, PNG, WEBP, or other image formats).')
       return
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image is too large. Please select an image under 10MB.')
+      toast.error(`This image is very large (${formatFileSize(file.size)}). It will be compressed automatically, but choosing a smaller image will be faster.`)
       return
     }
 
@@ -111,7 +112,7 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
 
   const handleSave = async () => {
     if (!imageSrc || !croppedAreaPixels) {
-      toast.error('Please select and crop an image first.')
+      toast.error('Please select an image and adjust the crop area.')
       return
     }
 
@@ -126,13 +127,13 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
           try {
             const base64 = reader.result as string
             if (!base64) {
-              reject(new Error('FileReader returned empty result'))
+              reject(new Error('Failed to process the cropped image. Please try again.'))
               return
             }
             // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
             const base64Data = base64.split(',')[1]
             if (!base64Data) {
-              reject(new Error('Failed to extract base64 data'))
+              reject(new Error('Failed to process the cropped image. Please try again.'))
               return
             }
             resolve(base64Data)
@@ -141,7 +142,7 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
           }
         }
         reader.onerror = () => {
-          reject(new Error('Failed to read blob as data URL'))
+          reject(new Error('Unable to prepare image for upload. Please try again.'))
         }
         reader.readAsDataURL(croppedBlob)
       })
@@ -157,8 +158,8 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
         toast.error(result.message)
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      toast.error(`Failed to update profile picture: ${errorMessage}`)
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -181,7 +182,7 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
         <DialogHeader className="flex-shrink-0 pb-2">
           <DialogTitle className="text-lg md:text-xl">Update Profile Picture</DialogTitle>
           <DialogDescription className="text-xs md:text-sm">
-            Upload and crop a new profile picture. For best results, use a clear square image.
+            Upload and crop a new profile picture. Images are automatically compressed to optimize storage.
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 min-h-0 py-2 md:py-3">

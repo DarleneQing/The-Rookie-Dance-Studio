@@ -29,7 +29,7 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
     if (!base64Image || base64Image.length === 0) {
       return {
         success: false,
-        message: 'No image data received.',
+        message: 'No image was received. Please try uploading again.',
       }
     }
 
@@ -40,20 +40,20 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
       if (imageBuffer.length === 0) {
         return {
           success: false,
-          message: 'Invalid image data. Please try again.',
+          message: 'The image data is invalid. Please try a different image.',
         }
       }
     } catch {
       return {
         success: false,
-        message: 'Failed to process image data. Please try again.',
+        message: 'Unable to process the image. Please try a different photo.',
       }
     }
     
     if (imageBuffer.length > 10 * 1024 * 1024) {
       return {
         success: false,
-        message: 'Image is too large. Please upload an image under 10MB.',
+        message: 'The image is still too large after compression. Please use a smaller image (under 10MB).',
       }
     }
 
@@ -61,7 +61,7 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(validMimeType)) {
       return {
         success: false,
-        message: 'Unsupported image format. Please use JPG, PNG, or WEBP.',
+        message: 'This image format is not supported. Please use JPG, PNG, or WEBP.',
       }
     }
 
@@ -77,17 +77,23 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
       })
 
     if (uploadError) {
-      const errorMessage = uploadError.message || 'Unknown error'
+      // Check for specific error types
+      if (uploadError.message?.includes('quota') || uploadError.message?.includes('storage')) {
+        return {
+          success: false,
+          message: 'Storage limit reached. Please contact support.',
+        }
+      }
       return {
         success: false,
-        message: `Failed to upload image: ${errorMessage}. Please check that the 'avatars' bucket exists and is configured correctly.`,
+        message: 'Unable to upload image. Please try again later.',
       }
     }
 
     if (!uploadData) {
       return {
         success: false,
-        message: 'Upload completed but no data returned. Please try again.',
+        message: 'Image upload succeeded but couldn\'t be confirmed. Please refresh the page.',
       }
     }
 
@@ -103,7 +109,7 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
     if (updateError) {
       return {
         success: false,
-        message: `Failed to update profile: ${updateError.message || 'Please try again.'}`,
+        message: 'Failed to save profile picture. Please try again.',
       }
     }
 
@@ -116,7 +122,7 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? `Error: ${error.message}` : 'An unexpected error occurred. Please try again.',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
     }
   }
 }
@@ -150,21 +156,21 @@ export async function uploadStudentCard(
     if (profileError) {
       return {
         success: false,
-        message: 'Failed to fetch profile information.',
+        message: 'Unable to load your profile. Please try again.',
       }
     }
 
     if (profile?.verification_status === 'pending') {
       return {
         success: false,
-        message: 'You already have a pending verification request. Please wait for admin approval.',
+        message: 'You already have a verification request pending. Please wait for admin review.',
       }
     }
 
     if (profile?.verification_status === 'approved') {
       return {
         success: false,
-        message: 'Your student status has already been approved.',
+        message: 'Your student status is already verified.',
       }
     }
 
@@ -174,7 +180,7 @@ export async function uploadStudentCard(
     if (!base64Image || base64Image.length === 0) {
       return {
         success: false,
-        message: 'No image data received.',
+        message: 'No image was received. Please try uploading again.',
       }
     }
 
@@ -185,13 +191,13 @@ export async function uploadStudentCard(
       if (imageBuffer.length === 0) {
         return {
           success: false,
-          message: 'Invalid image data. Please try again.',
+          message: 'The image data is invalid. Please try a different image.',
         }
       }
     } catch {
       return {
         success: false,
-        message: 'Failed to process image data. Please try again.',
+        message: 'Unable to process the image. Please try a different photo.',
       }
     }
 
@@ -199,7 +205,7 @@ export async function uploadStudentCard(
     if (imageBuffer.length > 5 * 1024 * 1024) {
       return {
         success: false,
-        message: 'Image is too large. Please upload an image under 5MB.',
+        message: 'The image is still too large after compression. Please use a smaller image (under 5MB).',
       }
     }
 
@@ -207,7 +213,7 @@ export async function uploadStudentCard(
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(validMimeType)) {
       return {
         success: false,
-        message: 'Unsupported image format. Please use JPG, PNG, or WEBP.',
+        message: 'This image format is not supported. Please use JPG, PNG, or WEBP.',
       }
     }
 
@@ -223,17 +229,23 @@ export async function uploadStudentCard(
       })
 
     if (uploadError) {
-      const errorMessage = uploadError.message || 'Unknown error'
+      // Check for specific error types
+      if (uploadError.message?.includes('quota') || uploadError.message?.includes('storage')) {
+        return {
+          success: false,
+          message: 'Storage limit reached. Please contact support.',
+        }
+      }
       return {
         success: false,
-        message: `Failed to upload image: ${errorMessage}. Please check that the 'student-cards' bucket exists and is configured correctly.`,
+        message: 'Unable to upload student card. Please try again later.',
       }
     }
 
     if (!uploadData) {
       return {
         success: false,
-        message: 'Upload completed but no data returned. Please try again.',
+        message: 'Upload succeeded but couldn\'t be confirmed. Please refresh the page.',
       }
     }
 
@@ -253,7 +265,7 @@ export async function uploadStudentCard(
     if (updateError) {
       return {
         success: false,
-        message: `Failed to update profile: ${updateError.message || 'Please try again.'}`,
+        message: 'Failed to submit verification request. Please try again.',
       }
     }
 
@@ -266,7 +278,7 @@ export async function uploadStudentCard(
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? `Error: ${error.message}` : 'An unexpected error occurred. Please try again.',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
     }
   }
 }

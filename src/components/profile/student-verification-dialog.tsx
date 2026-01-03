@@ -86,6 +86,9 @@ export function StudentVerificationDialog({
         return
       }
 
+      // Extract blob after validation check
+      const compressedBlob = compressionResult.blob
+
       // Convert compressed blob to base64
       const reader = new FileReader()
       const base64String = await new Promise<string>((resolve, reject) => {
@@ -110,7 +113,7 @@ export function StudentVerificationDialog({
         reader.onerror = () => {
           reject(new Error('Unable to prepare image for upload. Please try again.'))
         }
-        reader.readAsDataURL(compressionResult.blob)
+        reader.readAsDataURL(compressedBlob)
       })
 
       const result = await uploadStudentCard(base64String, 'image/jpeg')

@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2 } from 'lucide-react'
+import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2, SwitchCamera } from 'lucide-react'
 
 interface QRScannerComponentProps {
   children?: React.ReactNode
@@ -38,6 +38,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [pendingUserId, setPendingUserId] = useState<string | null>(null)
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen)
@@ -133,6 +134,10 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     setScannedMember(null)
     setPendingUserId(null)
     resetScanner()
+  }
+
+  const handleFlipCamera = () => {
+    setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'))
   }
 
   const handleScanNext = () => {
@@ -232,8 +237,15 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                   }
                 }}
                 onError={handleCameraError}
-                constraints={{ facingMode: 'user' }}
+                constraints={{ facingMode: facingMode }}
               />
+              <button
+                onClick={handleFlipCamera}
+                className="absolute top-4 right-4 z-20 p-3 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full border border-white/20 transition-all duration-200 hover:scale-110 active:scale-95"
+                aria-label="Flip camera"
+              >
+                <SwitchCamera className="h-6 w-6 text-white transition-transform duration-300" />
+              </button>
               <div className="absolute inset-0 border-2 border-white/50 m-12 rounded-lg pointer-events-none animate-pulse" />
             </div>
           ) : cameraError ? (

@@ -171,9 +171,9 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
         <div className="flex flex-col items-center justify-center p-6 space-y-4">
           {showConfirmation && scannedMember ? (
             <div className="w-full max-w-sm flex flex-col items-center justify-center space-y-4">
-              <Avatar className="h-24 w-24 border-4 border-white/20">
+              <Avatar className="h-40 w-40 border-4 border-white/20">
                 <AvatarImage src={scannedMember.avatar_url || undefined} alt={scannedMember.full_name || 'Member'} />
-                <AvatarFallback className="text-2xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
+                <AvatarFallback className="text-4xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
                   {scannedMember.full_name ? scannedMember.full_name.charAt(0).toUpperCase() : '?'}
                 </AvatarFallback>
               </Avatar>

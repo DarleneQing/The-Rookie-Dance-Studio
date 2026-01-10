@@ -49,6 +49,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     } else {
       setScanning(false)
       // Reset confirmation state when dialog closes
+      setLastResult(null)
       setShowConfirmation(false)
       setScannedMember(null)
       setPendingUserId(null)

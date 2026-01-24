@@ -36,6 +36,7 @@ export async function getMemberProfile(userId: string): Promise<{
     full_name: string | null
     avatar_url: string | null
     dob: string | null
+    already_checked_in_today: boolean
   }
 }> {
   const supabase = createClient()
@@ -66,6 +67,20 @@ export async function getMemberProfile(userId: string): Promise<{
     return { success: false, message: 'Member not found' }
   }
 
+  const { data: alreadyCheckedInToday, error: alreadyCheckedInError } = await supabase.rpc(
+    'has_checked_in_today',
+    {
+      p_user_id: userId,
+    }
+  )
+
+  if (alreadyCheckedInError) {
+    return {
+      success: false,
+      message: alreadyCheckedInError.message || 'Failed to check today status',
+    }
+  }
+
   return {
     success: true,
     profile: {
@@ -73,6 +88,7 @@ export async function getMemberProfile(userId: string): Promise<{
       full_name: profile.full_name,
       avatar_url: profile.avatar_url,
       dob: profile.dob,
+      already_checked_in_today: Boolean(alreadyCheckedInToday),
     },
   }
 }

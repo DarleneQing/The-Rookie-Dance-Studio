@@ -72,6 +72,10 @@ CREATE TABLE checkins (
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
+-- Enforce one check-in per user per Zurich day
+CREATE UNIQUE INDEX checkins_one_per_user_per_zurich_day
+ON checkins (user_id, ((created_at AT TIME ZONE 'Europe/Zurich')::date));
+
 -- -----------------------------------------------------------------------------
 -- 3. Row Level Security (RLS)
 -- -----------------------------------------------------------------------------
@@ -222,6 +226,17 @@ BEGIN
     RAISE EXCEPTION 'Only admins can perform check-ins';
   END IF;
 
+  -- Prevent duplicate check-in on the same Zurich day
+  IF EXISTS (
+    SELECT 1
+    FROM checkins
+    WHERE user_id = p_user_id
+      AND (created_at AT TIME ZONE 'Europe/Zurich')::date =
+        (NOW() AT TIME ZONE 'Europe/Zurich')::date
+  ) THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Already checked in today (Zurich time)');
+  END IF;
+
   -- Find active subscription
   SELECT * INTO v_sub
   FROM subscriptions
@@ -265,6 +280,29 @@ BEGIN
       WHEN v_sub.type = 'monthly' THEN (v_sub.end_date - CURRENT_DATE)::int 
       ELSE v_sub.remaining_credits - 1 
     END
+  );
+EXCEPTION
+  WHEN unique_violation THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Already checked in today (Zurich time)');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function: Check if user already checked in today (Zurich time)
+CREATE OR REPLACE FUNCTION has_checked_in_today(
+  p_user_id UUID
+) RETURNS BOOLEAN AS $$
+BEGIN
+  -- Check if admin
+  IF NOT is_admin() THEN
+    RAISE EXCEPTION 'Only admins can access check-in status';
+  END IF;
+
+  RETURN EXISTS (
+    SELECT 1
+    FROM checkins
+    WHERE user_id = p_user_id
+      AND (created_at AT TIME ZONE 'Europe/Zurich')::date =
+        (NOW() AT TIME ZONE 'Europe/Zurich')::date
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

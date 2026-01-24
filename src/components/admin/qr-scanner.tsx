@@ -34,6 +34,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     full_name: string | null
     avatar_url: string | null
     dob: string | null
+    already_checked_in_today: boolean
   } | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
@@ -103,6 +104,15 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
 
   const handleConfirmCheckIn = async () => {
     if (!pendingUserId) return
+    if (scannedMember?.already_checked_in_today) {
+      const message = 'Already checked in today (Zurich time)'
+      toast.error(message)
+      setLastResult({ success: false, message })
+      setShowConfirmation(false)
+      setScannedMember(null)
+      setPendingUserId(null)
+      return
+    }
 
     setLoadingProfile(true)
     try {
@@ -195,6 +205,14 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                     : 'Not provided'}
                 </p>
               </div>
+
+              {scannedMember.already_checked_in_today && (
+                <div className="w-full rounded-xl border border-red-400/50 bg-red-500/10 px-3 py-2 text-center">
+                  <p className="text-sm font-outfit text-red-200">
+                    Already checked in today (Zurich time).
+                  </p>
+                </div>
+              )}
               
               <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 w-full pt-4">
                 <Button
@@ -208,7 +226,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                 <Button
                   onClick={handleConfirmCheckIn}
                   className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90 text-white"
-                  disabled={loadingProfile}
+                  disabled={loadingProfile || scannedMember.already_checked_in_today}
                 >
                   {loadingProfile ? (
                     <>

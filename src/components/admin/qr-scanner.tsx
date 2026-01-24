@@ -36,6 +36,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     dob: string | null
     already_checked_in_today: boolean
   } | null>(null)
+  const [showSameDayConfirmation, setShowSameDayConfirmation] = useState(false)
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [pendingUserId, setPendingUserId] = useState<string | null>(null)
@@ -52,6 +53,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
       // Reset confirmation state when dialog closes
       setLastResult(null)
       setShowConfirmation(false)
+      setShowSameDayConfirmation(false)
       setScannedMember(null)
       setPendingUserId(null)
       setLoadingProfile(false)
@@ -97,20 +99,16 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     setCameraError(null)
     setScanning(true)
     setShowConfirmation(false)
+    setShowSameDayConfirmation(false)
     setScannedMember(null)
     setPendingUserId(null)
     setLoadingProfile(false)
   }
 
-  const handleConfirmCheckIn = async () => {
+  const handleConfirmCheckIn = async (forceSameDay?: boolean) => {
     if (!pendingUserId) return
-    if (scannedMember?.already_checked_in_today) {
-      const message = 'Already checked in today (Zurich time)'
-      toast.error(message)
-      setLastResult({ success: false, message })
-      setShowConfirmation(false)
-      setScannedMember(null)
-      setPendingUserId(null)
+    if (scannedMember?.already_checked_in_today && !forceSameDay) {
+      setShowSameDayConfirmation(true)
       return
     }
 
@@ -135,6 +133,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     } finally {
       setLoadingProfile(false)
       setShowConfirmation(false)
+      setShowSameDayConfirmation(false)
       setScannedMember(null)
       setPendingUserId(null)
     }
@@ -142,6 +141,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
 
   const handleCancelConfirmation = () => {
     setShowConfirmation(false)
+    setShowSameDayConfirmation(false)
     setScannedMember(null)
     setPendingUserId(null)
     resetScanner()
@@ -206,10 +206,10 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                 </p>
               </div>
 
-              {scannedMember.already_checked_in_today && (
-                <div className="w-full rounded-xl border border-red-400/50 bg-red-500/10 px-3 py-2 text-center">
-                  <p className="text-sm font-outfit text-red-200">
-                    Already checked in today (Zurich time).
+              {showSameDayConfirmation && (
+                <div className="w-full rounded-xl border border-amber-400/50 bg-amber-500/10 px-3 py-2 text-center">
+                  <p className="text-sm font-outfit text-amber-100">
+                    This member already checked in today (Zurich time). Confirm another check-in?
                   </p>
                 </div>
               )}
@@ -224,9 +224,9 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleConfirmCheckIn}
+                  onClick={() => handleConfirmCheckIn(showSameDayConfirmation)}
                   className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90 text-white"
-                  disabled={loadingProfile || scannedMember.already_checked_in_today}
+                  disabled={loadingProfile}
                 >
                   {loadingProfile ? (
                     <>
@@ -234,7 +234,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                       Processing...
                     </>
                   ) : (
-                    'Confirm Check-in'
+                    showSameDayConfirmation ? 'Confirm Check-in Again' : 'Confirm Check-in'
                   )}
                 </Button>
               </DialogFooter>

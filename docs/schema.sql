@@ -72,9 +72,6 @@ CREATE TABLE checkins (
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- Enforce one check-in per user per Zurich day
-CREATE UNIQUE INDEX checkins_one_per_user_per_zurich_day
-ON checkins (user_id, ((created_at AT TIME ZONE 'Europe/Zurich')::date));
 
 -- -----------------------------------------------------------------------------
 -- 3. Row Level Security (RLS)
@@ -226,17 +223,6 @@ BEGIN
     RAISE EXCEPTION 'Only admins can perform check-ins';
   END IF;
 
-  -- Prevent duplicate check-in on the same Zurich day
-  IF EXISTS (
-    SELECT 1
-    FROM checkins
-    WHERE user_id = p_user_id
-      AND (created_at AT TIME ZONE 'Europe/Zurich')::date =
-        (NOW() AT TIME ZONE 'Europe/Zurich')::date
-  ) THEN
-    RETURN jsonb_build_object('success', false, 'message', 'Already checked in today (Zurich time)');
-  END IF;
-
   -- Find active subscription
   SELECT * INTO v_sub
   FROM subscriptions
@@ -281,9 +267,6 @@ BEGIN
       ELSE v_sub.remaining_credits - 1 
     END
   );
-EXCEPTION
-  WHEN unique_violation THEN
-    RETURN jsonb_build_object('success', false, 'message', 'Already checked in today (Zurich time)');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

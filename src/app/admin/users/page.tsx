@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { UsersTable } from "@/components/admin/users-table"
 import { Toaster } from "sonner"
@@ -68,6 +70,15 @@ export default async function UserManagementPage() {
           <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-4 md:p-6 shadow-2xl overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
             
+            <div className="mb-4">
+              <Link
+                href="/admin"
+                aria-label="Back to Admin"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+            </div>
             <h2 className="font-syne font-bold text-2xl md:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-4 md:mb-6 px-2">
               User Management
             </h2>

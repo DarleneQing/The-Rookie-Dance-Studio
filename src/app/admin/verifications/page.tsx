@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, GraduationCap } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { VerificationsTable } from "@/components/admin/verifications-table"
 import { Toaster } from "sonner"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
-import { GraduationCap } from "lucide-react"
 
 export default async function VerificationsPage() {
   const supabase = createClient()
@@ -47,6 +48,15 @@ export default async function VerificationsPage() {
       {/* Content */}
       <div className="relative z-10 container max-w-6xl mx-auto pt-8 pb-8 px-4">
         <div className="space-y-6">
+          <div>
+            <Link
+              href="/admin"
+              aria-label="Back to Admin"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </div>
           {/* Header */}
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-rookie-purple to-rookie-pink rounded-full p-3">

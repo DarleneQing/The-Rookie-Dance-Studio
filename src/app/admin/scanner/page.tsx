@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { QRScannerComponent } from "@/components/admin/qr-scanner"
 import { Toaster } from "sonner"
-import { FloatingElements } from "@/components/auth/floating-elements"
+import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default async function AdminScannerPage() {
   const supabase = createClient()
@@ -26,7 +26,7 @@ export default async function AdminScannerPage() {
     return (
       <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0 bg-black" />
-        <FloatingElements />
+        <FloatingElementsLazy />
         <div className="relative z-10 text-center space-y-4 px-4">
           <h1 className="font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-red-600">
             Access Denied
@@ -43,7 +43,7 @@ export default async function AdminScannerPage() {
       <div className="absolute inset-0 z-0 bg-black" />
 
       {/* Floating decorative elements */}
-      <FloatingElements />
+      <FloatingElementsLazy />
 
       {/* Studio Name Header */}
       <div className="relative z-10 w-full text-center pt-12 pb-8 px-4">

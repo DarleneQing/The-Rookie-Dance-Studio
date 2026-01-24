@@ -1,20 +1,45 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Syne, Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { Footer } from "@/components/footer";
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import dynamic from "next/dynamic";
+
+const Analytics = dynamic(() => import("@vercel/analytics/next").then((mod) => mod.Analytics), {
+  ssr: false,
+});
+const SpeedInsights = dynamic(() => import("@vercel/speed-insights/next").then((mod) => mod.SpeedInsights), {
+  ssr: false,
+});
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
+  display: "swap",
 });
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+  display: "swap",
+});
+
+const syne = Syne({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-syne",
+  display: "swap",
+  preload: true,
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-outfit",
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -30,7 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} ${outfit.variable} antialiased flex flex-col min-h-screen`}
       >
         {children}
         <Footer />

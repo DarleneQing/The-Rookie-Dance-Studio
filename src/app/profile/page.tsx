@@ -8,7 +8,7 @@ import { LogoutButton } from "@/components/profile/logout-button"
 import { StudentVerificationDialog } from "@/components/profile/student-verification-dialog"
 import { SubscriptionHistoryDialog, type SubscriptionHistoryItem } from "@/components/profile/subscription-history-dialog"
 import { CheckinHistoryDialog, type CheckinHistoryItem } from "@/components/profile/checkin-history-dialog"
-import { FloatingElements } from "@/components/auth/floating-elements"
+import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Pencil, Zap, GraduationCap, CheckCircle2, Clock as ClockIcon, AlertTriangle } from "lucide-react"
 import { calculateStreakWeeks } from "@/lib/utils/streak-calculator"
 
@@ -123,7 +123,7 @@ export default async function ProfilePage() {
       <div className="absolute inset-0 z-0 bg-black" />
 
       {/* Floating decorative elements */}
-      <FloatingElements />
+      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-lg mx-auto pt-8 pb-8 px-4 space-y-4">

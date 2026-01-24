@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
-import { FloatingElements } from "@/components/auth/floating-elements"
+import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { LogoutButton } from "@/components/profile/logout-button"
 import { QRScannerComponent } from "@/components/admin/qr-scanner"
 import { UserStatsDialog } from "@/components/admin/user-stats-dialog"
@@ -32,7 +32,7 @@ export default async function AdminDashboardPage() {
     return (
       <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0 bg-black" />
-        <FloatingElements />
+        <FloatingElementsLazy />
         <div className="relative z-10 text-center space-y-4 px-4">
           <h1 className="font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-red-600">
             Access Denied
@@ -139,7 +139,7 @@ export default async function AdminDashboardPage() {
       <div className="absolute inset-0 z-0 bg-black" />
 
       {/* Floating decorative elements */}
-      <FloatingElements />
+      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-md mx-auto pt-8 pb-8 px-4 space-y-6">

@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { VerificationsTable } from "@/components/admin/verifications-table"
 import { Toaster } from "sonner"
-import { FloatingElements } from "@/components/auth/floating-elements"
+import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { GraduationCap } from "lucide-react"
 
 export default async function VerificationsPage() {
@@ -42,7 +42,7 @@ export default async function VerificationsPage() {
       <div className="absolute inset-0 z-0 bg-black" />
       
       {/* Floating decorative elements */}
-      <FloatingElements />
+      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-6xl mx-auto pt-8 pb-8 px-4">

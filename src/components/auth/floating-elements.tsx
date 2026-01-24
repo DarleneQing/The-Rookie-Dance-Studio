@@ -5,13 +5,29 @@ import { OrbitalRing } from './orbital-ring';
 
 export const FloatingElements: React.FC = () => {
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div 
+      className="fixed inset-0 pointer-events-none overflow-hidden z-0"
+      style={{
+        contain: 'layout style paint',
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+      }}
+    >
         {/* Deep background gradients */}
-        <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-indigo-900/30 blur-[120px] rounded-full mix-blend-screen" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-900/20 blur-[100px] rounded-full mix-blend-screen" />
+        <div 
+          className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-indigo-900/30 blur-[120px] rounded-full mix-blend-screen" 
+          style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+        />
+        <div 
+          className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-900/20 blur-[100px] rounded-full mix-blend-screen" 
+          style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+        />
 
         {/* Orbital Rings - Mimicking the poster's central dynamic */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 perspective-[1000px]">
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 perspective-[1000px]"
+          style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+        >
              {/* Large outer ring */}
             <OrbitalRing size={600} tilt={75} rotation={15} color="border-rookie-purple/30" className="border-2" />
             {/* Cross ring */}

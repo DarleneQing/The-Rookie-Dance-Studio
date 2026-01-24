@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Mail, ArrowRight } from "lucide-react"
-import { FloatingElements } from "@/components/auth/floating-elements"
+import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default function VerifyEmailPage() {
   return (
@@ -9,7 +9,7 @@ export default function VerifyEmailPage() {
       <div className="absolute inset-0 z-0 bg-black" />
 
       {/* Floating decorative elements */}
-      <FloatingElements />
+      <FloatingElementsLazy />
 
       {/* Studio Name Header */}
       <div className="relative z-10 w-full text-center pt-12 pb-8 px-4">

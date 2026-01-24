@@ -1,12 +1,12 @@
 import Image from "next/image"
 import Link from "next/link"
-import { FloatingElements } from "@/components/auth/floating-elements"
+import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default function Home() {
   return (
     <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black">
       {/* Floating decorative elements */}
-      <FloatingElements />
+      <FloatingElementsLazy />
 
       {/* Content Container */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-8">

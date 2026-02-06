@@ -93,7 +93,7 @@ export function CoursesPageClient({
 
   return (
     <>
-      <Tabs defaultValue={bookedCourses.length > 0 ? 'bookings' : 'all'} className="w-full">
+      <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="bookings">
             Your Bookings ({bookedCourses.length})

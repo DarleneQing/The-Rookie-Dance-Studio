@@ -13,10 +13,33 @@ export async function bookCourse(courseId: string): Promise<BookCourseResponse> 
   }
   
   try {
+    // Check user's subscription status before booking
+    const { data: subscriptions, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    console.log('=== BOOKING DEBUG ===');
+    console.log('User ID:', user.id);
+    console.log('User Email:', user.email);
+    console.log('Course ID:', courseId);
+    console.log('Active Subscriptions Found:', subscriptions?.length || 0);
+    if (subscriptions && subscriptions.length > 0) {
+      console.log('Subscription Details:', JSON.stringify(subscriptions[0], null, 2));
+    }
+    console.log('Subscription Query Error:', subError);
+    
     const { data, error } = await supabase.rpc('book_course', {
       p_user_id: user.id,
       p_course_id: courseId
     });
+    
+    console.log('Booking Result:', JSON.stringify(data, null, 2));
+    console.log('Booking Error:', error);
+    console.log('=== END DEBUG ===');
     
     if (error) throw error;
     

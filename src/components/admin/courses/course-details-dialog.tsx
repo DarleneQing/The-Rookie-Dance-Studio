@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Users, Clock, Loader2 } from 'lucide-react'
+import { Users, Clock, Loader2, Music } from 'lucide-react'
 
 interface CourseDetailsDialogProps {
   courseId: string
@@ -52,12 +52,23 @@ export function CourseDetailsDialog({
     }
   }
 
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const displayHour = hour % 12 || 12
-    return `${displayHour}:${minutes} ${ampm}`
+  const getTimeInterval = (startTime: string, durationMinutes: number) => {
+    const [hours, minutes] = startTime.split(':').map(Number)
+    const startDate = new Date()
+    startDate.setHours(hours, minutes, 0)
+    
+    const endDate = new Date(startDate.getTime() + durationMinutes * 60000)
+    
+    const formatTime = (date: Date) => {
+      const hours = date.getHours()
+      const minutes = date.getMinutes()
+      const ampm = hours >= 12 ? 'PM' : 'AM'
+      const displayHour = hours % 12 || 12
+      const displayMinutes = minutes.toString().padStart(2, '0')
+      return `${displayHour}:${displayMinutes} ${ampm}`
+    }
+    
+    return `${formatTime(startDate)} - ${formatTime(endDate)}`
   }
 
   const formatDate = (dateString: string) => {
@@ -83,13 +94,13 @@ export function CourseDetailsDialog({
   const getBookingTypeBadge = (type: string) => {
     switch (type) {
       case 'subscription':
-        return <Badge variant="subscription">Subscription</Badge>
+        return <Badge variant="subscription" className="font-semibold">Subscription</Badge>
       case 'single':
-        return <Badge variant="single">Single</Badge>
+        return <Badge variant="single" className="font-semibold">Single Class</Badge>
       case 'drop_in':
-        return <Badge variant="drop_in">Drop-in</Badge>
+        return <Badge variant="drop_in" className="font-semibold">Drop-in</Badge>
       default:
-        return <Badge>{type}</Badge>
+        return <Badge className="font-semibold">{type}</Badge>
     }
   }
 
@@ -98,14 +109,36 @@ export function CourseDetailsDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-syne text-xl">{courseName}</DialogTitle>
+          <DialogTitle className="font-syne text-xl">
+            {courseDetails ? formatDate(courseDetails.scheduled_date) : courseName}
+          </DialogTitle>
           {courseDetails && (
-            <DialogDescription className="flex flex-col gap-1 text-white/70">
-              <span>{formatDate(courseDetails.scheduled_date)} • {formatTime(courseDetails.start_time)}</span>
-              <span className="flex items-center gap-2">
+            <DialogDescription className="flex flex-col gap-2 text-white/70 mt-2">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>{getTimeInterval(courseDetails.start_time, courseDetails.duration_minutes)}</span>
+              </div>
+              {courseDetails.instructor && (
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={courseDetails.instructor.avatar_url || undefined} />
+                    <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white text-xs">
+                      {courseDetails.instructor.full_name.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{courseDetails.instructor.full_name}</span>
+                </div>
+              )}
+              {courseDetails.song && (
+                <div className="flex items-center gap-2">
+                  <Music className="h-4 w-4" />
+                  <span>{courseDetails.song}{courseDetails.singer && ` - ${courseDetails.singer}`}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Capacity: {courseDetails.bookings?.filter(b => b.status === 'confirmed').length || 0}/{courseDetails.capacity}
-              </span>
+                <span>{courseDetails.bookings?.filter(b => b.status === 'confirmed').length || 0}/{courseDetails.capacity} spots booked</span>
+              </div>
             </DialogDescription>
           )}
         </DialogHeader>

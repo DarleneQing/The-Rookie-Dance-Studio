@@ -57,6 +57,9 @@ export function BatchCreateDialog({
     start_time: '15:00',
     duration_minutes: 90,
     capacity: 25,
+    song: null,
+    singer: null,
+    video_link: null,
   })
 
   const getSaturdaysInMonth = (year: number, month: number): Date[] => {
@@ -216,51 +219,6 @@ export function BatchCreateDialog({
             </div>
           </div>
 
-          {/* Preview Section */}
-          <div className="space-y-2">
-            <Label className="font-syne font-semibold text-white">
-              Saturday Preview
-            </Label>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-2">
-              {loadingPreview ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-rookie-purple" />
-                </div>
-              ) : preview.length > 0 ? (
-                <>
-                  {preview.map((item) => (
-                    <div
-                      key={item.date}
-                      className="flex items-center gap-2 text-sm font-outfit"
-                    >
-                      {item.exists ? (
-                        <>
-                          <XCircle className="h-4 w-4 text-red-400" />
-                          <span className="text-white/60">{item.formatted}</span>
-                          <span className="text-red-400 text-xs">(Skipped - already exists)</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="h-4 w-4 text-green-400" />
-                          <span className="text-white">{item.formatted}</span>
-                          <span className="text-green-400 text-xs">(New)</span>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                  <div className="pt-2 mt-2 border-t border-white/10 text-sm font-outfit text-white/80">
-                    Will create <span className="font-semibold text-green-400">{newCoursesCount}</span> course{newCoursesCount !== 1 ? 's' : ''}, 
-                    skip <span className="font-semibold text-red-400">{skippedCount}</span> existing
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-4 text-white/60 font-outfit text-sm">
-                  No Saturdays found in selected month
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Dance Style */}
           <div className="space-y-2">
             <Label htmlFor="dance_style" className="font-syne font-semibold text-white">
@@ -283,7 +241,7 @@ export function BatchCreateDialog({
           {/* Instructor */}
           <div className="space-y-2">
             <Label htmlFor="instructor" className="font-syne font-semibold text-white">
-              Instructor
+              Instructor (Optional)
             </Label>
             <Select
               value={formData.instructor_id || 'unassigned'}
@@ -380,6 +338,97 @@ export function BatchCreateDialog({
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="bg-white/10 border-white/20 text-white"
               required
+            />
+          </div>
+
+          {/* Preview Section */}
+          <div className="space-y-2">
+            <Label className="font-syne font-semibold text-white">
+              Saturday Preview
+            </Label>
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-2">
+              {loadingPreview ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-rookie-purple" />
+                </div>
+              ) : preview.length > 0 ? (
+                <>
+                  {preview.map((item) => (
+                    <div
+                      key={item.date}
+                      className="flex items-center gap-2 text-sm font-outfit"
+                    >
+                      {item.exists ? (
+                        <>
+                          <XCircle className="h-4 w-4 text-red-400" />
+                          <span className="text-white/60">{item.formatted}</span>
+                          <span className="text-red-400 text-xs">(Skipped - already exists)</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-green-400" />
+                          <span className="text-white">{item.formatted}</span>
+                          <span className="text-green-400 text-xs">(New)</span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                  <div className="pt-2 mt-2 border-t border-white/10 text-sm font-outfit text-white/80">
+                    Will create <span className="font-semibold text-green-400">{newCoursesCount}</span> course{newCoursesCount !== 1 ? 's' : ''}, 
+                    skip <span className="font-semibold text-red-400">{skippedCount}</span> existing
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4 text-white/60 font-outfit text-sm">
+                  No Saturdays found in selected month
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Song and Singer */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="song" className="font-syne font-semibold text-white">
+                Song Name (Optional)
+              </Label>
+              <Input
+                id="song"
+                type="text"
+                placeholder="e.g., Magnetic"
+                value={formData.song || ''}
+                onChange={(e) => setFormData({ ...formData, song: e.target.value || null })}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="singer" className="font-syne font-semibold text-white">
+                Singer (Optional)
+              </Label>
+              <Input
+                id="singer"
+                type="text"
+                placeholder="e.g., ILLIT"
+                value={formData.singer || ''}
+                onChange={(e) => setFormData({ ...formData, singer: e.target.value || null })}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+              />
+            </div>
+          </div>
+
+          {/* Video Link */}
+          <div className="space-y-2">
+            <Label htmlFor="video_link" className="font-syne font-semibold text-white">
+              Video Link (Optional)
+            </Label>
+            <Input
+              id="video_link"
+              type="url"
+              placeholder="https://youtube.com/..."
+              value={formData.video_link || ''}
+              onChange={(e) => setFormData({ ...formData, video_link: e.target.value || null })}
+              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
             />
           </div>
 

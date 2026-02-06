@@ -1,0 +1,197 @@
+'use client'
+
+import { useState } from 'react'
+import type { CourseWithBookingCount } from '@/types/courses'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Calendar, Clock, Users, Loader2, ExternalLink, Music } from 'lucide-react'
+
+interface BookCourseDialogProps {
+  course: CourseWithBookingCount
+  hasActiveSubscription: boolean
+  subscriptionType?: string | null
+  children: React.ReactNode
+  onConfirm: () => Promise<void>
+  onClose?: () => void
+}
+
+export function BookCourseDialog({
+  course,
+  hasActiveSubscription,
+  subscriptionType,
+  children,
+  onConfirm,
+  onClose,
+}: BookCourseDialogProps) {
+  const [open, setOpen] = useState(true)
+  const [loading, setLoading] = useState(false)
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (!newOpen && onClose) {
+      onClose()
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
+  const getTimeInterval = (startTime: string, durationMinutes: number) => {
+    const [hours, minutes] = startTime.split(':')
+    const startDate = new Date()
+    startDate.setHours(parseInt(hours), parseInt(minutes), 0)
+    
+    const endDate = new Date(startDate.getTime() + durationMinutes * 60000)
+    
+    const formatTimeShort = (date: Date) => {
+      const hour = date.getHours()
+      const minute = date.getMinutes()
+      const ampm = hour >= 12 ? 'PM' : 'AM'
+      const displayHour = hour % 12 || 12
+      const displayMinute = minute.toString().padStart(2, '0')
+      return `${displayHour}:${displayMinute} ${ampm}`
+    }
+    
+    return `${formatTimeShort(startDate)} - ${formatTimeShort(endDate)}`
+  }
+
+  const handleConfirm = async () => {
+    setLoading(true)
+    try {
+      await onConfirm()
+      setOpen(false)
+    } catch (error) {
+      console.error('Booking error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const bookingTypeLabel = hasActiveSubscription
+    ? subscriptionType?.replace('_', '-') || 'subscription'
+    : 'single class'
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="w-[95vw] max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-syne text-xl">Book Course</DialogTitle>
+          <DialogDescription>
+            Confirm your booking for this dance course.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Course Summary */}
+        <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+          <div>
+            <h4 className="font-syne font-bold text-lg text-white mb-1">
+              {course.song || course.dance_style}
+            </h4>
+            {course.singer && (
+              <p className="text-sm text-white/70 font-outfit mb-1">
+                {course.singer}
+              </p>
+            )}
+            {!course.song && (
+              <p className="text-xs text-white/50 font-outfit mb-1">
+                {course.dance_style}
+              </p>
+            )}
+            {course.instructor && (
+              <p className="text-sm text-white/70 font-outfit">
+                with {course.instructor.full_name}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2 text-sm text-white/80 font-outfit">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-white/60" />
+              <span>{formatDate(course.scheduled_date)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-white/60" />
+              <span>{getTimeInterval(course.start_time, course.duration_minutes)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-white/60" />
+              <span>{course.booking_count}/{course.capacity} spots booked</span>
+            </div>
+            {course.video_link && (
+              <div className="pt-1">
+                <a
+                  href={course.video_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-rookie-cyan hover:text-rookie-cyan/80 transition-colors"
+                >
+                  <Music className="h-4 w-4" />
+                  <span>Check Video</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Booking Type */}
+        <div className="bg-rookie-purple/10 rounded-xl p-3 border border-rookie-purple/30">
+          <p className="text-sm text-white/90 font-outfit mb-2">
+            {hasActiveSubscription ? (
+              <>You will book with your <span className="font-semibold capitalize">{bookingTypeLabel}</span> subscription.</>
+            ) : (
+              <>You will book as a <span className="font-semibold">single class</span>.</>
+            )}
+          </p>
+          {hasActiveSubscription ? (
+            <Badge variant="subscription" className="text-xs">Subscription Booking</Badge>
+          ) : (
+            <Badge variant="single" className="text-xs">Single Class Booking</Badge>
+          )}
+        </div>
+
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={loading}
+            className="w-full sm:w-auto"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Booking...
+              </>
+            ) : (
+              'Confirm Booking'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

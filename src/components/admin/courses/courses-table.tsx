@@ -24,7 +24,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { CourseDetailsDialog } from './course-details-dialog'
-import { Eye, Trash2, Users, MapPin, Clock } from 'lucide-react'
+import { EditCourseDialog } from './edit-course-dialog'
+import { Eye, Trash2, Users, MapPin, Clock, Pencil } from 'lucide-react'
 
 interface CoursesTableProps {
   courses: CourseWithBookingCount[]
@@ -134,8 +135,13 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
             <div className="flex items-start justify-between gap-2">
               <div className="flex flex-col gap-1">
                 <div className="font-syne font-bold text-white text-lg">
-                  {course.dance_style}
+                  {course.song || course.dance_style}
                 </div>
+                {course.singer && (
+                  <div className="text-sm text-white/70 font-outfit">
+                    {course.singer}
+                  </div>
+                )}
                 <div className="text-sm text-white/60 font-outfit">
                   {formatDate(course.scheduled_date)} • {formatTime(course.start_time)}
                 </div>
@@ -182,9 +188,21 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   className="flex-1 bg-white/10 hover:bg-white/20 border-white/20 text-white"
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  View Details
+                  View
                 </Button>
               </CourseDetailsDialog>
+              {type === 'future' && (
+                <EditCourseDialog course={course} onSuccess={() => window.location.reload()}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
+                </EditCourseDialog>
+              )}
               {type === 'future' && course.booking_count === 0 && (
                 <Button
                   variant="outline"
@@ -228,7 +246,14 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                     </div>
                   </TableCell>
                   <TableCell className="px-6 py-4">
-                    <div className="font-syne font-semibold text-white">{course.dance_style}</div>
+                    <div className="font-syne font-semibold text-white">
+                      {course.song || course.dance_style}
+                    </div>
+                    {course.singer && (
+                      <div className="text-xs text-white/60 font-outfit mt-0.5">
+                        {course.singer}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     {course.instructor ? (
@@ -272,6 +297,18 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                           View
                         </Button>
                       </CourseDetailsDialog>
+                      {type === 'future' && (
+                        <EditCourseDialog course={course} onSuccess={() => window.location.reload()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white hover:bg-white/20 font-outfit"
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </Button>
+                        </EditCourseDialog>
+                      )}
                       {type === 'future' && course.booking_count === 0 && (
                         <Button
                           variant="ghost"

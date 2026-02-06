@@ -14,6 +14,9 @@ export interface Course {
   duration_minutes: number;
   capacity: number;
   status: CourseStatus;
+  song: string | null;
+  singer: string | null;
+  video_link: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -77,6 +80,9 @@ export interface CreateCourseInput {
   start_time: string;
   duration_minutes: number;
   capacity: number;
+  song?: string | null;
+  singer?: string | null;
+  video_link?: string | null;
 }
 
 export interface BatchCreateCoursesInput {
@@ -88,6 +94,9 @@ export interface BatchCreateCoursesInput {
   start_time: string;
   duration_minutes: number;
   capacity: number;
+  song?: string | null;
+  singer?: string | null;
+  video_link?: string | null;
 }
 
 // API response types

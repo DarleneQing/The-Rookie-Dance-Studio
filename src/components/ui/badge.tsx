@@ -19,11 +19,11 @@ const badgeVariants = cva(
         full:
           "border-orange-500/30 bg-orange-500/20 text-orange-400",
         subscription:
-          "border-rookie-purple/30 bg-rookie-purple/20 text-rookie-purple",
+          "border-purple-500/40 bg-purple-500/20 text-purple-300",
         single:
-          "border-rookie-pink/30 bg-rookie-pink/20 text-rookie-pink",
+          "border-pink-500/40 bg-pink-500/20 text-pink-300",
         drop_in:
-          "border-rookie-cyan/30 bg-rookie-cyan/20 text-rookie-cyan",
+          "border-cyan-500/40 bg-cyan-500/20 text-cyan-300",
       },
     },
     defaultVariants: {

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { createCourse } from '@/app/admin/courses/actions'
-import type { CreateCourseInput } from '@/types/courses'
+import { useState, useEffect } from 'react'
+import { updateCourse, getInstructors } from '@/app/admin/courses/actions'
+import type { CourseWithBookingCount, CreateCourseInput } from '@/types/courses'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -24,84 +24,69 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Loader2 } from 'lucide-react'
 
-interface CreateCourseDialogProps {
-  instructors: Array<{ id: string; full_name: string; avatar_url: string | null }>
+interface EditCourseDialogProps {
+  course: CourseWithBookingCount
   children: React.ReactNode
   onSuccess?: () => void
 }
 
-export function CreateCourseDialog({
-  instructors,
+export function EditCourseDialog({
+  course,
   children,
   onSuccess,
-}: CreateCourseDialogProps) {
+}: EditCourseDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState<CreateCourseInput>({
-    dance_style: 'Kpop',
-    instructor_id: null,
-    location: 'Quatierzentrum Schütze Flex 4, Heinrichstrasse 238, 8005 Zurich',
-    scheduled_date: '',
-    start_time: '15:00',
-    duration_minutes: 90,
-    capacity: 25,
-    song: null,
-    singer: null,
-    video_link: null,
+  const [instructors, setInstructors] = useState<Array<{ id: string; full_name: string; avatar_url: string | null }>>([])
+  const [formData, setFormData] = useState<Partial<CreateCourseInput>>({
+    dance_style: course.dance_style,
+    instructor_id: course.instructor_id,
+    location: course.location,
+    scheduled_date: course.scheduled_date,
+    start_time: course.start_time,
+    duration_minutes: course.duration_minutes,
+    capacity: course.capacity,
+    song: course.song,
+    singer: course.singer,
+    video_link: course.video_link,
   })
+
+  useEffect(() => {
+    if (open) {
+      loadInstructors()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const loadInstructors = async () => {
+    try {
+      const data = await getInstructors()
+      setInstructors(data)
+    } catch (error) {
+      console.error('Failed to load instructors:', error)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Validation
-    if (!formData.scheduled_date) {
-      toast.error('Please select a date')
-      return
-    }
-
-    const selectedDate = new Date(formData.scheduled_date)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
-    if (selectedDate < today) {
-      toast.error('Cannot create course for past date')
-      return
-    }
 
     setLoading(true)
     try {
-      await createCourse(formData)
-      toast.success('Course created successfully')
+      await updateCourse(course.id, formData)
+      toast.success('Course updated successfully')
       setOpen(false)
-      // Reset form
-      setFormData({
-        dance_style: 'Kpop',
-        instructor_id: null,
-        location: 'Quatierzentrum Schütze Flex 4, Heinrichstrasse 238, 8005 Zurich',
-        scheduled_date: '',
-        start_time: '15:00',
-        duration_minutes: 90,
-        capacity: 25,
-        song: null,
-        singer: null,
-        video_link: null,
-      })
       onSuccess?.()
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(error.message || 'Failed to create course')
+        toast.error(error.message || 'Failed to update course')
       } else {
-        toast.error('Failed to create course')
+        toast.error('Failed to update course')
       }
     } finally {
       setLoading(false)
     }
-  }
-
-  const getTodayDate = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
   }
 
   return (
@@ -109,9 +94,9 @@ export function CreateCourseDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-syne text-xl">Create Course</DialogTitle>
+          <DialogTitle className="font-syne text-xl">Edit Course</DialogTitle>
           <DialogDescription>
-            Create a new dance course. Default values are pre-filled.
+            Update course details. Changes will be saved immediately.
           </DialogDescription>
         </DialogHeader>
 
@@ -170,57 +155,38 @@ export function CreateCourseDialog({
             </Select>
           </div>
 
-          {/* Date */}
-          <div className="space-y-2">
-            <Label htmlFor="scheduled_date" className="font-syne font-semibold text-white">
-              Date
-            </Label>
-            <div className="rounded-2xl border border-rookie-purple px-3 py-2">
+          {/* Start Time and Duration */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="start_time" className="font-syne font-semibold text-white">
+                Start Time
+              </Label>
+              <div className="rounded-2xl border border-rookie-purple px-3 py-2">
+                <Input
+                  id="start_time"
+                  type="time"
+                  value={formData.start_time}
+                  onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                  className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="duration" className="font-syne font-semibold text-white">
+                Duration (min)
+              </Label>
               <Input
-                id="scheduled_date"
-                type="date"
-                min={getTodayDate()}
-                value={formData.scheduled_date}
-                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
-                className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0 [color-scheme:dark]"
-                required
+                id="duration"
+                type="number"
+                min="30"
+                max="180"
+                step="15"
+                value={formData.duration_minutes}
+                onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
+                className="bg-white/10 border-white/20 text-white"
               />
             </div>
-          </div>
-
-          {/* Start Time */}
-          <div className="space-y-2">
-            <Label htmlFor="start_time" className="font-syne font-semibold text-white">
-              Start Time
-            </Label>
-            <div className="rounded-2xl border border-rookie-purple px-3 py-2">
-              <Input
-                id="start_time"
-                type="time"
-                value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Duration */}
-          <div className="space-y-2">
-            <Label htmlFor="duration" className="font-syne font-semibold text-white">
-              Duration (minutes)
-            </Label>
-            <Input
-              id="duration"
-              type="number"
-              min="30"
-              max="180"
-              step="15"
-              value={formData.duration_minutes}
-              onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
-              className="bg-white/10 border-white/20 text-white"
-              required
-            />
           </div>
 
           {/* Capacity */}
@@ -236,7 +202,6 @@ export function CreateCourseDialog({
               value={formData.capacity}
               onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
               className="bg-white/10 border-white/20 text-white"
-              required
             />
           </div>
 
@@ -251,7 +216,6 @@ export function CreateCourseDialog({
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="bg-white/10 border-white/20 text-white"
-              required
             />
           </div>
 
@@ -316,7 +280,14 @@ export function CreateCourseDialog({
               disabled={loading}
               className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90"
             >
-              {loading ? 'Creating...' : 'Create Course'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
             </Button>
           </DialogFooter>
         </form>

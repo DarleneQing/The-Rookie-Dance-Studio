@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"
 import { SubscriptionHistoryDialog, type SubscriptionHistoryItem } from "@/components/profile/subscription-history-dialog"
-import { CheckinHistoryDialog, type CheckinHistoryItem } from "@/components/profile/checkin-history-dialog"
+import { CheckinHistoryDialog } from "@/components/profile/checkin-history-dialog"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { MemberLayout } from "@/components/navigation/member-layout"
 import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Zap, Clock as ClockIcon } from "lucide-react"
@@ -48,7 +48,22 @@ export default async function ProfilePage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("checkins")
-      .select("id, created_at, subscription_id, subscription:subscriptions(type)")
+      .select(`
+        id, 
+        created_at, 
+        subscription_id, 
+        booking_type,
+        subscription:subscriptions(type),
+        course:courses(
+          id,
+          dance_style,
+          scheduled_date,
+          start_time,
+          song,
+          singer,
+          instructor:profiles!courses_instructor_id_fkey(id, full_name, avatar_url)
+        )
+      `)
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50),
@@ -273,11 +288,11 @@ export default async function ProfilePage() {
         </div>
 
         {/* 5. Check-in History Section */}
-        <CheckinHistoryDialog checkins={(checkinHistoryData as CheckinHistoryItem[]) || []}>
+        <CheckinHistoryDialog checkins={checkinHistoryData || []}>
           <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
             <div className="flex items-center gap-3">
               <ClockIcon className="h-5 w-5 text-white/60" />
-              <span className="font-outfit text-white/90 font-medium">Check-in History</span>
+              <span className="font-outfit text-white/90 font-medium">Course History</span>
             </div>
             <ArrowRight className="h-5 w-5 text-white/60" />
           </button>

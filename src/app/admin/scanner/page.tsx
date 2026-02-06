@@ -1,11 +1,12 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { QRScannerComponent } from "@/components/admin/qr-scanner"
+import { CourseQRScanner } from "@/components/admin/scanner/course-qr-scanner"
+import { getTodaysCourses } from "./actions"
 import { Toaster } from "sonner"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default async function AdminScannerPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const {
     data: { user },
@@ -37,6 +38,9 @@ export default async function AdminScannerPage() {
     )
   }
 
+  // Fetch today's courses
+  const todaysCourses = await getTodaysCourses()
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       {/* Background */}
@@ -60,13 +64,13 @@ export default async function AdminScannerPage() {
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
             
             <h2 className="font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-6 text-center">
-              Check-in Scanner
+              Course Check-in
             </h2>
-            <QRScannerComponent>
+            <CourseQRScanner todaysCourses={todaysCourses}>
               <button className="w-full h-14 bg-gradient-to-r from-rookie-purple to-rookie-blue hover:opacity-90 border-2 border-white/20 rounded-xl font-syne font-bold text-white text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
                 Open Scanner
               </button>
-            </QRScannerComponent>
+            </CourseQRScanner>
           </div>
         </div>
         <Toaster position="top-center" />

@@ -43,6 +43,7 @@ export interface CourseWithInstructor extends Course {
 
 export interface CourseWithBookingCount extends CourseWithInstructor {
   booking_count: number;
+  checkin_count: number;
   user_booking: Booking | null; // Current user's booking if exists
 }
 

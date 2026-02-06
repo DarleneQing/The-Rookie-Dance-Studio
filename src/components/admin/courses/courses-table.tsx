@@ -62,6 +62,11 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
     return 'text-green-400'
   }
 
+  const getCurrentAttendance = (course: CourseWithBookingCount) => {
+    // Return whichever is larger: booking count or check-in count
+    return Math.max(course.booking_count, course.checkin_count)
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'scheduled':
@@ -171,10 +176,10 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
             {/* Capacity */}
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-white/60" />
-              <span className={`text-sm font-outfit font-semibold ${getCapacityColor(course.booking_count, course.capacity)}`}>
-                {course.booking_count}/{course.capacity}
+              <span className={`text-sm font-outfit font-semibold ${getCapacityColor(getCurrentAttendance(course), course.capacity)}`}>
+                {getCurrentAttendance(course)}/{course.capacity}
               </span>
-              {course.booking_count >= course.capacity && (
+              {getCurrentAttendance(course) >= course.capacity && (
                 <Badge variant="full">Full</Badge>
               )}
             </div>
@@ -274,10 +279,10 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      <span className={`font-outfit font-semibold ${getCapacityColor(course.booking_count, course.capacity)}`}>
-                        {course.booking_count}/{course.capacity}
+                      <span className={`font-outfit font-semibold ${getCapacityColor(getCurrentAttendance(course), course.capacity)}`}>
+                        {getCurrentAttendance(course)}/{course.capacity}
                       </span>
-                      {course.booking_count >= course.capacity && (
+                      {getCurrentAttendance(course) >= course.capacity && (
                         <Badge variant="full">Full</Badge>
                       )}
                     </div>

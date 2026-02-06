@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { LogoutButton } from "@/components/profile/logout-button"
-import { QRScannerComponent } from "@/components/admin/qr-scanner"
+import { CourseQRScanner } from "@/components/admin/scanner/course-qr-scanner"
+import { getTodaysCourses } from "./scanner/actions"
 import { UserStatsDialog } from "@/components/admin/user-stats-dialog"
 import { ActiveSubscriptionsDialog } from "@/components/admin/active-subscriptions-dialog"
 import { TodayCheckinsDialog } from "@/components/admin/today-checkins-dialog"
@@ -133,6 +134,9 @@ export default async function AdminDashboardPage() {
       }
     }) || []
 
+  // Fetch today's courses for scanner
+  const todaysCourses = await getTodaysCourses()
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       {/* Background */}
@@ -216,7 +220,7 @@ export default async function AdminDashboardPage() {
           </h2>
           <div className="grid grid-cols-1 gap-4">
             {/* Check-in Scanner Card */}
-            <QRScannerComponent>
+            <CourseQRScanner todaysCourses={todaysCourses}>
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
                 <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-6 shadow-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
@@ -226,13 +230,13 @@ export default async function AdminDashboardPage() {
                       <QrCode className="h-8 w-8 text-white" />
                     </div>
                     <div className="w-full font-syne font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple">
-                      Check-in Scanner
+                      Course Check-in Scanner
                     </div>
-                    <p className="text-white/80 font-outfit text-sm">Scan QR codes for class check-ins</p>
+                    <p className="text-white/80 font-outfit text-sm">Scan QR codes for course check-ins</p>
                   </div>
                 </div>
               </div>
-            </QRScannerComponent>
+            </CourseQRScanner>
 
             {/* Course Management Card */}
             <Link href="/admin/courses" className="block">

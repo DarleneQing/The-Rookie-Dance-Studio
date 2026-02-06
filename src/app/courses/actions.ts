@@ -43,14 +43,21 @@ export async function getCourses(filters?: {
   // Get current user's bookings
   const { data: { user } } = await supabase.auth.getUser();
   
-  // Transform data to include booking count and user's booking
+  // Transform data to include booking count, check-in count, and user's booking
   const coursesWithBookings = await Promise.all(
     (courses || []).map(async (course) => {
-      const { count } = await supabase
+      // Get booking count
+      const { count: bookingCount } = await supabase
         .from('bookings')
         .select('*', { count: 'exact', head: true })
         .eq('course_id', course.id)
         .eq('status', 'confirmed');
+      
+      // Get check-in count
+      const { count: checkinCount } = await supabase
+        .from('checkins')
+        .select('*', { count: 'exact', head: true })
+        .eq('course_id', course.id);
       
       let userBooking = null;
       if (user) {
@@ -66,7 +73,8 @@ export async function getCourses(filters?: {
       
       return {
         ...course,
-        booking_count: count || 0,
+        booking_count: bookingCount || 0,
+        checkin_count: checkinCount || 0,
         user_booking: userBooking
       };
     })

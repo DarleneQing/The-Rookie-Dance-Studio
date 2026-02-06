@@ -7,7 +7,7 @@ import { Toaster } from "sonner"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default async function VerificationsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const {
     data: { user },

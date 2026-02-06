@@ -8,10 +8,10 @@ import { UserStatsDialog } from "@/components/admin/user-stats-dialog"
 import { ActiveSubscriptionsDialog } from "@/components/admin/active-subscriptions-dialog"
 import { TodayCheckinsDialog } from "@/components/admin/today-checkins-dialog"
 import { CheckinHistoryCard } from "@/components/admin/checkin-history-card"
-import { QrCode, Users, CreditCard, Clock, GraduationCap } from "lucide-react"
+import { QrCode, Users, CreditCard, Clock, GraduationCap, Calendar } from "lucide-react"
 
 export default async function AdminDashboardPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const {
     data: { user },
@@ -233,6 +233,25 @@ export default async function AdminDashboardPage() {
                 </div>
               </div>
             </QRScannerComponent>
+
+            {/* Course Management Card */}
+            <Link href="/admin/courses" className="block">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-rookie-cyan to-blue-400 opacity-20 blur-2xl rounded-[30px]" />
+                <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-6 shadow-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="bg-gradient-to-br from-rookie-cyan to-blue-400 rounded-full p-4">
+                      <Calendar className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="w-full font-syne font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-cyan to-blue-300">
+                      Course Management
+                    </div>
+                    <p className="text-white/80 font-outfit text-sm">Create and manage dance courses</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
 
             {/* User Management Card */}
             <Link href="/admin/users" className="block">

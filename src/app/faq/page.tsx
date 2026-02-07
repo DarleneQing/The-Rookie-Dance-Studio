@@ -1,9 +1,10 @@
 import { Metadata } from 'next'
 import { FaqContent } from '@/components/legal/faq-content'
-import { FloatingElementsLazy } from '@/components/auth/floating-elements-lazy'
 import { BackToTopButton } from '@/components/legal/back-to-top-button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+
+export const revalidate = 86400 // ISR: revalidate every 24 hours
 
 export const metadata: Metadata = {
   title: 'FAQ | The Rookie Dance Studio',
@@ -15,9 +16,6 @@ export default function FaqPage() {
     <main className="relative min-h-screen overflow-hidden bg-black">
       {/* Background */}
       <div className="absolute inset-0 z-0 bg-black" />
-
-      {/* Floating decorative elements */}
-      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-4xl mx-auto pt-8 pb-24 px-4">

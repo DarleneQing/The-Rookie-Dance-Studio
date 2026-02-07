@@ -2,6 +2,8 @@ import { AuthForm } from "@/components/auth/auth-form"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { AuthMode } from "@/types/auth"
 
+export const dynamic = 'force-static'
+
 export default function RegisterPage() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">

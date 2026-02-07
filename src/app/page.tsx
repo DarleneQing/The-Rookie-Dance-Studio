@@ -3,6 +3,8 @@ import Link from "next/link"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { Footer } from "@/components/footer"
 
+export const dynamic = 'force-static'
+
 export default function Home() {
   return (
     <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black min-h-screen">
@@ -25,7 +27,7 @@ export default function Home() {
         <div className="flex-1 flex items-center justify-center w-full px-4 my-2 max-h-[300px]">
           <div className="relative w-full max-w-[180px] md:max-w-[240px]">
             <Image
-              src="/assets/pose1.png"
+              src="/assets/pose1.webp"
               alt="Welcome illustration"
               width={200}
               height={200}

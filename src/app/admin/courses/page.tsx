@@ -2,9 +2,9 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { getCachedUser } from '@/lib/supabase/cached'
 import { getCourses } from '@/app/courses/actions'
 import { getInstructors } from '@/app/admin/courses/actions'
-import { Toaster } from 'sonner'
 import { FloatingElementsLazy } from '@/components/auth/floating-elements-lazy'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -13,15 +13,13 @@ import { CreateCourseDialog } from '@/components/admin/courses/create-course-dia
 import { BatchCreateDialog } from '@/components/admin/courses/batch-create-dialog'
 
 export default async function AdminCoursesPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return redirect('/login')
   }
+
+  const supabase = createClient()
 
   // Check if admin
   const { data: profile } = await supabase
@@ -130,7 +128,6 @@ export default async function AdminCoursesPage() {
             </Tabs>
           </div>
         </div>
-        <Toaster position="top-center" />
       </div>
     </main>
   )

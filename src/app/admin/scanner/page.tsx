@@ -1,20 +1,18 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedUser } from "@/lib/supabase/cached"
 import { CourseQRScanner } from "@/components/admin/scanner/course-qr-scanner"
 import { getTodaysCourses } from "./actions"
-import { Toaster } from "sonner"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default async function AdminScannerPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return redirect("/login")
   }
+
+  const supabase = createClient()
 
   // Check if admin
   const { data: profile } = await supabase
@@ -73,7 +71,6 @@ export default async function AdminScannerPage() {
             </CourseQRScanner>
           </div>
         </div>
-        <Toaster position="top-center" />
       </div>
     </main>
   )

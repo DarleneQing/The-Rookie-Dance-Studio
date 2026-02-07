@@ -2,20 +2,18 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedUser } from "@/lib/supabase/cached"
 import { UsersTable } from "@/components/admin/users-table"
-import { Toaster } from "sonner"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default async function UserManagementPage() {
-  const supabase = createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return redirect("/login")
   }
+
+  const supabase = createClient()
 
   // Check if admin
   const { data: profile } = await supabase
@@ -85,7 +83,6 @@ export default async function UserManagementPage() {
             <UsersTable users={users} />
           </div>
         </div>
-        <Toaster position="top-center" />
       </div>
     </main>
   )

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedUser } from "@/lib/supabase/cached"
 import Link from "next/link"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { LogoutButton } from "@/components/profile/logout-button"
@@ -12,15 +13,13 @@ import { CheckinHistoryCard } from "@/components/admin/checkin-history-card"
 import { QrCode, Users, CreditCard, Clock, GraduationCap, Calendar } from "lucide-react"
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return redirect("/login")
   }
+
+  const supabase = createClient()
 
   // Check if admin
   const { data: profile } = await supabase

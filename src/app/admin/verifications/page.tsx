@@ -2,20 +2,18 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, GraduationCap } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedUser } from "@/lib/supabase/cached"
 import { VerificationsTable } from "@/components/admin/verifications-table"
-import { Toaster } from "sonner"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default async function VerificationsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return redirect("/login")
   }
+
+  const supabase = createClient()
 
   // Check if admin
   const { data: profile } = await supabase
@@ -88,7 +86,6 @@ export default async function VerificationsPage() {
           )}
         </div>
       </div>
-      <Toaster />
     </main>
   )
 }

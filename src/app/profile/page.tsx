@@ -1,46 +1,41 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedUser } from "@/lib/supabase/cached"
+import { getCachedProfile } from "@/lib/supabase/cached"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"
 import { SubscriptionHistoryDialog, type SubscriptionHistoryItem } from "@/components/profile/subscription-history-dialog"
 import { CheckinHistoryDialog } from "@/components/profile/checkin-history-dialog"
-import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { MemberLayout } from "@/components/navigation/member-layout"
 import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Zap, Clock as ClockIcon } from "lucide-react"
 import { calculateStreakWeeks } from "@/lib/utils/streak-calculator"
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return redirect("/login")
   }
 
-  // Parallelize all database queries for better performance
+  const supabase = createClient()
+
+  // Parallelize all database queries (profile uses cache - deduped with MemberLayout)
   const [
+    profile,
     { data: subscription, error: subscriptionError },
-    { data: profile, error: profileError },
     { data: checkins, error: checkinsError },
     { data: checkinHistoryData, error: checkinHistoryError },
     { data: subscriptionsData, error: subscriptionsError },
     { data: checkinsBySubData, error: checkinsBySubError },
   ] = await Promise.all([
+    getCachedProfile(user.id),
     supabase
       .from("subscriptions")
       .select("*")
       .eq("user_id", user.id)
       .eq("status", "active")
       .maybeSingle(),
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single(),
     supabase
       .from("checkins")
       .select("created_at")
@@ -90,8 +85,7 @@ export default async function ProfilePage() {
   ])
 
   // Handle critical errors (profile is essential)
-  if (profileError) {
-    console.error('Failed to fetch profile:', profileError)
+  if (!profile) {
     return redirect("/login")
   }
 
@@ -135,9 +129,11 @@ export default async function ProfilePage() {
       <main className="relative min-h-screen overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 z-0 bg-black" />
-
-        {/* Floating decorative elements */}
-        <FloatingElementsLazy />
+        {/* Static gradient blurs - no animations */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-indigo-900/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-900/15 rounded-full blur-[100px]" />
+        </div>
 
         {/* Content */}
         <div className="relative z-10 container max-w-lg mx-auto pt-8 pb-8 px-4 space-y-4">

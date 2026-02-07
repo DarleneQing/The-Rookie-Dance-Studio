@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
+import { getCachedUser } from '@/lib/supabase/cached'
 import { getCourses, getUserBookings, canCancelBooking } from '@/app/courses/actions'
 import { MemberLayout } from '@/components/navigation/member-layout'
 import { CoursesPageClient } from '@/components/courses/courses-page-client'
 import { FloatingElementsLazy } from '@/components/auth/floating-elements-lazy'
 import { Footer } from '@/components/footer'
-import { Toaster } from 'sonner'
 
 const coursesPageContent = (
   allCourses: Awaited<ReturnType<typeof getCourses>>,
@@ -17,7 +17,7 @@ const coursesPageContent = (
 ) => (
   <main className="relative min-h-screen overflow-hidden">
     <div className="absolute inset-0 z-0 bg-black" />
-    <FloatingElementsLazy />
+    {!isLoggedIn && <FloatingElementsLazy />}
     <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">
       <div className="relative">
         <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
@@ -42,17 +42,13 @@ const coursesPageContent = (
           />
         </div>
       </div>
-      <Toaster position="top-center" />
     </div>
   </main>
 )
 
 export default async function CoursesPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCachedUser()
+  const supabase = createClient()
 
   const today = new Date().toISOString().split('T')[0]
   const allCourses = await getCourses({

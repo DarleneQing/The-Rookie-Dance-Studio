@@ -4,6 +4,8 @@ import { TableOfContents } from '@/components/legal/table-of-contents'
 import { PDFDownloadButton } from '@/components/legal/pdf-download-button'
 import { TermsContent } from '@/components/legal/terms-content'
 
+export const revalidate = 86400 // ISR: revalidate every 24 hours
+
 export const metadata: Metadata = {
   title: 'Terms and Conditions | The Rookie Dance Studio',
   description: 'Terms and Conditions for The Rookie Dance Studio Platform. Learn about our policies, user agreements, and legal terms.',

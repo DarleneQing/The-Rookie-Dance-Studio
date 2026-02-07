@@ -4,6 +4,8 @@ import { TableOfContents } from '@/components/legal/table-of-contents'
 import { PDFDownloadButton } from '@/components/legal/pdf-download-button'
 import { PrivacyContent } from '@/components/legal/privacy-content'
 
+export const revalidate = 86400 // ISR: revalidate every 24 hours
+
 export const metadata: Metadata = {
   title: 'Privacy Policy | The Rookie Dance Studio',
   description: 'Privacy Policy for The Rookie Dance Studio Platform. Learn how we collect, use, and protect your personal information.',

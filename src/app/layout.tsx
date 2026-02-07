@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import { Syne, Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
@@ -12,22 +11,9 @@ const SpeedInsights = dynamic(() => import("@vercel/speed-insights/next").then((
   ssr: false,
 });
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-  display: "swap",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-  display: "swap",
-});
-
 const syne = Syne({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["600", "700"],
   variable: "--font-syne",
   display: "swap",
   preload: true,
@@ -72,7 +58,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} ${outfit.variable} antialiased flex flex-col min-h-screen`}
+        className={`${syne.variable} ${outfit.variable} antialiased flex flex-col min-h-screen`}
       >
         {children}
         <Toaster position="top-center" />

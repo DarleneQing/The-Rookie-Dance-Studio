@@ -1,7 +1,6 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { FloatingElementsLazy } from '@/components/auth/floating-elements-lazy'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -24,9 +23,6 @@ export function LegalPageLayout({
     <main className="relative min-h-screen overflow-hidden bg-black">
       {/* Background */}
       <div className="absolute inset-0 z-0 bg-black" />
-
-      {/* Floating decorative elements */}
-      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-4xl mx-auto pt-8 pb-24 px-4">

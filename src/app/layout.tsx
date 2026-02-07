@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import { Syne, Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { Footer } from "@/components/footer";
 import dynamic from "next/dynamic";
 
 const Analytics = dynamic(() => import("@vercel/analytics/next").then((mod) => mod.Analytics), {
@@ -58,7 +57,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} ${outfit.variable} antialiased flex flex-col min-h-screen`}
       >
         {children}
-        <Footer />
         <Toaster position="top-center" />
         <Analytics />
         <SpeedInsights />

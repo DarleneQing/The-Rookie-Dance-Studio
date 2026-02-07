@@ -1,10 +1,11 @@
 import Image from "next/image"
 import Link from "next/link"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
+import { Footer } from "@/components/footer"
 
 export default function Home() {
   return (
-    <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black">
+    <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black min-h-screen">
       {/* Floating decorative elements */}
       <FloatingElementsLazy />
 
@@ -50,6 +51,7 @@ export default function Home() {
           </Link>
         </div>
       </div>
+      <Footer />
     </main>
   )
 }

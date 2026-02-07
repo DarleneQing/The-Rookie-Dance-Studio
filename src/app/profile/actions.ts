@@ -311,7 +311,7 @@ export async function updateProfileInfo(data: {
     }
     
     // Build update object
-    const updateData: any = {}
+    const updateData: Record<string, string> = {}
     if (data.full_name !== undefined) {
       updateData.full_name = data.full_name.trim()
     }

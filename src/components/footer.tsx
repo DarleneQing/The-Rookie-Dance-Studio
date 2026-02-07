@@ -78,6 +78,23 @@ export function Footer() {
             © 2025 The Rookie Dance Studio. All rights reserved.
           </p>
         </div>
+
+        {/* Legal Links */}
+        <div className="flex items-center justify-center gap-4 mt-3 text-center">
+          <a
+            href="/terms"
+            className="font-outfit text-xs text-white/50 hover:text-white/80 transition-colors duration-300"
+          >
+            Terms & Conditions
+          </a>
+          <span className="text-white/30">•</span>
+          <a
+            href="/privacy"
+            className="font-outfit text-xs text-white/50 hover:text-white/80 transition-colors duration-300"
+          >
+            Privacy Policy
+          </a>
+        </div>
       </div>
     </footer>
   )

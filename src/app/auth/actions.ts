@@ -5,6 +5,13 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 
+function isValidCallbackUrl(path: string | null): path is string {
+  if (!path || typeof path !== 'string') return false
+  if (!path.startsWith('/')) return false
+  if (path.startsWith('//')) return false
+  return true
+}
+
 export async function login(formData: FormData): Promise<{ error?: string; message?: string }> {
   const supabase = createClient()
 
@@ -19,7 +26,12 @@ export async function login(formData: FormData): Promise<{ error?: string; messa
     return { error: error.message }
   }
 
-  // Check if user is admin and redirect accordingly
+  const callbackUrl = formData.get('callbackUrl') as string | null
+  if (isValidCallbackUrl(callbackUrl)) {
+    revalidatePath('/', 'layout')
+    redirect(callbackUrl)
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -36,7 +48,6 @@ export async function login(formData: FormData): Promise<{ error?: string; messa
     redirect(redirectPath)
   }
 
-  // Fallback to profile if user fetch fails
   revalidatePath('/', 'layout')
   redirect('/profile')
 }

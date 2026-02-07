@@ -1,7 +1,12 @@
 import { AuthForm } from "@/components/auth/auth-form"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams: { callbackUrl?: string }
+}
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  const callbackUrl = searchParams?.callbackUrl
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
       {/* Background */}
@@ -19,7 +24,7 @@ export default function LoginPage() {
 
       {/* Auth Form - Centered */}
       <div className="relative z-10 w-full flex items-center justify-center px-4 pb-12">
-        <AuthForm />
+        <AuthForm callbackUrl={callbackUrl} />
       </div>
     </main>
   )

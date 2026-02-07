@@ -17,6 +17,7 @@ interface CoursesPageClientProps {
   canCancelMap: Map<string, boolean>
   hasActiveSubscription: boolean
   subscriptionType?: string | null
+  isLoggedIn: boolean
 }
 
 export function CoursesPageClient({
@@ -26,6 +27,7 @@ export function CoursesPageClient({
   canCancelMap,
   hasActiveSubscription,
   subscriptionType,
+  isLoggedIn,
 }: CoursesPageClientProps) {
   const router = useRouter()
   const [bookingLoadingId, setBookingLoadingId] = useState<string | null>(null)
@@ -34,6 +36,10 @@ export function CoursesPageClient({
   const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<BookingWithCourse | null>(null)
 
   const handleBookClick = (courseId: string) => {
+    if (!isLoggedIn) {
+      router.push('/login?callbackUrl=/courses')
+      return
+    }
     const course = allCourses.find((c) => c.id === courseId)
     if (course) {
       setSelectedCourseForBooking(course)

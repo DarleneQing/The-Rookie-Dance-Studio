@@ -4,6 +4,7 @@ import { updateSession } from '@/lib/supabase/middleware'
 
 const PUBLIC_ROUTES = [
   '/',
+  '/courses',
   '/login',
   '/register',
   '/faq',

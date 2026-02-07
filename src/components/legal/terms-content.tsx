@@ -115,7 +115,7 @@ export function TermsContent() {
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Bookings may be cancelled free of charge up to <strong>24 hours</strong> before the scheduled class start time</li>
           <li>Cancellations made within 24 hours of the class start time will result in forfeiture of the full contribution fee or subscription credit</li>
-          <li>Cancellations are not permitted within <strong>3 hours</strong> of the class start time</li>
+          <li>Cancellations are not permitted within <strong>24 hours</strong> of the class start time</li>
         </ul>
 
         <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">5.2 Studio-Initiated Cancellations</h3>

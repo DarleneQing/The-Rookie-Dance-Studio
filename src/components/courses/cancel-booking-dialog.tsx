@@ -196,7 +196,7 @@ export function CancelBookingDialog({
               <p className={`text-xs font-outfit ${canCancel ? 'text-green-400/80' : 'text-orange-400/80'}`}>
                 {canCancel
                   ? 'You can cancel this booking. The spot will be freed for other members.'
-                  : 'Cancellations must be made at least 3 hours before the course start time.'}
+                  : 'Cancellations must be made at least 24 hours before the course start time.'}
               </p>
             </div>
           </div>
@@ -205,7 +205,7 @@ export function CancelBookingDialog({
         {/* Cancellation Policy */}
         <div className="bg-white/5 rounded-lg p-3 border border-white/10">
           <p className="text-xs text-white/60 font-outfit">
-            <span className="font-semibold text-white/80">Cancellation Policy:</span> Bookings can be cancelled up to 3 hours before the course start time. Late cancellations are not permitted.
+            <span className="font-semibold text-white/80">Cancellation Policy:</span> Bookings can be cancelled up to 24 hours before the course start time. Late cancellations are not permitted.
           </p>
         </div>
 

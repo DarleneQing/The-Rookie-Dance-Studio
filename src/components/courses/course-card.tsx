@@ -172,7 +172,7 @@ export function CourseCard({
                 </TooltipTrigger>
                 {!canCancelBooking && (
                   <TooltipContent>
-                    <p>Cannot cancel within 3 hours of start</p>
+                    <p>Cannot cancel within 24 hours of start</p>
                   </TooltipContent>
                 )}
               </Tooltip>

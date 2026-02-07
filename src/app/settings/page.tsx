@@ -7,6 +7,7 @@ import { AvatarUploadDialog } from '@/components/profile/avatar-upload-dialog'
 import { EditProfileDialog } from '@/components/profile/edit-profile-dialog'
 import { StudentVerificationDialog } from '@/components/profile/student-verification-dialog'
 import { LogoutButton } from '@/components/profile/logout-button'
+import { FindUsDialog } from '@/components/legal/find-us-dialog'
 import { 
   User, 
   Mail, 
@@ -15,7 +16,8 @@ import {
   Pencil,
   CheckCircle2,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  MapPin
 } from 'lucide-react'
 
 export default async function SettingsPage() {
@@ -267,6 +269,47 @@ export default async function SettingsPage() {
               </StudentVerificationDialog>
             ) : null}
           </div>
+
+          {/* FAQ */}
+          <a
+            href="/faq"
+            className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 rounded-full p-2">
+                <svg className="h-5 w-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="font-outfit text-white/90 font-medium">Frequently Asked Questions</p>
+              </div>
+            </div>
+            <svg className="h-5 w-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+
+          {/* Find Us */}
+          <FindUsDialog>
+            <button
+              type="button"
+              className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="bg-white/10 rounded-full p-2">
+                  <MapPin className="h-5 w-5 text-white/60" />
+                </div>
+                <div className="text-left">
+                  <p className="font-outfit text-white/90 font-medium">Find Us</p>
+                  <p className="font-outfit text-xs text-white/60">Location, contact & social media</p>
+                </div>
+              </div>
+              <svg className="h-5 w-5 text-white/60 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </FindUsDialog>
 
           {/* Terms and Conditions */}
           <a

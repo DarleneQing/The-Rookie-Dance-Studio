@@ -82,6 +82,13 @@ export function Footer() {
         {/* Legal Links */}
         <div className="flex items-center justify-center gap-4 mt-3 text-center">
           <a
+            href="/faq"
+            className="font-outfit text-xs text-white/50 hover:text-white/80 transition-colors duration-300"
+          >
+            FAQ
+          </a>
+          <span className="text-white/30">•</span>
+          <a
             href="/terms"
             className="font-outfit text-xs text-white/50 hover:text-white/80 transition-colors duration-300"
           >

@@ -231,7 +231,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
               <TableRow className="border-white/20 hover:bg-white/10 bg-white/5">
                 <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Date</TableHead>
                 <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Time</TableHead>
-                <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Style</TableHead>
+                <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Song</TableHead>
                 <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Instructor</TableHead>
                 <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Capacity</TableHead>
                 <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Status</TableHead>

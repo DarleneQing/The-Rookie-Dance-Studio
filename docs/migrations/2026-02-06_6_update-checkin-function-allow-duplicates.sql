@@ -72,6 +72,8 @@ BEGIN
     SET remaining_credits = remaining_credits - 1,
         status = CASE WHEN remaining_credits - 1 <= 0 THEN 'depleted'::subscription_status ELSE status END
     WHERE id = v_sub.id;
+    -- Re-read subscription so returned remaining_credits matches DB (avoids stale value)
+    SELECT * INTO v_sub FROM subscriptions WHERE id = v_sub.id;
   END IF;
   
   SELECT COUNT(*) INTO v_current_attendance FROM checkins WHERE course_id = p_course_id;
@@ -85,7 +87,7 @@ BEGIN
     'max_capacity', v_course.capacity,
     'remaining_credits', CASE 
       WHEN v_booking_type = 'subscription' AND v_sub.type IN ('5_times', '10_times') 
-      THEN v_sub.remaining_credits - 1 
+      THEN v_sub.remaining_credits 
       ELSE NULL 
     END
   );

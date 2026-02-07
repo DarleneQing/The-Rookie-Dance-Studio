@@ -47,11 +47,6 @@ export default async function SettingsPage() {
       <main className="relative min-h-screen overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 z-0 bg-black" />
-        {/* Static gradient blurs - no animations */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-indigo-900/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-900/15 rounded-full blur-[100px]" />
-        </div>
 
         {/* Content */}
         <div className="relative z-10 container max-w-lg mx-auto pt-8 pb-8 px-4 space-y-6">

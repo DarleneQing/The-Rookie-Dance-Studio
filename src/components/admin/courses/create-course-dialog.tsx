@@ -262,7 +262,7 @@ export function CreateCourseDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="song" className="font-syne font-semibold text-white">
-                Song Name (Optional)
+                Song (Optional)
               </Label>
               <Input
                 id="song"

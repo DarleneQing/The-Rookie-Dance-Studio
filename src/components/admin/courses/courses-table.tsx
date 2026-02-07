@@ -334,30 +334,33 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog – single dialog with course info only */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="w-[95vw] max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-syne text-xl">Delete Course</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this course? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
           {courseToDelete && (
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <div className="font-syne font-semibold text-white mb-1">
-                {courseToDelete.dance_style}
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-syne text-xl">Delete Course</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Confirm deletion of this course. This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                <div className="font-syne font-semibold text-white mb-1">
+                  {courseToDelete.dance_style}
+                </div>
+                <div className="text-sm text-white/60 font-outfit">
+                  {formatDate(courseToDelete.scheduled_date)} • {formatTime(courseToDelete.start_time)}
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <MapPin className="h-4 w-4 text-white/60" />
+                  <span className="text-xs text-white/60 font-outfit">{courseToDelete.location}</span>
+                </div>
+                <p className="text-sm text-white/70 font-outfit mt-3">
+                  Delete this course? This cannot be undone.
+                </p>
               </div>
-              <div className="text-sm text-white/60 font-outfit">
-                {formatDate(courseToDelete.scheduled_date)} • {formatTime(courseToDelete.start_time)}
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <MapPin className="h-4 w-4 text-white/60" />
-                <span className="text-xs text-white/60 font-outfit">{courseToDelete.location}</span>
-              </div>
-            </div>
-          )}
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
+              <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
@@ -374,6 +377,8 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
               {deleting ? 'Deleting...' : 'Delete Course'}
             </Button>
           </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>

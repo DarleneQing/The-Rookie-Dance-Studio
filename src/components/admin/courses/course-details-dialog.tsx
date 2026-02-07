@@ -155,14 +155,14 @@ export function CourseDetailsDialog({
               const notCheckedIn = confirmedBookings.filter(b => !checkedInUserIds.has(b.user_id))
               return (
             <>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="bookings">
+            <TabsList className="flex w-full flex-col gap-1 sm:grid sm:grid-cols-3 sm:gap-0">
+              <TabsTrigger value="bookings" className="w-full sm:w-auto">
                 Bookings ({confirmedBookings.length})
               </TabsTrigger>
-              <TabsTrigger value="not-checked-in">
+              <TabsTrigger value="not-checked-in" className="w-full sm:w-auto">
                 Not checked in ({notCheckedIn.length})
               </TabsTrigger>
-              <TabsTrigger value="attendance">
+              <TabsTrigger value="attendance" className="w-full sm:w-auto">
                 Attendance ({courseDetails.checkins?.length || 0})
               </TabsTrigger>
             </TabsList>

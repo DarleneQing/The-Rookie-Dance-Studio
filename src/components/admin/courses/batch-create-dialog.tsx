@@ -36,6 +36,7 @@ interface BatchCreateDialogProps {
 interface SaturdayPreview {
   date: string
   exists: boolean
+  isPast: boolean
   formatted: string
 }
 
@@ -89,15 +90,26 @@ export function BatchCreateDialog({
         toDate: lastDay
       })
 
-      const existingDates = new Set(
-        existingCourses.map(c => c.scheduled_date)
+      // Create Set of dates that have courses at the same start_time
+      const existingDateTimes = new Set(
+        existingCourses
+          .filter(c => c.start_time === formData.start_time)
+          .map(c => c.scheduled_date)
       )
 
       const previewData: SaturdayPreview[] = saturdays.map(date => {
         const dateStr = date.toISOString().split('T')[0]
+        
+        // Check if date/time is in the past
+        const [hours, minutes] = formData.start_time.split(':')
+        const courseDateTime = new Date(date)
+        courseDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+        const isPast = courseDateTime <= new Date()
+        
         return {
           date: dateStr,
-          exists: existingDates.has(dateStr),
+          exists: existingDateTimes.has(dateStr),
+          isPast: isPast,
           formatted: date.toLocaleDateString('en-US', { 
             month: 'short', 
             day: 'numeric',
@@ -125,9 +137,16 @@ export function BatchCreateDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const newCoursesCount = preview.filter(p => !p.exists).length
+    const newCoursesCount = preview.filter(p => !p.exists && !p.isPast).length
     if (newCoursesCount === 0) {
-      toast.error('All Saturdays in this month already have courses')
+      const allPast = preview.every(p => p.isPast)
+      const allExist = preview.every(p => p.exists || p.isPast)
+      
+      if (allPast) {
+        toast.error('All Saturdays in this month are in the past')
+      } else if (allExist) {
+        toast.error('All Saturdays in this month already have courses or are in the past')
+      }
       return
     }
 
@@ -159,8 +178,9 @@ export function BatchCreateDialog({
   const currentYear = new Date().getFullYear()
   const years = [currentYear, currentYear + 1, currentYear + 2]
 
-  const newCoursesCount = preview.filter(p => !p.exists).length
+  const newCoursesCount = preview.filter(p => !p.exists && !p.isPast).length
   const skippedCount = preview.filter(p => p.exists).length
+  const pastCount = preview.filter(p => p.isPast).length
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -358,7 +378,13 @@ export function BatchCreateDialog({
                       key={item.date}
                       className="flex items-center gap-2 text-sm font-outfit"
                     >
-                      {item.exists ? (
+                      {item.isPast ? (
+                        <>
+                          <XCircle className="h-4 w-4 text-white/40" />
+                          <span className="text-white/40">{item.formatted}</span>
+                          <span className="text-white/40 text-xs">(Past)</span>
+                        </>
+                      ) : item.exists ? (
                         <>
                           <XCircle className="h-4 w-4 text-red-400" />
                           <span className="text-white/60">{item.formatted}</span>
@@ -374,8 +400,12 @@ export function BatchCreateDialog({
                     </div>
                   ))}
                   <div className="pt-2 mt-2 border-t border-white/10 text-sm font-outfit text-white/80">
-                    Will create <span className="font-semibold text-green-400">{newCoursesCount}</span> course{newCoursesCount !== 1 ? 's' : ''}, 
-                    skip <span className="font-semibold text-red-400">{skippedCount}</span> existing
+                    Will create <span className="font-semibold text-green-400">{newCoursesCount}</span> course{newCoursesCount !== 1 ? 's' : ''}{skippedCount > 0 || pastCount > 0 ? ', skip ' : ''}
+                    {skippedCount > 0 && <span className="font-semibold text-red-400">{skippedCount}</span>}
+                    {skippedCount > 0 && ' existing'}
+                    {skippedCount > 0 && pastCount > 0 && ' and '}
+                    {pastCount > 0 && <span className="font-semibold text-white/40">{pastCount}</span>}
+                    {pastCount > 0 && ' past'}
                   </div>
                 </>
               ) : (

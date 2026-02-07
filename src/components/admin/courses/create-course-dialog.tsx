@@ -60,12 +60,15 @@ export function CreateCourseDialog({
       return
     }
 
-    const selectedDate = new Date(formData.scheduled_date)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
-    if (selectedDate < today) {
-      toast.error('Cannot create course for past date')
+    // Create datetime from date + time
+    const [hours, minutes] = formData.start_time.split(':')
+    const courseDateTime = new Date(formData.scheduled_date)
+    courseDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+
+    const now = new Date()
+
+    if (courseDateTime <= now) {
+      toast.error('Cannot create course for past date/time')
       return
     }
 

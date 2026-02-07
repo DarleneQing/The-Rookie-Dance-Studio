@@ -41,9 +41,27 @@ const outfit = Outfit({
   preload: true,
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://therookiestudio.ch";
+
 export const metadata: Metadata = {
-  title: "Rookie Dance Studio",
-  description: "Dance Group Check-in System",
+  title: "The Rookie Dance Studio | Zurich non-profit dance community",
+  description: "Zurich non-profit dance community, offering K-pop and other dance classes, open and vibrant.",
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    title: "The Rookie Dance Studio | Zurich non-profit dance community",
+    description: "Zurich non-profit dance community, offering K-pop and other dance classes, open and vibrant.",
+    url: siteUrl,
+    siteName: "The Rookie Dance Studio",
+    type: "website",
+    images: [
+      {
+        url: "/icon.png",
+        width: 512,
+        height: 512,
+        alt: "The Rookie Dance Studio",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

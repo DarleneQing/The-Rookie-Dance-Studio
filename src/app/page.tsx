@@ -17,7 +17,7 @@ export default function Home() {
             The Rookie Dance Studio
           </h1>
           <p className="text-white/70 font-outfit font-light text-base md:text-lg mt-1">
-            Welcome to our check-in system.
+            Welcome to join our enthusiastic, open, and vibrant dance community.
           </p>
         </div>
 

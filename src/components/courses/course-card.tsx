@@ -166,7 +166,7 @@ export function CourseCard({
                       disabled={!canCancelBooking || cancelLoading}
                       className="w-full bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {cancelLoading ? 'Cancelling...' : 'Cancel Booking'}
+                      {cancelLoading ? 'Cancelling...' : canCancelBooking ? 'Cancel Booking' : 'Cancel Not Available'}
                     </Button>
                   </div>
                 </TooltipTrigger>

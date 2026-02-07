@@ -184,7 +184,7 @@ export function BookCourseDialog({
         {/* Agreement Section */}
         <div className="bg-rookie-cyan/10 rounded-xl p-4 border border-rookie-cyan/30">
           <p className="text-sm text-white/90 font-outfit leading-relaxed mb-2">
-            By clicking "Confirm Booking", I agree to the following:
+            By clicking &quot;Confirm Booking&quot;, I agree to the following:
           </p>
           <ul className="space-y-1 text-sm text-white/80 font-outfit list-disc list-inside ml-1">
             <li>I have read and understood the rules above.</li>

@@ -6,6 +6,11 @@ interface MemberLayoutProps {
   children: React.ReactNode
 }
 
+// Helper function for className
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(' ')
+}
+
 export async function MemberLayout({ children }: MemberLayoutProps) {
   const supabase = await createClient()
 
@@ -35,9 +40,4 @@ export async function MemberLayout({ children }: MemberLayoutProps) {
       {showBottomNav && <MemberBottomNav />}
     </div>
   )
-}
-
-// Helper function for className
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ')
 }

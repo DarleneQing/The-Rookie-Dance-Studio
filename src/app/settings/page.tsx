@@ -4,6 +4,7 @@ import { MemberLayout } from '@/components/navigation/member-layout'
 import { FloatingElementsLazy } from '@/components/auth/floating-elements-lazy'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AvatarUploadDialog } from '@/components/profile/avatar-upload-dialog'
+import { EditProfileDialog } from '@/components/profile/edit-profile-dialog'
 import { StudentVerificationDialog } from '@/components/profile/student-verification-dialog'
 import { LogoutButton } from '@/components/profile/logout-button'
 import { 
@@ -138,6 +139,14 @@ export default async function SettingsPage() {
                   <p className="text-white/60 font-outfit text-xs mb-1">Full Name</p>
                   <p className="text-white font-syne font-semibold">{profile.full_name || '—'}</p>
                 </div>
+                <EditProfileDialog
+                  currentFullName={profile.full_name}
+                  currentDob={profile.dob}
+                >
+                  <button className="bg-rookie-pink rounded-md p-2 border border-white/30 shadow-md hover:scale-110 transition-transform mt-0.5">
+                    <Pencil className="h-4 w-4 text-white" />
+                  </button>
+                </EditProfileDialog>
               </div>
 
               {/* Email */}
@@ -258,6 +267,46 @@ export default async function SettingsPage() {
               </StudentVerificationDialog>
             ) : null}
           </div>
+
+          {/* Terms and Conditions */}
+          <a
+            href="/terms"
+            className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 rounded-full p-2">
+                <svg className="h-5 w-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="font-outfit text-white/90 font-medium">Terms and Conditions</p>
+              </div>
+            </div>
+            <svg className="h-5 w-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+
+          {/* Privacy Policy */}
+          <a
+            href="/privacy"
+            className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 rounded-full p-2">
+                <svg className="h-5 w-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="font-outfit text-white/90 font-medium">Privacy Policy</p>
+              </div>
+            </div>
+            <svg className="h-5 w-5 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
 
           {/* Account Actions */}
           <div className="space-y-4">

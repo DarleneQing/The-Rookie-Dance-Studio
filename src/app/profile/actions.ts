@@ -283,3 +283,65 @@ export async function uploadStudentCard(
   }
 }
 
+export async function updateProfileInfo(data: {
+  full_name?: string
+  dob?: string
+}): Promise<{ success: boolean; message: string }> {
+  try {
+    const supabase = createClient()
+    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+    
+    if (userError || !user) {
+      return {
+        success: false,
+        message: 'You must be logged in to update your profile.',
+      }
+    }
+    
+    // Validate inputs
+    if (data.full_name !== undefined && data.full_name.trim().length === 0) {
+      return {
+        success: false,
+        message: 'Full name cannot be empty.',
+      }
+    }
+    
+    // Build update object
+    const updateData: any = {}
+    if (data.full_name !== undefined) {
+      updateData.full_name = data.full_name.trim()
+    }
+    if (data.dob !== undefined) {
+      updateData.dob = data.dob
+    }
+    
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id)
+    
+    if (updateError) {
+      return {
+        success: false,
+        message: 'Failed to update profile. Please try again.',
+      }
+    }
+    
+    revalidatePath('/settings')
+    
+    return {
+      success: true,
+      message: 'Profile updated successfully.',
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+    }
+  }
+}
+

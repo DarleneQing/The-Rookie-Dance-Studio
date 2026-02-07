@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2, SwitchCamera, Calendar, Clock, Music, AlertTriangle } from 'lucide-react'
 import { DropInDialog } from './drop-in-dialog'
 import { CapacityOverrideDialog } from './capacity-override-dialog'
+import { cn } from '@/lib/utils'
 
 interface CourseQRScannerProps {
   todaysCourses: CourseWithBookingCount[]
@@ -45,6 +46,8 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     id: string
     full_name: string
     avatar_url: string | null
+    dob: string | null
+    member_type: 'adult' | 'student'
   } | null>(null)
   const [bookingInfo, setBookingInfo] = useState<{
     bookingType: 'subscription' | 'single' | 'drop_in'
@@ -138,6 +141,8 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
           id: profileResponse.profile.id,
           full_name: profileResponse.profile.full_name || 'Unknown',
           avatar_url: profileResponse.profile.avatar_url,
+          dob: profileResponse.profile.dob,
+          member_type: profileResponse.profile.member_type,
         })
 
         // Check if user already checked in for this course (for notification purposes)
@@ -384,10 +389,32 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                   </AvatarFallback>
                 </Avatar>
                 
-                <div className="text-center">
+                <div className="text-center space-y-2">
                   <h3 className="text-2xl font-bold font-syne text-white">
                     {scannedMember.full_name}
                   </h3>
+                  <div className="flex items-center justify-center gap-2">
+                    {scannedMember.dob && (
+                      <span className="text-sm text-white/70 font-outfit">
+                        {new Date(scannedMember.dob).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    )}
+                    <Badge 
+                      variant="default" 
+                      className={cn(
+                        "font-outfit text-xs",
+                        scannedMember.member_type === 'student' 
+                          ? "border-pink-500/40 bg-pink-500/20 text-pink-300" 
+                          : "border-white/30 bg-white/10 text-white"
+                      )}
+                    >
+                      {scannedMember.member_type === 'student' ? 'Student' : 'Adult'}
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Course Information Card */}

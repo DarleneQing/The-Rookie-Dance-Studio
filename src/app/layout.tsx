@@ -55,9 +55,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/icon.png",
-        width: 512,
-        height: 512,
+        url: "/assets/long banner-2.png",
+        width: 1200,
+        height: 400,
         alt: "The Rookie Dance Studio",
       },
     ],

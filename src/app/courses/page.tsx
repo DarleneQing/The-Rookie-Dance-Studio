@@ -67,6 +67,11 @@ export default async function CoursesPage() {
     return (
       <div className="min-h-screen flex flex-col">
         <div className="flex-1">
+          <div className="w-full text-center pt-8 pb-2 px-4">
+            <h1 className="font-syne font-bold text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+              The Rookie Dance Studio
+            </h1>
+          </div>
           {coursesPageContent(allCourses, bookedCourses, bookingsMap, canCancelMap, false, null, false)}
         </div>
         <Footer />

@@ -172,7 +172,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl">
+      <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="text-center font-syne text-white">
             {showConfirmation ? 'Confirm Check-in' : 'Check-in Scanner'}

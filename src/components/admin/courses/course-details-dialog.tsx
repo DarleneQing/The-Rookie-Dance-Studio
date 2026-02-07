@@ -112,34 +112,38 @@ export function CourseDetailsDialog({
           <DialogTitle className="font-syne text-xl">
             {courseDetails ? formatDate(courseDetails.scheduled_date) : courseName}
           </DialogTitle>
-          {courseDetails && (
-            <DialogDescription className="flex flex-col gap-2 text-white/70 mt-2">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>{getTimeInterval(courseDetails.start_time, courseDetails.duration_minutes)}</span>
-              </div>
-              {courseDetails.instructor && (
+          {courseDetails ? (
+            <DialogDescription asChild>
+              <div className="flex flex-col gap-2 text-white/70 mt-2">
                 <div className="flex items-center gap-2">
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={courseDetails.instructor.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white text-xs">
-                      {courseDetails.instructor.full_name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>{courseDetails.instructor.full_name}</span>
+                  <Clock className="h-4 w-4" />
+                  <span>{getTimeInterval(courseDetails.start_time, courseDetails.duration_minutes)}</span>
                 </div>
-              )}
-              {courseDetails.song && (
+                {courseDetails.instructor && (
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={courseDetails.instructor.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white text-xs">
+                        {courseDetails.instructor.full_name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{courseDetails.instructor.full_name}</span>
+                  </div>
+                )}
+                {courseDetails.song && (
+                  <div className="flex items-center gap-2">
+                    <Music className="h-4 w-4" />
+                    <span>{courseDetails.song}{courseDetails.singer && ` - ${courseDetails.singer}`}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
-                  <Music className="h-4 w-4" />
-                  <span>{courseDetails.song}{courseDetails.singer && ` - ${courseDetails.singer}`}</span>
+                  <Users className="h-4 w-4" />
+                  <span>{courseDetails.bookings?.filter(b => b.status === 'confirmed').length || 0}/{courseDetails.capacity} spots booked</span>
                 </div>
-              )}
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>{courseDetails.bookings?.filter(b => b.status === 'confirmed').length || 0}/{courseDetails.capacity} spots booked</span>
               </div>
             </DialogDescription>
+          ) : (
+            <DialogDescription className="sr-only">Course details</DialogDescription>
           )}
         </DialogHeader>
 
@@ -155,15 +159,15 @@ export function CourseDetailsDialog({
               const notCheckedIn = confirmedBookings.filter(b => !checkedInUserIds.has(b.user_id))
               return (
             <>
-            <TabsList className="flex w-full flex-col gap-1 sm:grid sm:grid-cols-3 sm:gap-0">
-              <TabsTrigger value="bookings" className="w-full sm:w-auto">
-                Bookings ({confirmedBookings.length})
+            <TabsList className="grid w-full grid-cols-3 h-auto min-h-9 p-1 gap-0.5">
+              <TabsTrigger value="bookings" className="text-xs sm:text-sm px-1.5 sm:px-3 py-1 sm:py-1.5 min-w-0">
+                <span className="truncate block w-full text-center">Bookings ({confirmedBookings.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="not-checked-in" className="w-full sm:w-auto">
-                Not checked in ({notCheckedIn.length})
+              <TabsTrigger value="not-checked-in" className="text-xs sm:text-sm px-1.5 sm:px-3 py-1 sm:py-1.5 min-w-0">
+                <span className="truncate block w-full text-center">Not in ({notCheckedIn.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="attendance" className="w-full sm:w-auto">
-                Attendance ({courseDetails.checkins?.length || 0})
+              <TabsTrigger value="attendance" className="text-xs sm:text-sm px-1.5 sm:px-3 py-1 sm:py-1.5 min-w-0">
+                <span className="truncate block w-full text-center">Attendance ({courseDetails.checkins?.length || 0})</span>
               </TabsTrigger>
             </TabsList>
 

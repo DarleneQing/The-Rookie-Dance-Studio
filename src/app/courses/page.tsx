@@ -43,12 +43,13 @@ export default async function CoursesPage() {
     getUserBookings(),
   ])
 
-  // Check cancellation eligibility for each booking
-  const canCancelMap = new Map<string, boolean>()
-  for (const booking of userBookingsData) {
-    const canCancel = await canCancelBooking(booking.id)
-    canCancelMap.set(booking.id, canCancel)
-  }
+  // Check cancellation eligibility for each booking (parallel)
+  const canCancelResults = userBookingsData.length > 0
+    ? await Promise.all(userBookingsData.map((b) => canCancelBooking(b.id)))
+    : []
+  const canCancelMap = new Map(
+    userBookingsData.map((b, i) => [b.id, canCancelResults[i] ?? false])
+  )
 
   // Create a map of course_id to booking for quick lookup
   const bookingsMap = new Map(

@@ -369,7 +369,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl bg-black/90 border-white/20 backdrop-blur-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl bg-black/90 border-white/20 backdrop-blur-xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="text-center font-syne text-white text-xl">
             Course Check-in Scanner

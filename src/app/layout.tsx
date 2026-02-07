@@ -27,7 +27,7 @@ const geistMono = localFont({
 
 const syne = Syne({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700"],
   variable: "--font-syne",
   display: "swap",
   preload: true,
@@ -35,7 +35,7 @@ const syne = Syne({
 
 const outfit = Outfit({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600"],
   variable: "--font-outfit",
   display: "swap",
   preload: true,

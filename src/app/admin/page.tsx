@@ -44,16 +44,6 @@ export default async function AdminDashboardPage() {
     )
   }
 
-  // Fetch statistics
-  const { count: totalUsers } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-
-  const { count: activeSubscriptions } = await supabase
-    .from("subscriptions")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-
   // Get today's date in ISO format (YYYY-MM-DD)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -62,55 +52,62 @@ export default async function AdminDashboardPage() {
   todayEnd.setHours(23, 59, 59, 999)
   const todayEndISO = todayEnd.toISOString()
 
-  const { count: todayCheckins } = await supabase
-    .from("checkins")
-    .select("*", { count: "exact", head: true })
-    .gte("created_at", todayStart)
-    .lte("created_at", todayEndISO)
-
-  const { count: pendingVerifications } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .eq("verification_status", "pending")
-
-  // Fetch additional data for dialogs
-  // User breakdown by member_type
-  const { count: adultMembers } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .eq("member_type", "adult")
-
-  const { count: studentMembers } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .eq("member_type", "student")
-
-  // Active subscriptions breakdown by type
-  const { count: monthlySubscriptions } = await supabase
-    .from("subscriptions")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-    .eq("type", "monthly")
-
-  const { count: fiveTimesSubscriptions } = await supabase
-    .from("subscriptions")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-    .eq("type", "5_times")
-
-  const { count: tenTimesSubscriptions } = await supabase
-    .from("subscriptions")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-    .eq("type", "10_times")
-
-  // Today's check-ins with user names
-  const { data: todayCheckinsData } = await supabase
-    .from("checkins")
-    .select("id, created_at, profiles!user_id(full_name)")
-    .gte("created_at", todayStart)
-    .lte("created_at", todayEndISO)
-    .order("created_at", { ascending: false })
+  // Fetch statistics and today's data in parallel
+  const [
+    { count: totalUsers },
+    { count: activeSubscriptions },
+    { count: todayCheckins },
+    { count: pendingVerifications },
+    { count: adultMembers },
+    { count: studentMembers },
+    { count: monthlySubscriptions },
+    { count: fiveTimesSubscriptions },
+    { count: tenTimesSubscriptions },
+    { data: todayCheckinsData },
+    todaysCourses,
+  ] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("status", "active"),
+    supabase
+      .from("checkins")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEndISO),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("verification_status", "pending"),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("member_type", "adult"),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("member_type", "student"),
+    supabase
+      .from("subscriptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active")
+      .eq("type", "monthly"),
+    supabase
+      .from("subscriptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active")
+      .eq("type", "5_times"),
+    supabase
+      .from("subscriptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active")
+      .eq("type", "10_times"),
+    supabase
+      .from("checkins")
+      .select("id, created_at, profiles!user_id(full_name)")
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEndISO)
+      .order("created_at", { ascending: false }),
+    getTodaysCourses(),
+  ])
 
   // Transform today's check-ins data
   type CheckinWithProfile = {
@@ -133,9 +130,6 @@ export default async function AdminDashboardPage() {
         created_at: item.created_at,
       }
     }) || []
-
-  // Fetch today's courses for scanner
-  const todaysCourses = await getTodaysCourses()
 
   return (
     <main className="relative min-h-screen overflow-hidden">

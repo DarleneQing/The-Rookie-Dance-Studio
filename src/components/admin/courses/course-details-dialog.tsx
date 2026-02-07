@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Users, Clock, Loader2, Music } from 'lucide-react'
+import { Users, Clock, Loader2, Music, UserX } from 'lucide-react'
 
 interface CourseDetailsDialogProps {
   courseId: string
@@ -149,9 +149,18 @@ export function CourseDetailsDialog({
           </div>
         ) : courseDetails ? (
           <Tabs defaultValue="bookings" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            {(() => {
+              const confirmedBookings = courseDetails.bookings?.filter(b => b.status === 'confirmed') || []
+              const checkedInUserIds = new Set(courseDetails.checkins?.map(c => c.user_id) || [])
+              const notCheckedIn = confirmedBookings.filter(b => !checkedInUserIds.has(b.user_id))
+              return (
+            <>
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="bookings">
-                Bookings ({courseDetails.bookings?.filter(b => b.status === 'confirmed').length || 0})
+                Bookings ({confirmedBookings.length})
+              </TabsTrigger>
+              <TabsTrigger value="not-checked-in">
+                Not checked in ({notCheckedIn.length})
               </TabsTrigger>
               <TabsTrigger value="attendance">
                 Attendance ({courseDetails.checkins?.length || 0})
@@ -194,6 +203,43 @@ export function CourseDetailsDialog({
               </div>
             </TabsContent>
 
+            <TabsContent value="not-checked-in" className="mt-4">
+              <div className="space-y-2">
+                {notCheckedIn.length > 0 ? (
+                  notCheckedIn
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10"
+                      >
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={booking.user.avatar_url || undefined} />
+                          <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
+                            {booking.user.full_name?.slice(0, 2).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-syne font-semibold text-white">
+                            {booking.user.full_name}
+                          </div>
+                          <div className="text-xs text-white/60 font-outfit">
+                            Booked {formatTimestamp(booking.created_at)}
+                          </div>
+                        </div>
+                        {getBookingTypeBadge(booking.booking_type)}
+                        <span title="Not checked in"><UserX className="h-4 w-4 text-amber-400 flex-shrink-0" /></span>
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-center py-12 text-white/60 font-outfit flex flex-col items-center gap-2">
+                    <UserX className="h-10 w-10 text-white/40" />
+                    <span>Everyone who booked has checked in</span>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
             <TabsContent value="attendance" className="mt-4">
               <div className="space-y-2">
                 {courseDetails.checkins && courseDetails.checkins.length > 0 ? (
@@ -229,6 +275,9 @@ export function CourseDetailsDialog({
                 )}
               </div>
             </TabsContent>
+            </>
+              )
+            })()}
           </Tabs>
         ) : null}
       </DialogContent>

@@ -40,6 +40,9 @@ import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2, SwitchCamera, Calen
 import { DropInDialog } from './drop-in-dialog'
 import { CapacityOverrideDialog } from './capacity-override-dialog'
 import { cn } from '@/lib/utils'
+import { formatCourseDateTime } from '@/lib/utils/date-formatters'
+import { formatSubscriptionType } from '@/lib/utils/subscription-helpers'
+import { BookingTypeBadge } from '@/components/ui/booking-type-badge'
 
 interface CourseQRScannerProps {
   todaysCourses: CourseWithBookingCount[]
@@ -357,38 +360,6 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
 
   const selectedCourse = todaysCourses.find(c => c.id === selectedCourseId)
 
-  const formatCourseDateTime = (date: string, time: string) => {
-    const dateObj = new Date(date)
-    const dateStr = dateObj.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    })
-    
-    const [hours, minutes] = time.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const displayHour = hour % 12 || 12
-    const timeStr = `${displayHour}:${minutes} ${ampm}`
-    
-    return { dateStr, timeStr }
-  }
-
-  const getBookingTypeBadge = (type: string) => {
-    if (type === 'subscription') {
-      return <Badge variant="subscription" className="font-semibold">Subscription</Badge>
-    } else if (type === 'single') {
-      return <Badge variant="single" className="font-semibold">Single Class</Badge>
-    }
-    return <Badge>{type}</Badge>
-  }
-
-  const formatSubscriptionType = (type: string) => {
-    if (type === 'monthly') return 'Monthly Card'
-    if (type === '5_times') return '5-Times Card'
-    if (type === '10_times') return '10-Times Card'
-    return type
-  }
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -494,7 +465,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                     <span className="text-white/80 font-outfit text-sm font-semibold">
                       Booking Type
                     </span>
-                    {getBookingTypeBadge(bookingInfo.bookingType)}
+                    <BookingTypeBadge type={bookingInfo.bookingType} />
                   </div>
 
                   {/* Subscription Details */}

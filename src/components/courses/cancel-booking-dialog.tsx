@@ -12,8 +12,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, AlertTriangle, Loader2, Info, ExternalLink, Music } from 'lucide-react'
+import { formatDate, getTimeInterval } from '@/lib/utils/date-formatters'
+import { BookingTypeBadge } from '@/components/ui/booking-type-badge'
 
 interface CancelBookingDialogProps {
   booking: BookingWithCourse
@@ -40,34 +41,6 @@ export function CancelBookingDialog({
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  const getTimeInterval = (startTime: string, durationMinutes: number) => {
-    const [hours, minutes] = startTime.split(':')
-    const startDate = new Date()
-    startDate.setHours(parseInt(hours), parseInt(minutes), 0)
-    
-    const endDate = new Date(startDate.getTime() + durationMinutes * 60000)
-    
-    const formatTimeShort = (date: Date) => {
-      const hour = date.getHours()
-      const minute = date.getMinutes()
-      const ampm = hour >= 12 ? 'PM' : 'AM'
-      const displayHour = hour % 12 || 12
-      const displayMinute = minute.toString().padStart(2, '0')
-      return `${displayHour}:${displayMinute} ${ampm}`
-    }
-    
-    return `${formatTimeShort(startDate)} - ${formatTimeShort(endDate)}`
-  }
 
   const getTimeUntilCourse = () => {
     const courseDateTime = new Date(`${booking.course.scheduled_date}T${booking.course.start_time}`)
@@ -97,19 +70,6 @@ export function CancelBookingDialog({
       console.error('Cancellation error:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const getBookingTypeBadge = (type: string) => {
-    switch (type) {
-      case 'subscription':
-        return <Badge variant="subscription">Subscription</Badge>
-      case 'single':
-        return <Badge variant="single">Single</Badge>
-      case 'drop_in':
-        return <Badge variant="drop_in">Drop-in</Badge>
-      default:
-        return <Badge>{type}</Badge>
     }
   }
 
@@ -152,13 +112,13 @@ export function CancelBookingDialog({
                 </p>
               )}
             </div>
-            {getBookingTypeBadge(booking.booking_type)}
+            <BookingTypeBadge type={booking.booking_type} />
           </div>
 
           <div className="space-y-2 text-sm text-white/80 font-outfit">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-white/60" />
-              <span>{formatDate(booking.course.scheduled_date)}</span>
+              <span>{formatDate(booking.course.scheduled_date, { includeWeekday: true, includeYear: true, weekdayStyle: 'long', monthStyle: 'long' })}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-white/60" />

@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { CourseWithBookingCount } from '@/types/courses';
+import { getErrorMessage } from '@/lib/utils/error-helpers';
+import { unwrapSupabaseRelation } from '@/lib/utils/supabase-helpers';
 
 export interface CheckinWithUser {
   id: string;
@@ -40,7 +42,6 @@ export async function getTodaysCourses(): Promise<CourseWithBookingCount[]> {
     .order('start_time', { ascending: true });
   
   if (error) {
-    console.error('Error fetching today\'s courses:', error);
     return [];
   }
   
@@ -49,6 +50,7 @@ export async function getTodaysCourses(): Promise<CourseWithBookingCount[]> {
     booking_count: Array.isArray(course.booking_count) 
       ? course.booking_count.length 
       : 0,
+    instructor: unwrapSupabaseRelation(course.instructor),
   })) as CourseWithBookingCount[];
 }
 
@@ -67,7 +69,6 @@ export async function getCourseCheckins(courseId: string): Promise<CheckinWithUs
     .order('created_at', { ascending: false });
   
   if (error) {
-    console.error('Error fetching course check-ins:', error);
     return [];
   }
   
@@ -76,7 +77,7 @@ export async function getCourseCheckins(courseId: string): Promise<CheckinWithUs
     id: item.id,
     created_at: item.created_at,
     booking_type: item.booking_type,
-    user: Array.isArray(item.user) ? item.user[0] : item.user,
+    user: unwrapSupabaseRelation(item.user),
   })) as CheckinWithUser[];
 }
 
@@ -108,7 +109,6 @@ export async function getUserBookingForCourse(
     .maybeSingle();
   
   if (error) {
-    console.error('Error checking user booking:', error);
     return { hasBooking: false };
   }
   
@@ -118,7 +118,7 @@ export async function getUserBookingForCourse(
   
   // If booking type is subscription, validate the subscription is still active
   if (data.booking_type === 'subscription' && data.subscription_id) {
-    const sub = Array.isArray(data.subscription) ? data.subscription[0] : data.subscription;
+    const sub = unwrapSupabaseRelation(data.subscription);
     
     // Check if subscription exists and is active
     if (!sub || sub.status !== 'active') {
@@ -174,7 +174,6 @@ export async function checkUserAlreadyCheckedIn(
     .limit(1);
   
   if (error) {
-    console.error('Error checking if user already checked in:', error);
     return false;
   }
   
@@ -252,10 +251,9 @@ export async function performCourseCheckin(
     
     return data as CourseCheckinResponse;
   } catch (error) {
-    console.error('Check-in error:', error);
     return { 
       success: false, 
-      message: error instanceof Error ? error.message : 'Failed to perform check-in' 
+      message: getErrorMessage(error, 'Failed to perform check-in')
     };
   }
 }

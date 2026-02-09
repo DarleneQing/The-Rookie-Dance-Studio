@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Calendar, Clock, Users, CheckCircle2, ExternalLink, Music } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatDate, getTimeInterval } from '@/lib/utils/date-formatters'
 
 interface CourseCardProps {
   course: CourseWithBookingCount
@@ -27,33 +28,6 @@ export function CourseCard({
   bookingLoading = false,
   cancelLoading = false,
 }: CourseCardProps) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  const getTimeInterval = (startTime: string, durationMinutes: number) => {
-    const [hours, minutes] = startTime.split(':')
-    const startDate = new Date()
-    startDate.setHours(parseInt(hours), parseInt(minutes), 0)
-    
-    const endDate = new Date(startDate.getTime() + durationMinutes * 60000)
-    
-    const formatTimeShort = (date: Date) => {
-      const hour = date.getHours()
-      const minute = date.getMinutes()
-      const ampm = hour >= 12 ? 'PM' : 'AM'
-      const displayHour = hour % 12 || 12
-      const displayMinute = minute.toString().padStart(2, '0')
-      return `${displayHour}:${displayMinute} ${ampm}`
-    }
-    
-    return `${formatTimeShort(startDate)} - ${formatTimeShort(endDate)}`
-  }
 
   const getCapacityColor = (current: number, max: number) => {
     const percentage = (current / max) * 100
@@ -100,7 +74,7 @@ export function CourseCard({
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5 text-sm text-white/80 font-outfit">
           <Calendar className="h-4 w-4 text-white/60" />
-          <span>{formatDate(course.scheduled_date)}</span>
+          <span>{formatDate(course.scheduled_date, { includeWeekday: true })}</span>
         </div>
         <div className="flex items-center gap-1.5 text-sm text-white/80 font-outfit">
           <Clock className="h-4 w-4 text-white/60" />

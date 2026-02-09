@@ -26,6 +26,7 @@ import {
 import { CourseDetailsDialog } from './course-details-dialog'
 import { EditCourseDialog } from './edit-course-dialog'
 import { Eye, Trash2, Users, MapPin, Clock, Pencil } from 'lucide-react'
+import { formatDate, formatTime } from '@/lib/utils/date-formatters'
 
 interface CoursesTableProps {
   courses: CourseWithBookingCount[]
@@ -37,23 +38,6 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [courseToDelete, setCourseToDelete] = useState<CourseWithBookingCount | null>(null)
   const [deleting, setDeleting] = useState(false)
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const displayHour = hour % 12 || 12
-    return `${displayHour}:${minutes} ${ampm}`
-  }
 
   const getCapacityColor = (current: number, max: number) => {
     const percentage = (current / max) * 100
@@ -112,7 +96,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
   }
 
   const getCourseName = (course: CourseWithBookingCount) => {
-    return `${course.dance_style} - ${formatDate(course.scheduled_date)}, ${formatTime(course.start_time)}`
+    return `${course.dance_style} - ${formatDate(course.scheduled_date, { includeYear: true })}, ${formatTime(course.start_time)}`
   }
 
   if (courses.length === 0) {
@@ -148,7 +132,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   </div>
                 )}
                 <div className="text-sm text-white/60 font-outfit">
-                  {formatDate(course.scheduled_date)} • {formatTime(course.start_time)}
+                  {formatDate(course.scheduled_date, { includeYear: true })} • {formatTime(course.start_time)}
                 </div>
               </div>
               {getStatusBadge(course.status)}
@@ -242,7 +226,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
               {courses.map((course) => (
                 <TableRow key={course.id} className="border-white/20 hover:bg-white/10 transition-colors">
                   <TableCell className="px-6 py-4">
-                    <div className="font-outfit text-white">{formatDate(course.scheduled_date)}</div>
+                    <div className="font-outfit text-white">{formatDate(course.scheduled_date, { includeYear: true })}</div>
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     <div className="flex items-center gap-2 font-outfit text-white">
@@ -350,7 +334,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   {courseToDelete.dance_style}
                 </div>
                 <div className="text-sm text-white/60 font-outfit">
-                  {formatDate(courseToDelete.scheduled_date)} • {formatTime(courseToDelete.start_time)}
+                  {formatDate(courseToDelete.scheduled_date, { includeYear: true })} • {formatTime(courseToDelete.start_time)}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <MapPin className="h-4 w-4 text-white/60" />

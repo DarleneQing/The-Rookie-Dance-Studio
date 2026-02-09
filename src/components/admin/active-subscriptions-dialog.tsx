@@ -8,19 +8,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { formatSubscriptionType } from "@/lib/utils/subscription-helpers"
 
 interface ActiveSubscriptionsDialogProps {
   children: React.ReactNode
   monthlyCount: number
   fiveTimesCount: number
   tenTimesCount: number
-}
-
-function formatSubscriptionType(type: string) {
-  if (type === "monthly") return "Monthly Card"
-  if (type === "5_times") return "5-Times Card"
-  if (type === "10_times") return "10-Times Card"
-  return type
 }
 
 export function ActiveSubscriptionsDialog({

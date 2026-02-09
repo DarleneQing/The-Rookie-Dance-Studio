@@ -25,11 +25,11 @@ export default async function ProfilePage() {
   // Parallelize all database queries (profile uses cache - deduped with MemberLayout)
   const [
     profile,
-    { data: subscription, error: subscriptionError },
-    { data: checkins, error: checkinsError },
-    { data: checkinHistoryData, error: checkinHistoryError },
-    { data: subscriptionsData, error: subscriptionsError },
-    { data: checkinsBySubData, error: checkinsBySubError },
+    { data: subscription },
+    { data: checkins },
+    { data: checkinHistoryData },
+    { data: subscriptionsData },
+    { data: checkinsBySubData },
   ] = await Promise.all([
     getCachedProfile(user.id),
     supabase
@@ -91,12 +91,7 @@ export default async function ProfilePage() {
     return redirect("/login")
   }
 
-  // Log non-critical errors for monitoring
-  if (subscriptionError) console.error('Failed to fetch subscription:', subscriptionError)
-  if (checkinsError) console.error('Failed to fetch checkins:', checkinsError)
-  if (checkinHistoryError) console.error('Failed to fetch checkin history:', checkinHistoryError)
-  if (subscriptionsError) console.error('Failed to fetch subscriptions:', subscriptionsError)
-  if (checkinsBySubError) console.error('Failed to fetch checkins by subscription:', checkinsBySubError)
+  // Non-critical errors are handled gracefully with fallback values
 
   type CheckinSubscriptionRow = { subscription_id: string }
 

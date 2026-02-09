@@ -12,8 +12,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { AlertTriangle, Clock, Users, Loader2, Calendar, Music } from 'lucide-react'
+import { AlertTriangle, Clock, Loader2, Calendar, Music } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatCourseDateTime } from '@/lib/utils/date-formatters'
+import { formatSubscriptionType } from '@/lib/utils/subscription-helpers'
 
 interface DropInDialogProps {
   open: boolean
@@ -49,29 +51,6 @@ export function DropInDialog({
   loading = false,
   subscriptionInfo = null,
 }: DropInDialogProps) {
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const displayHour = hour % 12 || 12
-    return `${displayHour}:${minutes} ${ampm}`
-  }
-
-  const formatCourseDateTime = (date: string, time: string) => {
-    const dateObj = new Date(date)
-    const dateStr = dateObj.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    })
-    
-    const [hours, minutes] = time.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const displayHour = hour % 12 || 12
-    const timeStr = `${displayHour}:${minutes} ${ampm}`
-    
-    return { dateStr, timeStr }
-  }
 
   const handleConfirm = async () => {
     await onConfirm()
@@ -191,13 +170,7 @@ export function DropInDialog({
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/70 font-outfit">Plan:</span>
                   <span className="text-white font-outfit font-semibold">
-                    {subscriptionInfo.subscriptionDetails.type === 'monthly' 
-                      ? 'Monthly Card' 
-                      : subscriptionInfo.subscriptionDetails.type === '5_times'
-                      ? '5-Times Card'
-                      : subscriptionInfo.subscriptionDetails.type === '10_times'
-                      ? '10-Times Card'
-                      : subscriptionInfo.subscriptionDetails.type}
+                    {formatSubscriptionType(subscriptionInfo.subscriptionDetails.type)}
                   </span>
                 </div>
                 

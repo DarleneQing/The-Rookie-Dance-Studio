@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { formatSubscriptionType } from "@/lib/utils/subscription-helpers"
 
 export type SubscriptionHistoryItem = {
   id: string
@@ -24,13 +25,6 @@ export type SubscriptionHistoryItem = {
 interface SubscriptionHistoryDialogProps {
   children: React.ReactNode
   subscriptions: SubscriptionHistoryItem[]
-}
-
-function formatPlanType(type: SubscriptionHistoryItem["type"]) {
-  if (type === "monthly") return "Monthly Card"
-  if (type === "5_times") return "5-Times Card"
-  if (type === "10_times") return "10-Times Card"
-  return type
 }
 
 function formatStatus(status: SubscriptionHistoryItem["status"]) {
@@ -87,7 +81,7 @@ export function SubscriptionHistoryDialog({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <h4 className="font-syne font-semibold text-white truncate">
-                          {formatPlanType(sub.type)}
+                          {formatSubscriptionType(sub.type)}
                         </h4>
                         <span
                           className={[

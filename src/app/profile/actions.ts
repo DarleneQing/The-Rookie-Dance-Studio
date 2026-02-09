@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { createClient } from '@/lib/supabase/server'
+import { getErrorMessage } from '@/lib/utils/error-helpers'
 
 interface UpdateAvatarResult {
   success: boolean
@@ -122,7 +123,7 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
+      message: getErrorMessage(error, 'An unexpected error occurred. Please try again.'),
     }
   }
 }
@@ -278,7 +279,7 @@ export async function uploadStudentCard(
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
+      message: getErrorMessage(error, 'An unexpected error occurred. Please try again.'),
     }
   }
 }
@@ -340,7 +341,7 @@ export async function updateProfileInfo(data: {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+      message: getErrorMessage(error, 'An unexpected error occurred.'),
     }
   }
 }

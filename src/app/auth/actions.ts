@@ -69,6 +69,26 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
     }
   }
 
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(data.email.trim())) {
+    return { error: 'Invalid email format' }
+  }
+
+  // Validate password length
+  if (data.password.length < 6) {
+    return { error: 'Password must be at least 6 characters' }
+  }
+
+  // Validate date of birth
+  const dobDate = new Date(data.dob)
+  if (isNaN(dobDate.getTime())) {
+    return { error: 'Invalid date of birth' }
+  }
+  if (dobDate > new Date()) {
+    return { error: 'Date of birth cannot be in the future' }
+  }
+
   const { error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,

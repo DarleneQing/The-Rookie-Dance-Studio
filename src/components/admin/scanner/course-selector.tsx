@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatTime } from '@/lib/utils/date-formatters'
 
 interface CourseSelectorProps {
   courses: CourseWithBookingCount[]
@@ -19,14 +20,6 @@ export function CourseSelector({
   onSelectCourse,
   attendanceCount,
 }: CourseSelectorProps) {
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const displayHour = hour % 12 || 12
-    return `${displayHour}:${minutes} ${ampm}`
-  }
-
   const getCapacityColor = (current: number, max: number) => {
     const percentage = (current / max) * 100
     if (percentage >= 100) return 'text-red-400'

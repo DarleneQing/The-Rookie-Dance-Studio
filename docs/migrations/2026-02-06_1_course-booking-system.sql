@@ -19,7 +19,7 @@ CREATE TABLE courses (
   scheduled_date DATE NOT NULL,
   start_time TIME NOT NULL,
   duration_minutes INTEGER NOT NULL DEFAULT 90,
-  capacity INTEGER NOT NULL DEFAULT 25,
+  capacity INTEGER NOT NULL DEFAULT 20,
   status course_status DEFAULT 'scheduled'::course_status NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,

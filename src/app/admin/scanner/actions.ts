@@ -181,6 +181,59 @@ export async function checkUserAlreadyCheckedIn(
   return data && data.length > 0;
 }
 
+export async function getUserActiveSubscription(
+  userId: string
+): Promise<{ 
+  hasSubscription: boolean;
+  subscriptionDetails?: {
+    type: string;
+    remainingCredits?: number;
+    endDate?: string;
+  };
+}> {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('id, status, type, remaining_credits, end_date')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  
+  if (error) {
+    console.error('Error fetching user subscription:', error);
+    return { hasSubscription: false };
+  }
+  
+  if (!data) {
+    return { hasSubscription: false };
+  }
+  
+  // Validate subscription is still valid
+  if (data.type === '5_times' || data.type === '10_times') {
+    if (data.remaining_credits <= 0) {
+      return { hasSubscription: false };
+    }
+  } else if (data.type === 'monthly') {
+    if (new Date(data.end_date) < new Date()) {
+      return { hasSubscription: false };
+    }
+  }
+  
+  return {
+    hasSubscription: true,
+    subscriptionDetails: {
+      type: data.type,
+      remainingCredits: data.type === '5_times' || data.type === '10_times' 
+        ? data.remaining_credits 
+        : undefined,
+      endDate: data.type === 'monthly' ? data.end_date : undefined,
+    }
+  };
+}
+
 export async function performCourseCheckin(
   userId: string,
   courseId: string,

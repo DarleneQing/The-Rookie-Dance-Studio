@@ -47,6 +47,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     full_name: string | null
     avatar_url: string | null
     dob: string | null
+    member_type?: 'adult' | 'student'
     already_checked_in_today: boolean
   } | null>(null)
   const [showSameDayConfirmation, setShowSameDayConfirmation] = useState(false)
@@ -195,16 +196,21 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
           {showConfirmation && scannedMember ? (
             <div className="w-full max-w-sm flex flex-col items-center justify-center space-y-4">
               <Avatar className="h-40 w-40 border-4 border-white/20">
-                <AvatarImage src={scannedMember.avatar_url || undefined} alt={scannedMember.full_name || 'Member'} />
+                <AvatarImage src={scannedMember.avatar_url || undefined} alt={scannedMember.full_name || 'User'} />
                 <AvatarFallback className="text-4xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
                   {scannedMember.full_name ? scannedMember.full_name.charAt(0).toUpperCase() : '?'}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="text-center">
+              <div className="text-center space-y-1">
                 <h3 className="text-xl font-bold font-syne text-white">
-                  {scannedMember.full_name || 'Unknown Member'}
+                  {scannedMember.full_name || 'Unknown User'}
                 </h3>
+                {scannedMember.member_type && (
+                  <p className="text-xs font-outfit uppercase tracking-wide text-white/70">
+                    {scannedMember.member_type === 'student' ? 'Student' : 'Adult'}
+                  </p>
+                )}
               </div>
               
               <div className="text-center">
@@ -222,7 +228,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
               {showSameDayConfirmation && (
                 <div className="w-full rounded-xl border border-amber-400/50 bg-amber-500/10 px-3 py-2 text-center">
                   <p className="text-sm font-outfit text-amber-100">
-                    This member already checked in today (Zurich time). Confirm another check-in?
+                    This user already checked in today (Zurich time). Confirm another check-in?
                   </p>
                 </div>
               )}

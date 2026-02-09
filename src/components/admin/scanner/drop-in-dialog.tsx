@@ -11,7 +11,9 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { AlertTriangle, Clock, Users, Loader2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { AlertTriangle, Clock, Users, Loader2, Calendar, Music } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface DropInDialogProps {
   open: boolean
@@ -20,11 +22,21 @@ interface DropInDialogProps {
     id: string
     full_name: string
     avatar_url: string | null
+    dob: string | null
+    member_type: 'adult' | 'student'
   }
   course: CourseWithBookingCount
   currentAttendance: number
   onConfirm: () => Promise<void>
   loading?: boolean
+  subscriptionInfo?: {
+    hasSubscription: boolean
+    subscriptionDetails?: {
+      type: string
+      remainingCredits?: number
+      endDate?: string
+    }
+  } | null
 }
 
 export function DropInDialog({
@@ -35,6 +47,7 @@ export function DropInDialog({
   currentAttendance,
   onConfirm,
   loading = false,
+  subscriptionInfo = null,
 }: DropInDialogProps) {
   const formatTime = (timeString: string) => {
     const [hours, minutes] = timeString.split(':')
@@ -42,6 +55,22 @@ export function DropInDialog({
     const ampm = hour >= 12 ? 'PM' : 'AM'
     const displayHour = hour % 12 || 12
     return `${displayHour}:${minutes} ${ampm}`
+  }
+
+  const formatCourseDateTime = (date: string, time: string) => {
+    const dateObj = new Date(date)
+    const dateStr = dateObj.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    })
+    
+    const [hours, minutes] = time.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour % 12 || 12
+    const timeStr = `${displayHour}:${minutes} ${ampm}`
+    
+    return { dateStr, timeStr }
   }
 
   const handleConfirm = async () => {
@@ -61,56 +90,150 @@ export function DropInDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* User Info */}
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={user.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne text-lg">
-                {user.full_name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="font-syne font-bold text-white text-lg">
-                {user.full_name}
-              </div>
-              <div className="text-xs text-white/60 font-outfit">
-                Member
-              </div>
+        {/* User Info (match main scanner confirm layout) */}
+        <div className="w-full flex flex-col items-center space-y-4">
+          <Avatar className="h-24 w-24 border-4 border-white/20">
+            <AvatarImage src={user.avatar_url || undefined} />
+            <AvatarFallback className="text-2xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
+              {user.full_name.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="text-center space-y-2">
+            <h3 className="text-2xl font-bold font-syne text-white">
+              {user.full_name}
+            </h3>
+            <div className="flex items-center justify-center gap-2">
+              {user.dob && (
+                <span className="text-sm text-white/70 font-outfit">
+                  {new Date(user.dob).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </span>
+              )}
+              <Badge 
+                variant="default" 
+                className={cn(
+                  "font-outfit text-xs",
+                  user.member_type === 'student' 
+                    ? "border-pink-500/40 bg-pink-500/20 text-pink-300" 
+                    : "border-white/30 bg-white/10 text-white"
+                )}
+              >
+                {user.member_type === 'student' ? 'Student' : 'Adult'}
+              </Badge>
             </div>
           </div>
         </div>
 
-        {/* Course Info */}
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+        {/* Course Information Card */}
+        <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+          <div className="flex items-center gap-2 text-white/80 font-outfit text-sm font-semibold">
+            <Music className="h-4 w-4" />
+            <span>Course Information</span>
+          </div>
+          
+          <div className="border-t border-white/10" />
+          
           <div>
-            <div className="font-syne font-bold text-white">
+            <div className="font-syne font-bold text-white text-lg">
               {course.song || course.dance_style}
             </div>
             {course.singer && (
-              <div className="text-sm text-white/70 font-outfit">
+              <div className="text-sm text-white/70 font-outfit mt-0.5">
                 {course.singer}
               </div>
             )}
           </div>
 
-          <div className="space-y-2 text-sm text-white/80 font-outfit">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-white/60" />
-              <span>Today • {formatTime(course.start_time)}</span>
+          <div className="grid grid-cols-2 gap-3 text-sm text-white/70 font-outfit">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" />
+              <span>{formatCourseDateTime(course.scheduled_date, course.start_time).dateStr}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-white/60" />
-              <span>Current: {currentAttendance}/{course.capacity}</span>
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              <span>{formatCourseDateTime(course.scheduled_date, course.start_time).timeStr}</span>
             </div>
           </div>
+
+          {/* Attendance Count */}
+          <div className="pt-2 border-t border-white/10">
+            <div className="flex items-center justify-between">
+              <span className="text-white/70 font-outfit text-sm">Current Attendance:</span>
+              <span className="font-syne font-bold text-white text-lg">
+                {currentAttendance}/{course.capacity}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Booking Type Card */}
+        <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-white/80 font-outfit text-sm font-semibold">
+              Booking Type
+            </span>
+            {subscriptionInfo?.hasSubscription ? (
+              <Badge variant="subscription" className="font-semibold">Subscription</Badge>
+            ) : (
+              <Badge variant="single" className="font-semibold">Single Class</Badge>
+            )}
+          </div>
+
+          {/* Subscription Details */}
+          {subscriptionInfo?.hasSubscription && subscriptionInfo.subscriptionDetails && (
+            <>
+              <div className="border-t border-white/10" />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70 font-outfit">Plan:</span>
+                  <span className="text-white font-outfit font-semibold">
+                    {subscriptionInfo.subscriptionDetails.type === 'monthly' 
+                      ? 'Monthly Card' 
+                      : subscriptionInfo.subscriptionDetails.type === '5_times'
+                      ? '5-Times Card'
+                      : subscriptionInfo.subscriptionDetails.type === '10_times'
+                      ? '10-Times Card'
+                      : subscriptionInfo.subscriptionDetails.type}
+                  </span>
+                </div>
+                
+                {subscriptionInfo.subscriptionDetails.remainingCredits !== undefined && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/70 font-outfit">Remaining:</span>
+                    <span className="text-white font-syne font-bold text-lg">
+                      {subscriptionInfo.subscriptionDetails.remainingCredits}
+                    </span>
+                  </div>
+                )}
+                
+                {subscriptionInfo.subscriptionDetails.endDate && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/70 font-outfit">Valid Until:</span>
+                    <span className="text-white font-outfit">
+                      {new Date(subscriptionInfo.subscriptionDetails.endDate).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Warning Message */}
         <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 text-orange-400 shrink-0 mt-0.5" />
           <p className="text-xs text-orange-300 font-outfit">
-            This will create a drop-in booking and check in the user immediately.
+            {subscriptionInfo?.hasSubscription 
+              ? 'Subscription will be used and credits will be deducted if applicable.'
+              : 'This will create a drop-in booking and check in the user immediately.'}
           </p>
         </div>
 

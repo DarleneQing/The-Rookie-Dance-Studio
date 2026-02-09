@@ -30,10 +30,30 @@ BEGIN
   -- Users can now check in multiple times for the same course
   
   IF p_is_drop_in THEN
-    INSERT INTO bookings (user_id, course_id, booking_type, status)
-    VALUES (p_user_id, p_course_id, 'drop_in', 'confirmed')
-    RETURNING * INTO v_booking;
-    v_booking_type := 'drop_in'::booking_type;
+    -- For drop-ins, check if user has an active subscription first
+    SELECT * INTO v_sub FROM subscriptions 
+    WHERE user_id = p_user_id 
+      AND status = 'active'
+      AND (
+        (type IN ('5_times', '10_times') AND remaining_credits > 0)
+        OR (type = 'monthly' AND end_date >= CURRENT_DATE)
+      )
+    ORDER BY created_at DESC
+    LIMIT 1;
+    
+    IF v_sub IS NOT NULL THEN
+      -- User has active subscription - use it instead of drop-in
+      INSERT INTO bookings (user_id, course_id, subscription_id, booking_type, status)
+      VALUES (p_user_id, p_course_id, v_sub.id, 'subscription', 'confirmed')
+      RETURNING * INTO v_booking;
+      v_booking_type := 'subscription'::booking_type;
+    ELSE
+      -- No active subscription - create drop-in booking
+      INSERT INTO bookings (user_id, course_id, booking_type, status)
+      VALUES (p_user_id, p_course_id, 'drop_in', 'confirmed')
+      RETURNING * INTO v_booking;
+      v_booking_type := 'drop_in'::booking_type;
+    END IF;
   ELSE
     SELECT * INTO v_booking FROM bookings
     WHERE user_id = p_user_id AND course_id = p_course_id AND status = 'confirmed';
@@ -45,7 +65,10 @@ BEGIN
   END IF;
   
   IF v_booking_type = 'subscription' THEN
-    SELECT * INTO v_sub FROM subscriptions WHERE id = v_booking.subscription_id AND status = 'active';
+    -- Get subscription if not already loaded (for existing bookings)
+    IF v_sub IS NULL THEN
+      SELECT * INTO v_sub FROM subscriptions WHERE id = v_booking.subscription_id AND status = 'active';
+    END IF;
     
     IF v_sub IS NULL THEN
       RETURN jsonb_build_object('success', false, 'message', 'No active subscription found');

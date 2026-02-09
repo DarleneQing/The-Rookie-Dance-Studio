@@ -22,6 +22,7 @@ import {
   getUserBookingForCourse,
   getCourseCheckins,
   checkUserAlreadyCheckedIn,
+  getUserActiveSubscription,
 } from '@/app/admin/scanner/actions'
 import type { CourseWithBookingCount } from '@/types/courses'
 import { Button } from '@/components/ui/button'
@@ -79,6 +80,14 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [attendanceCount, setAttendanceCount] = useState(0)
   const [isRepeatCheckin, setIsRepeatCheckin] = useState(false)
+  const [dropInSubscriptionInfo, setDropInSubscriptionInfo] = useState<{
+    hasSubscription: boolean
+    subscriptionDetails?: {
+      type: string
+      remainingCredits?: number
+      endDate?: string
+    }
+  } | null>(null)
 
   // Auto-select course if only one
   useEffect(() => {
@@ -124,6 +133,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     setPendingUserId(null)
     setLoadingProfile(false)
     setIsRepeatCheckin(false)
+    setDropInSubscriptionInfo(null)
   }
 
   const handleDecode = async (result: string) => {
@@ -173,12 +183,18 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
             subscriptionDetails: bookingCheck.subscriptionDetails
           })
           setShowConfirmation(true)
-        } else if (selectedCourse && attendanceCount >= selectedCourse.capacity) {
-          // No booking and capacity full - show override dialog
-          setShowCapacityOverride(true)
         } else {
-          // No booking but capacity available - show drop-in dialog
-          setShowDropInDialog(true)
+          // No booking - check for active subscription
+          const subscriptionCheck = await getUserActiveSubscription(userId)
+          setDropInSubscriptionInfo(subscriptionCheck)
+          
+          if (selectedCourse && attendanceCount >= selectedCourse.capacity) {
+            // No booking and capacity full - show override dialog
+            setShowCapacityOverride(true)
+          } else {
+            // No booking but capacity available - show drop-in dialog
+            setShowDropInDialog(true)
+          }
         }
       } else {
         toast.error(profileResponse.message || 'Failed to load member profile')
@@ -653,6 +669,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
           currentAttendance={attendanceCount}
           onConfirm={handleDropInCheckin}
           loading={loadingProfile}
+          subscriptionInfo={dropInSubscriptionInfo}
         />
       )}
 
@@ -666,6 +683,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
           currentAttendance={attendanceCount}
           onConfirm={handleCapacityOverrideCheckin}
           loading={loadingProfile}
+          subscriptionInfo={dropInSubscriptionInfo}
         />
       )}
     </Dialog>

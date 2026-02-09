@@ -129,6 +129,42 @@
   will-change: transform;
 }
 
+/* Phone Input Component Styles */
+.phone-input-custom {
+  width: 100%;
+}
+
+.phone-input-custom .PhoneInputInput {
+  background: transparent;
+  border: none;
+  color: white;
+  outline: none;
+}
+
+.phone-input-custom .PhoneInputInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.phone-input-custom .PhoneInputCountry {
+  margin-right: 0.5rem;
+}
+
+.phone-input-custom .PhoneInputCountrySelect {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.phone-input-custom .PhoneInputCountrySelect:focus {
+  outline: none;
+}
+
+.phone-input-custom .PhoneInputCountryIcon {
+  border-radius: 0.25rem;
+}
+
 /* Print Styles for Legal Pages */
 @media print {
   /* Hide non-essential elements */

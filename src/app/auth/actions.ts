@@ -61,6 +61,7 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
     password: (formData.get('password') as string) ?? '',
     full_name: (formData.get('full_name') as string) ?? '',
     dob: (formData.get('dob') as string) ?? '',
+    phone_number: (formData.get('phone_number') as string) ?? '',
   }
 
   if (!data.email || !data.password || !data.full_name || !data.dob) {
@@ -96,6 +97,7 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
       data: {
         full_name: data.full_name,
         dob: data.dob,
+        phone_number: data.phone_number || null,
       },
     }
   })

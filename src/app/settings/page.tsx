@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
-  MapPin
+  MapPin,
+  Phone
 } from 'lucide-react'
 
 export default async function SettingsPage() {
@@ -132,6 +133,7 @@ export default async function SettingsPage() {
                 <EditProfileDialog
                   currentFullName={profile.full_name}
                   currentDob={profile.dob}
+                  currentPhoneNumber={profile.phone_number}
                 >
                   <button className="bg-rookie-pink rounded-md p-2 border border-white/30 shadow-md hover:scale-110 transition-transform mt-0.5">
                     <Pencil className="h-4 w-4 text-white" />
@@ -166,6 +168,17 @@ export default async function SettingsPage() {
                         })
                       : '—'}
                   </p>
+                </div>
+              </div>
+
+              {/* Phone Number */}
+              <div className="flex items-start gap-3">
+                <div className="bg-white/10 rounded-full p-2 mt-0.5">
+                  <Phone className="h-4 w-4 text-white/60" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-white/60 font-outfit text-xs mb-1">Phone Number</p>
+                  <p className="text-white font-outfit text-sm">{profile.phone_number || '—'}</p>
                 </div>
               </div>
 

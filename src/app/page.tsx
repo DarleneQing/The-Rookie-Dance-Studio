@@ -14,7 +14,7 @@ export const dynamic = "force-static"
 
 export default function Home() {
   return (
-    <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black min-h-screen">
+    <main className="relative flex flex-col items-center justify-center overflow-x-hidden bg-black min-h-screen">
       {/* Decoration loads in separate chunk – does not block content or interaction */}
       <FloatingElementsLazy />
 

@@ -219,37 +219,17 @@ export default async function ProfilePage() {
             </div>
             
             <div className="mt-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-700 font-outfit text-sm">
-                  {subscription?.type === "monthly" ? "Valid Until" : "Sessions Left"}
-                </span>
-                <span className="font-syne font-bold text-rookie-purple">
-                  {subscription
-                    ? subscription.type === "monthly"
-                      ? (subscription.end_date
-                          ? new Date(subscription.end_date).toLocaleDateString()
-                          : "N/A")
-                      : (() => {
-                          const remaining = subscription.remaining_credits ?? 0
-                          const total =
-                            subscription.type === "5_times"
-                              ? 5
-                              : subscription.type === "10_times"
-                                ? 10
-                                : subscription.remaining_credits ?? 0
-                          return `${remaining} / ${total}`
-                        })()
-                    : "—"}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-rookie-blue to-rookie-purple rounded-full transition-all duration-300"
-                  style={{
-                    width: !subscription
-                      ? "0%"
-                      : subscription.type === "monthly"
-                        ? "100%"
+              {subscription ? (
+                <>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-gray-700 font-outfit text-sm">
+                      {subscription.type === "monthly" ? "Valid Until" : "Sessions Left"}
+                    </span>
+                    <span className="font-syne font-bold text-rookie-purple">
+                      {subscription.type === "monthly"
+                        ? (subscription.end_date
+                            ? new Date(subscription.end_date).toLocaleDateString()
+                            : "N/A")
                         : (() => {
                             const remaining = subscription.remaining_credits ?? 0
                             const total =
@@ -258,11 +238,36 @@ export default async function ProfilePage() {
                                 : subscription.type === "10_times"
                                   ? 10
                                   : subscription.remaining_credits ?? 0
-                            return total > 0 ? `${(remaining / total) * 100}%` : "0%"
-                          })(),
-                  }}
-                />
-              </div>
+                            return `${remaining} / ${total}`
+                          })()}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-rookie-blue to-rookie-purple rounded-full transition-all duration-300"
+                      style={{
+                        width:
+                          subscription.type === "monthly"
+                            ? "100%"
+                            : (() => {
+                                const remaining = subscription.remaining_credits ?? 0
+                                const total =
+                                  subscription.type === "5_times"
+                                    ? 5
+                                    : subscription.type === "10_times"
+                                      ? 10
+                                      : subscription.remaining_credits ?? 0
+                                return total > 0 ? `${(remaining / total) * 100}%` : "0%"
+                              })(),
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="text-gray-600 font-outfit text-sm">
+                  Pay individually for every single class
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -1,5 +1,4 @@
 import Image from "next/image"
-import Link from "next/link"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { Footer } from "@/components/footer"
 
@@ -11,7 +10,7 @@ export default function Home() {
       {/* Floating decorative elements */}
       <FloatingElementsLazy />
 
-      {/* Content Container */}
+      {/* Content Container - plain <a> for CTAs so they work before hydration */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-8">
         {/* Title Section */}
         <div className="w-full text-center pt-8 pb-4 px-4">
@@ -37,20 +36,20 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Buttons Section */}
+        {/* Buttons Section - native anchors so Login/Sign up work before JS loads */}
         <div className="w-full max-w-md px-4 pb-2 space-y-3">
-          <Link
+          <a
             href="/login"
             className="block w-full h-14 bg-white/10 hover:bg-white/20 border-2 border-black rounded-xl font-syne font-bold text-white text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
           >
             Log in
-          </Link>
-          <Link
+          </a>
+          <a
             href="/register"
             className="block w-full h-14 bg-rookie-blue hover:bg-rookie-blue/90 border-2 border-black rounded-xl font-syne font-bold text-black text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
           >
             Sign Up
-          </Link>
+          </a>
         </div>
       </div>
       <Footer />

@@ -1,16 +1,33 @@
 import { redirect } from "next/navigation"
+import dynamic from "next/dynamic"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedUser } from "@/lib/supabase/cached"
 import Link from "next/link"
-import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { LogoutButton } from "@/components/profile/logout-button"
 import { CourseQRScanner } from "@/components/admin/scanner/course-qr-scanner"
 import { getTodaysCourses } from "./scanner/actions"
 import { UserStatsDialog } from "@/components/admin/user-stats-dialog"
 import { ActiveSubscriptionsDialog } from "@/components/admin/active-subscriptions-dialog"
 import { TodayCheckinsDialog } from "@/components/admin/today-checkins-dialog"
-import { CheckinsFinanceCard } from "@/components/admin/checkins-finance-card"
 import { QrCode, Users, CreditCard, Clock, GraduationCap, Calendar } from "lucide-react"
+
+const CheckinsFinanceCard = dynamic(
+  () =>
+    import("@/components/admin/checkins-finance-card").then((mod) => ({
+      default: mod.CheckinsFinanceCard,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="relative">
+        <div className="absolute -inset-4 bg-gradient-to-r from-green-500 to-blue-500 opacity-20 blur-2xl rounded-[30px]" />
+        <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-6 shadow-2xl overflow-hidden min-h-[200px] flex items-center justify-center">
+          <div className="h-8 w-32 bg-white/20 rounded animate-pulse" />
+        </div>
+      </div>
+    ),
+  }
+)
 
 export default async function AdminDashboardPage() {
   const user = await getCachedUser()
@@ -30,9 +47,8 @@ export default async function AdminDashboardPage() {
 
   if (profile?.role !== "admin") {
     return (
-      <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+      <main className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden">
         <div className="absolute inset-0 z-0 bg-black" />
-        <FloatingElementsLazy />
         <div className="relative z-10 text-center space-y-4 px-4">
           <h1 className="font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-red-600">
             Access Denied
@@ -131,12 +147,9 @@ export default async function AdminDashboardPage() {
     }) || []
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative min-h-screen overflow-x-hidden">
       {/* Background */}
       <div className="absolute inset-0 z-0 bg-black" />
-
-      {/* Floating decorative elements */}
-      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-md mx-auto pt-8 pb-8 px-4 space-y-6">

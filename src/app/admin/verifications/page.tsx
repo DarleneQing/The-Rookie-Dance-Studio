@@ -4,7 +4,6 @@ import { ArrowLeft, GraduationCap } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedUser } from "@/lib/supabase/cached"
 import { VerificationsTable } from "@/components/admin/verifications-table"
-import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default async function VerificationsPage() {
   const user = await getCachedUser()
@@ -36,12 +35,8 @@ export default async function VerificationsPage() {
   const pendingCount = verifications?.length || 0
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      {/* Background */}
+    <main className="relative min-h-screen overflow-x-hidden">
       <div className="absolute inset-0 z-0 bg-black" />
-      
-      {/* Floating decorative elements */}
-      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-6xl mx-auto pt-8 pb-8 px-4">

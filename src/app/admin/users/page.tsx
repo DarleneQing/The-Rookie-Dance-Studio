@@ -1,18 +1,9 @@
-import dynamic from "next/dynamic"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedUser } from "@/lib/supabase/cached"
 import { UsersTable } from "@/components/admin/users-table"
-
-const FloatingElementsLazy = dynamic(
-  () =>
-    import("@/components/auth/floating-elements-lazy").then((mod) => ({
-      default: mod.FloatingElementsLazy,
-    })),
-  { ssr: false }
-)
 
 export default async function UserManagementPage() {
   const user = await getCachedUser()
@@ -53,12 +44,8 @@ export default async function UserManagementPage() {
   }))
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      {/* Background */}
+    <main className="relative min-h-screen overflow-x-hidden">
       <div className="absolute inset-0 z-0 bg-black" />
-
-      {/* Floating decorative elements */}
-      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">

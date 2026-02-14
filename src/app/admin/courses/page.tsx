@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Calendar } from 'lucide-react'
@@ -7,14 +6,6 @@ import { getCachedUser } from '@/lib/supabase/cached'
 import { getCourses } from '@/app/courses/actions'
 import { getInstructors } from '@/app/admin/courses/actions'
 import { Button } from '@/components/ui/button'
-
-const FloatingElementsLazy = dynamic(
-  () =>
-    import('@/components/auth/floating-elements-lazy').then((mod) => ({
-      default: mod.FloatingElementsLazy,
-    })),
-  { ssr: false }
-)
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CoursesTable } from '@/components/admin/courses/courses-table'
 import { CreateCourseDialog } from '@/components/admin/courses/create-course-dialog'
@@ -52,12 +43,8 @@ export default async function AdminCoursesPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      {/* Background */}
+    <main className="relative min-h-screen overflow-x-hidden">
       <div className="absolute inset-0 z-0 bg-black" />
-
-      {/* Floating decorative elements */}
-      <FloatingElementsLazy />
 
       {/* Content */}
       <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">

@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server"
 import { getCachedUser } from "@/lib/supabase/cached"
 import { CourseQRScanner } from "@/components/admin/scanner/course-qr-scanner"
 import { getTodaysCourses } from "./actions"
-import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 
 export default async function AdminScannerPage() {
   const user = await getCachedUser()
@@ -23,9 +22,8 @@ export default async function AdminScannerPage() {
 
   if (profile?.role !== "admin") {
     return (
-      <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+      <main className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden">
         <div className="absolute inset-0 z-0 bg-black" />
-        <FloatingElementsLazy />
         <div className="relative z-10 text-center space-y-4 px-4">
           <h1 className="font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-red-500 to-red-600">
             Access Denied
@@ -40,12 +38,8 @@ export default async function AdminScannerPage() {
   const todaysCourses = await getTodaysCourses()
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      {/* Background */}
+    <main className="relative min-h-screen overflow-x-hidden">
       <div className="absolute inset-0 z-0 bg-black" />
-
-      {/* Floating decorative elements */}
-      <FloatingElementsLazy />
 
       {/* Studio Name Header */}
       <div className="relative z-10 w-full text-center pt-12 pb-8 px-4">

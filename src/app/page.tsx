@@ -1,10 +1,13 @@
 import Image from "next/image"
 import Link from "next/link"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
+import { Footer } from "@/components/footer"
+
+export const dynamic = 'force-static'
 
 export default function Home() {
   return (
-    <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black">
+    <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black min-h-screen">
       {/* Floating decorative elements */}
       <FloatingElementsLazy />
 
@@ -16,7 +19,7 @@ export default function Home() {
             The Rookie Dance Studio
           </h1>
           <p className="text-white/70 font-outfit font-light text-base md:text-lg mt-1">
-            Welcome to our check-in system.
+            Welcome to join our enthusiastic, open, and vibrant dance community.
           </p>
         </div>
 
@@ -24,7 +27,7 @@ export default function Home() {
         <div className="flex-1 flex items-center justify-center w-full px-4 my-2 max-h-[300px]">
           <div className="relative w-full max-w-[180px] md:max-w-[240px]">
             <Image
-              src="/assets/pose1.png"
+              src="/assets/pose1.webp"
               alt="Welcome illustration"
               width={200}
               height={200}
@@ -50,6 +53,7 @@ export default function Home() {
           </Link>
         </div>
       </div>
+      <Footer />
     </main>
   )
 }

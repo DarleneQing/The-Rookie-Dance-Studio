@@ -36,6 +36,7 @@ export async function getMemberProfile(userId: string): Promise<{
     full_name: string | null
     avatar_url: string | null
     dob: string | null
+    member_type: 'adult' | 'student'
     already_checked_in_today: boolean
   }
 }> {
@@ -52,7 +53,7 @@ export async function getMemberProfile(userId: string): Promise<{
   // Query profiles table for the userId
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('id, full_name, avatar_url, dob')
+    .select('id, full_name, avatar_url, dob, member_type')
     .eq('id', userId)
     .single()
 
@@ -88,6 +89,7 @@ export async function getMemberProfile(userId: string): Promise<{
       full_name: profile.full_name,
       avatar_url: profile.avatar_url,
       dob: profile.dob,
+      member_type: profile.member_type,
       already_checked_in_today: Boolean(alreadyCheckedInToday),
     },
   }

@@ -128,3 +128,56 @@
   backface-visibility: hidden;
   will-change: transform;
 }
+
+/* Print Styles for Legal Pages */
+@media print {
+  /* Hide non-essential elements */
+  header, footer, nav, .no-print {
+    display: none !important;
+  }
+
+  /* Reset background and colors for printing */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ensure content is visible */
+  main {
+    background: white !important;
+  }
+
+  /* Remove decorative elements */
+  .floating-elements,
+  [class*="backdrop-blur"],
+  [class*="bg-gradient"] {
+    display: none !important;
+  }
+
+  /* Improve text readability */
+  h1, h2, h3, h4, h5, h6 {
+    color: black !important;
+    page-break-after: avoid;
+  }
+
+  p, li {
+    color: black !important;
+  }
+
+  /* Ensure links are visible */
+  a {
+    color: #0066cc !important;
+    text-decoration: underline !important;
+  }
+
+  /* Page breaks */
+  section {
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and borders */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}

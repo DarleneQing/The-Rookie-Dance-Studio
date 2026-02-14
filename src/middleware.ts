@@ -1,7 +1,27 @@
 import { type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
+const PUBLIC_ROUTES = [
+  '/',
+  '/courses',
+  '/login',
+  '/register',
+  '/faq',
+  '/terms',
+  '/privacy',
+  '/verify-email',
+  '/reset-password',
+]
+
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathname)
+
+  if (isPublicRoute) {
+    return NextResponse.next({ request: { headers: request.headers } })
+  }
+
   return await updateSession(request)
 }
 

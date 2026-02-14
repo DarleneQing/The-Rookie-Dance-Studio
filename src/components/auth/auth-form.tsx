@@ -45,9 +45,10 @@ function SubmitButton({ mode, isLoading }: { mode: AuthMode; isLoading: boolean 
 
 interface AuthFormProps {
   initialMode?: AuthMode;
+  callbackUrl?: string;
 }
 
-export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN }) => {
+export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN, callbackUrl }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -166,6 +167,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                 </p>
             </div>
             <form onSubmit={handleSubmit}>
+                {callbackUrl && (
+                  <input type="hidden" name="callbackUrl" value={callbackUrl} />
+                )}
                 {mode === AuthMode.REGISTER && (
                     <Input 
                         label="Full Name" 

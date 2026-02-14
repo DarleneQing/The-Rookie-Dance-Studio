@@ -1,7 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { Scanner } from '@yudiel/react-qr-scanner'
+import dynamic from 'next/dynamic'
+
+// Defer loading until user opens scanner - reduces initial bundle and INP
+const Scanner = dynamic(
+  () => import('@yudiel/react-qr-scanner').then((mod) => ({ default: mod.Scanner })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-12 w-12 animate-spin text-white" />
+      </div>
+    ),
+  }
+)
 import { toast } from 'sonner'
 import { checkInUser, getMemberProfile } from '@/app/admin/actions'
 import { Button } from '@/components/ui/button'
@@ -172,7 +185,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl">
+      <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="text-center font-syne text-white">
             {showConfirmation ? 'Confirm Check-in' : 'Check-in Scanner'}

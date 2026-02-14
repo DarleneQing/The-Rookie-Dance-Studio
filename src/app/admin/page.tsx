@@ -1,25 +1,25 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedUser } from "@/lib/supabase/cached"
 import Link from "next/link"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { LogoutButton } from "@/components/profile/logout-button"
-import { QRScannerComponent } from "@/components/admin/qr-scanner"
+import { CourseQRScanner } from "@/components/admin/scanner/course-qr-scanner"
+import { getTodaysCourses } from "./scanner/actions"
 import { UserStatsDialog } from "@/components/admin/user-stats-dialog"
 import { ActiveSubscriptionsDialog } from "@/components/admin/active-subscriptions-dialog"
 import { TodayCheckinsDialog } from "@/components/admin/today-checkins-dialog"
 import { CheckinHistoryCard } from "@/components/admin/checkin-history-card"
-import { QrCode, Users, CreditCard, Clock, GraduationCap } from "lucide-react"
+import { QrCode, Users, CreditCard, Clock, GraduationCap, Calendar } from "lucide-react"
 
 export default async function AdminDashboardPage() {
-  const supabase = createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return redirect("/login")
   }
+
+  const supabase = createClient()
 
   // Check if admin
   const { data: profile } = await supabase
@@ -43,16 +43,6 @@ export default async function AdminDashboardPage() {
     )
   }
 
-  // Fetch statistics
-  const { count: totalUsers } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-
-  const { count: activeSubscriptions } = await supabase
-    .from("subscriptions")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-
   // Get today's date in ISO format (YYYY-MM-DD)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -61,55 +51,62 @@ export default async function AdminDashboardPage() {
   todayEnd.setHours(23, 59, 59, 999)
   const todayEndISO = todayEnd.toISOString()
 
-  const { count: todayCheckins } = await supabase
-    .from("checkins")
-    .select("*", { count: "exact", head: true })
-    .gte("created_at", todayStart)
-    .lte("created_at", todayEndISO)
-
-  const { count: pendingVerifications } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .eq("verification_status", "pending")
-
-  // Fetch additional data for dialogs
-  // User breakdown by member_type
-  const { count: adultMembers } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .eq("member_type", "adult")
-
-  const { count: studentMembers } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true })
-    .eq("member_type", "student")
-
-  // Active subscriptions breakdown by type
-  const { count: monthlySubscriptions } = await supabase
-    .from("subscriptions")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-    .eq("type", "monthly")
-
-  const { count: fiveTimesSubscriptions } = await supabase
-    .from("subscriptions")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-    .eq("type", "5_times")
-
-  const { count: tenTimesSubscriptions } = await supabase
-    .from("subscriptions")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "active")
-    .eq("type", "10_times")
-
-  // Today's check-ins with user names
-  const { data: todayCheckinsData } = await supabase
-    .from("checkins")
-    .select("id, created_at, profiles!user_id(full_name)")
-    .gte("created_at", todayStart)
-    .lte("created_at", todayEndISO)
-    .order("created_at", { ascending: false })
+  // Fetch statistics and today's data in parallel
+  const [
+    { count: totalUsers },
+    { count: activeSubscriptions },
+    { count: todayCheckins },
+    { count: pendingVerifications },
+    { count: adultMembers },
+    { count: studentMembers },
+    { count: monthlySubscriptions },
+    { count: fiveTimesSubscriptions },
+    { count: tenTimesSubscriptions },
+    { data: todayCheckinsData },
+    todaysCourses,
+  ] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("status", "active"),
+    supabase
+      .from("checkins")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEndISO),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("verification_status", "pending"),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("member_type", "adult"),
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .eq("member_type", "student"),
+    supabase
+      .from("subscriptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active")
+      .eq("type", "monthly"),
+    supabase
+      .from("subscriptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active")
+      .eq("type", "5_times"),
+    supabase
+      .from("subscriptions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "active")
+      .eq("type", "10_times"),
+    supabase
+      .from("checkins")
+      .select("id, created_at, profiles!user_id(full_name)")
+      .gte("created_at", todayStart)
+      .lte("created_at", todayEndISO)
+      .order("created_at", { ascending: false }),
+    getTodaysCourses(),
+  ])
 
   // Transform today's check-ins data
   type CheckinWithProfile = {
@@ -216,7 +213,7 @@ export default async function AdminDashboardPage() {
           </h2>
           <div className="grid grid-cols-1 gap-4">
             {/* Check-in Scanner Card */}
-            <QRScannerComponent>
+            <CourseQRScanner todaysCourses={todaysCourses}>
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
                 <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-6 shadow-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
@@ -226,13 +223,32 @@ export default async function AdminDashboardPage() {
                       <QrCode className="h-8 w-8 text-white" />
                     </div>
                     <div className="w-full font-syne font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple">
-                      Check-in Scanner
+                      Course Check-in Scanner
                     </div>
-                    <p className="text-white/80 font-outfit text-sm">Scan QR codes for class check-ins</p>
+                    <p className="text-white/80 font-outfit text-sm">Scan QR codes for course check-ins</p>
                   </div>
                 </div>
               </div>
-            </QRScannerComponent>
+            </CourseQRScanner>
+
+            {/* Course Management Card */}
+            <Link href="/admin/courses" className="block">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-gradient-to-r from-rookie-cyan to-blue-400 opacity-20 blur-2xl rounded-[30px]" />
+                <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-6 shadow-2xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div className="bg-gradient-to-br from-rookie-cyan to-blue-400 rounded-full p-4">
+                      <Calendar className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="w-full font-syne font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-cyan to-blue-300">
+                      Course Management
+                    </div>
+                    <p className="text-white/80 font-outfit text-sm">Create and manage dance courses</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
 
             {/* User Management Card */}
             <Link href="/admin/users" className="block">

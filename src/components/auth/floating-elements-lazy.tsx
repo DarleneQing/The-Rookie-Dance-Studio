@@ -14,7 +14,7 @@ export function FloatingElementsLazy() {
     // Delay loading to allow initial render to complete
     const timer = setTimeout(() => {
       setShouldLoad(true);
-    }, 100);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);

@@ -1,6 +1,7 @@
 'use client'
 
-import type { CourseWithBookingCount } from '@/types/courses'
+import { useEffect } from 'react'
+import type { CourseWithBookingCount, PaymentMethod } from '@/types/courses'
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,8 @@ interface CapacityOverrideDialogProps {
       endDate?: string
     }
   } | null
+  paymentMethod: PaymentMethod | null
+  onPaymentMethodChange: (method: PaymentMethod | null) => void
 }
 
 export function CapacityOverrideDialog({
@@ -50,7 +53,16 @@ export function CapacityOverrideDialog({
   onConfirm,
   loading = false,
   subscriptionInfo = null,
+  paymentMethod,
+  onPaymentMethodChange,
 }: CapacityOverrideDialogProps) {
+
+  // Auto-select 'abo' if user has subscription
+  useEffect(() => {
+    if (subscriptionInfo?.hasSubscription) {
+      onPaymentMethodChange('abo')
+    }
+  }, [subscriptionInfo?.hasSubscription, onPaymentMethodChange])
 
   const handleConfirm = async () => {
     await onConfirm()
@@ -58,7 +70,7 @@ export function CapacityOverrideDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-md">
+      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-syne text-xl flex items-center gap-2 text-red-400">
             <AlertTriangle className="h-5 w-5" />
@@ -213,6 +225,32 @@ export function CapacityOverrideDialog({
           )}
         </div>
 
+        {/* Payment Method Selection */}
+        <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-white/80 font-outfit text-sm font-semibold">
+              Payment Method
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {(['cash', 'twint', 'abo'] as PaymentMethod[]).map((method) => (
+              <button
+                key={method}
+                type="button"
+                onClick={() => onPaymentMethodChange(method)}
+                className={cn(
+                  'px-4 py-2 rounded-lg border transition-all font-outfit text-sm font-semibold',
+                  paymentMethod === method
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white border-transparent'
+                    : 'bg-white/5 text-white/70 border-white/20 hover:bg-white/10 hover:text-white'
+                )}
+              >
+                {method === 'cash' ? 'Cash' : method === 'twint' ? 'TWINT' : 'Abo'}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <Button
             type="button"
@@ -226,7 +264,7 @@ export function CapacityOverrideDialog({
           <Button
             type="button"
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={loading || !paymentMethod}
             className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-600 hover:opacity-90 text-white"
           >
             {loading ? (

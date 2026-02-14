@@ -165,6 +165,144 @@
   border-radius: 0.25rem;
 }
 
+/* Phone Input Dropdown Styles - Aggressive overrides for visibility */
+.PhoneInputCountrySelectArrow {
+  opacity: 0.7;
+  color: white;
+}
+
+/* Override the default white background from react-phone-number-input */
+.PhoneInputCountrySelectDropdown {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+}
+
+/* Force dark background on all dropdown containers */
+.PhoneInputCountrySelectDropdown,
+[class*="PhoneInputCountrySelectDropdown"],
+.PhoneInputCountrySelect--open,
+[class*="PhoneInputCountrySelect--open"],
+div[class*="PhoneInputCountrySelect"] {
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+
+/* Target all dropdown options - ensure dark background and white text */
+.PhoneInputCountrySelectDropdown .PhoneInputCountryOption,
+.PhoneInputCountrySelectDropdown > div,
+.PhoneInputCountrySelectDropdown > button,
+.PhoneInputCountrySelectDropdown > a,
+.PhoneInputCountrySelectDropdown li,
+[class*="PhoneInputCountryOption"] {
+  background: #000000 !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Hover state - visible highlight */
+.PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover,
+.PhoneInputCountrySelectDropdown > div:hover,
+.PhoneInputCountrySelectDropdown > button:hover,
+.PhoneInputCountrySelectDropdown > a:hover,
+.PhoneInputCountrySelectDropdown li:hover,
+[class*="PhoneInputCountryOption"]:hover {
+  background: rgba(187, 119, 161, 0.4) !important;
+  background-color: rgba(187, 119, 161, 0.4) !important;
+  color: #ffffff !important;
+}
+
+/* Selected state */
+.PhoneInputCountrySelectDropdown .PhoneInputCountryOption--selected,
+[class*="PhoneInputCountryOption--selected"] {
+  background: rgba(90, 68, 138, 0.7) !important;
+  background-color: rgba(90, 68, 138, 0.7) !important;
+  color: #ffffff !important;
+}
+
+/* Force all text elements inside dropdown to be white */
+.PhoneInputCountrySelectDropdown *,
+.PhoneInputCountrySelectDropdown span,
+.PhoneInputCountrySelectDropdown div,
+.PhoneInputCountrySelectDropdown button,
+.PhoneInputCountrySelectDropdown a,
+.PhoneInputCountrySelectDropdown p,
+.PhoneInputCountrySelectDropdown li {
+  color: #ffffff !important;
+}
+
+.PhoneInputCountrySelectDropdown .PhoneInputCountryName,
+[class*="PhoneInputCountryName"] {
+  color: #ffffff !important;
+}
+
+/* Style the search input in dropdown if present */
+.PhoneInputCountrySelectDropdown input,
+.PhoneInputCountrySelectDropdown input[type="text"],
+.PhoneInputCountrySelectDropdown input[type="search"] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.PhoneInputCountrySelectDropdown input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Global override for phone input dropdown - catch all with maximum specificity */
+body .PhoneInputCountrySelectDropdown,
+html body .PhoneInputCountrySelectDropdown,
+body div.PhoneInputCountrySelectDropdown {
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+
+body .PhoneInputCountrySelectDropdown *,
+html body .PhoneInputCountrySelectDropdown *,
+body div.PhoneInputCountrySelectDropdown * {
+  color: #ffffff !important;
+}
+
+body .PhoneInputCountrySelectDropdown *:hover,
+html body .PhoneInputCountrySelectDropdown *:hover {
+  color: #ffffff !important;
+}
+
+/* Override any inline styles that might be set */
+.PhoneInputCountrySelectDropdown[style*="background"] {
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+
+/* Additional aggressive overrides using attribute selectors */
+[class*="PhoneInput"][class*="Dropdown"],
+[class*="PhoneInput"][class*="Select"] {
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+
+[class*="PhoneInput"][class*="Dropdown"] *,
+[class*="PhoneInput"][class*="Select"] * {
+  color: #ffffff !important;
+}
+
+/* Target by data attributes if library uses them */
+[data-phone-input-dropdown] {
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+
+[data-phone-input-dropdown] * {
+  color: #ffffff !important;
+}
+
 /* Print Styles for Legal Pages */
 @media print {
   /* Hide non-essential elements */

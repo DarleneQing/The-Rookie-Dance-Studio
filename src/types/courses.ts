@@ -2,6 +2,7 @@
 export type CourseStatus = 'scheduled' | 'completed' | 'cancelled';
 export type BookingStatus = 'confirmed' | 'cancelled';
 export type BookingType = 'subscription' | 'single' | 'drop_in';
+export type PaymentMethod = 'cash' | 'twint' | 'abo';
 
 // Base types matching database tables
 export interface Course {

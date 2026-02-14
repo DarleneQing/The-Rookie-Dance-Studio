@@ -20,6 +20,33 @@ import { toast } from 'sonner'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
 
+// Inject styles to override dropdown colors
+if (typeof document !== 'undefined') {
+  const styleId = 'phone-input-dropdown-override'
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style')
+    style.id = styleId
+    style.textContent = `
+      .PhoneInputCountrySelectDropdown {
+        background: #000000 !important;
+        background-color: #000000 !important;
+      }
+      .PhoneInputCountrySelectDropdown * {
+        color: #ffffff !important;
+      }
+      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption {
+        background: #000000 !important;
+        color: #ffffff !important;
+      }
+      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover {
+        background: rgba(187, 119, 161, 0.4) !important;
+        color: #ffffff !important;
+      }
+    `
+    document.head.appendChild(style)
+  }
+}
+
 interface EditProfileDialogProps {
   currentFullName: string | null
   currentDob: string | null
@@ -120,7 +147,7 @@ export function EditProfileDialog({
             <div className="rounded-md border border-white/10 bg-white/5">
               <PhoneInput
                 international
-                defaultCountry="US"
+                defaultCountry="CH"
                 value={phoneNumber}
                 onChange={(value) => setPhoneNumber(value || '')}
                 className="phone-input-custom"

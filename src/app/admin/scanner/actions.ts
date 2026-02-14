@@ -233,27 +233,54 @@ export async function getUserActiveSubscription(
   };
 }
 
+export type PaymentMethod = 'cash' | 'twint' | 'abo';
+
 export async function performCourseCheckin(
   userId: string,
   courseId: string,
-  isDropIn: boolean = false
+  isDropIn: boolean = false,
+  paymentMethod: PaymentMethod
 ): Promise<CourseCheckinResponse> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return { success: false, message: 'Not authenticated' };
+  }
   
   try {
     const { data, error } = await supabase.rpc('perform_course_checkin', {
       p_user_id: userId,
       p_course_id: courseId,
+      p_admin_id: user.id,
       p_is_drop_in: isDropIn,
+      p_payment_method: paymentMethod,
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error('perform_course_checkin RPC error:', error);
+      // Extract Supabase error message
+      const errorMessage = error.message || error.details || 'Database error occurred';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+    
+    if (!data) {
+      return {
+        success: false,
+        message: 'No response from server'
+      };
+    }
     
     return data as CourseCheckinResponse;
   } catch (error) {
+    const errorMessage = getErrorMessage(error, 'Failed to perform check-in');
+    console.error('performCourseCheckin error:', errorMessage, error);
     return { 
       success: false, 
-      message: getErrorMessage(error, 'Failed to perform check-in')
+      message: errorMessage
     };
   }
 }

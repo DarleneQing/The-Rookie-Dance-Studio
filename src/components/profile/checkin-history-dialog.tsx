@@ -8,46 +8,37 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Calendar, Clock, User, Music } from "lucide-react"
+import { formatDateTime } from "@/lib/utils/date-formatters"
+import { BookingTypeBadge } from "@/components/ui/booking-type-badge"
+import type { BookingType } from "@/types/courses"
+import { unwrapSupabaseRelation } from "@/lib/utils/supabase-helpers"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type CheckinHistoryItem = any
+// Supabase returns arrays for relations, so we need to handle that
+export interface CheckinHistoryItem {
+  id: string
+  created_at: string
+  subscription_id: string | null
+  booking_type: BookingType
+  course: Array<{
+    id: string
+    dance_style: string
+    scheduled_date: string
+    start_time: string
+    song: string | null
+    singer: string | null
+    instructor: Array<{
+      id: string
+      full_name: string
+      avatar_url: string | null
+    }> | null
+  }> | null
+}
 
 interface CheckinHistoryDialogProps {
   children: React.ReactNode
   checkins: CheckinHistoryItem[]
-}
-
-function formatDateTime(date: string, time: string) {
-  const dateObj = new Date(date)
-  const dateStr = dateObj.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
-    year: 'numeric' 
-  })
-  
-  const [hours, minutes] = time.split(':')
-  const hour = parseInt(hours)
-  const ampm = hour >= 12 ? 'PM' : 'AM'
-  const displayHour = hour % 12 || 12
-  const timeStr = `${displayHour}:${minutes} ${ampm}`
-  
-  return `${dateStr} • ${timeStr}`
-}
-
-function getBookingTypeBadge(type: 'subscription' | 'single' | 'drop_in') {
-  switch (type) {
-    case 'subscription':
-      return <Badge variant="subscription" className="text-xs font-semibold">Subscription</Badge>
-    case 'single':
-      return <Badge variant="single" className="text-xs font-semibold">Single Class</Badge>
-    case 'drop_in':
-      return <Badge variant="drop_in" className="text-xs font-semibold">Drop-in</Badge>
-    default:
-      return <Badge className="text-xs">{type}</Badge>
-  }
 }
 
 export function CheckinHistoryDialog({
@@ -79,9 +70,9 @@ export function CheckinHistoryDialog({
         ) : (
           <div className="space-y-3 py-2">
             {checkins.map((c) => {
-              const course = Array.isArray(c.course) ? c.course[0] : c.course
+              const course = unwrapSupabaseRelation(c.course)
               const instructor = course?.instructor 
-                ? (Array.isArray(course.instructor) ? course.instructor[0] : course.instructor)
+                ? unwrapSupabaseRelation(course.instructor)
                 : null
 
               return (
@@ -130,7 +121,7 @@ export function CheckinHistoryDialog({
 
                   {/* Booking Type Badge */}
                   <div className="flex items-center justify-between pt-2">
-                    {getBookingTypeBadge(c.booking_type)}
+                    <BookingTypeBadge type={c.booking_type} size="small" />
                     <div className="flex items-center gap-1 text-xs text-white/50 font-outfit">
                       <Clock className="h-3 w-3" />
                       {new Date(c.created_at).toLocaleDateString('en-US', { 

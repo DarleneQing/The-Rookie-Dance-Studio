@@ -9,7 +9,7 @@ import { getTodaysCourses } from "./scanner/actions"
 import { UserStatsDialog } from "@/components/admin/user-stats-dialog"
 import { ActiveSubscriptionsDialog } from "@/components/admin/active-subscriptions-dialog"
 import { TodayCheckinsDialog } from "@/components/admin/today-checkins-dialog"
-import { CheckinHistoryCard } from "@/components/admin/checkin-history-card"
+import { CheckinsFinanceCard } from "@/components/admin/checkins-finance-card"
 import { QrCode, Users, CreditCard, Clock, GraduationCap, Calendar } from "lucide-react"
 
 export default async function AdminDashboardPage() {
@@ -295,8 +295,8 @@ export default async function AdminDashboardPage() {
               </div>
             </Link>
 
-            {/* Check-in History Card */}
-            <CheckinHistoryCard />
+            {/* Check-ins & Finance Card */}
+            <CheckinsFinanceCard />
           </div>
         </div>
 

@@ -79,9 +79,15 @@ BEGIN
     v_booking_type := 'single'::booking_type;
   END IF;
   
-  -- Create the booking
+  -- Create the booking (subscription_id only set for subscription bookings; single always NULL)
   INSERT INTO bookings (user_id, course_id, subscription_id, booking_type, status)
-  VALUES (p_user_id, p_course_id, v_subscription.id, v_booking_type, 'confirmed')
+  VALUES (
+    p_user_id,
+    p_course_id,
+    CASE WHEN v_booking_type = 'subscription' THEN v_subscription.id ELSE NULL END,
+    v_booking_type,
+    'confirmed'
+  )
   RETURNING id INTO v_booking_id;
   
   -- Return success with detailed information
@@ -91,7 +97,7 @@ BEGIN
     'booking_id', v_booking_id,
     'booking_type', v_booking_type,
     'subscription_found', v_subscription IS NOT NULL,
-    'subscription_id', v_subscription.id,
+    'subscription_id', CASE WHEN v_booking_type = 'subscription' THEN v_subscription.id ELSE NULL END,
     'current_capacity', v_current_bookings + 1,
     'max_capacity', v_course.capacity
   );

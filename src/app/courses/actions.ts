@@ -5,8 +5,11 @@ import type {
   CourseWithBookingCount, 
   BookingWithCourse,
   CourseAttendance,
-  CourseStatistics 
+  CourseStatistics,
+  CheckinWithCourseQuery,
+  CheckinWithCourseForStats
 } from '@/types/courses';
+import { unwrapSupabaseRelation } from '@/lib/utils/supabase-helpers';
 
 export async function getCourses(filters?: {
   status?: string;
@@ -132,15 +135,19 @@ export async function getCourseHistory(): Promise<CourseAttendance[]> {
   
   if (error) throw error;
   
-  return (data || []).map(item => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const course = item.course as any;
+  return (data || []).map((item: CheckinWithCourseQuery) => {
+    const course = unwrapSupabaseRelation(item.course);
+    let instructorName: string | null = null;
+    if (course?.instructor) {
+      const instructor = unwrapSupabaseRelation(course.instructor);
+      instructorName = instructor?.full_name || null;
+    }
     
     return {
       course_id: item.course_id!,
       dance_style: course?.dance_style || '',
       scheduled_date: course?.scheduled_date || '',
-      instructor_name: course?.instructor?.full_name || null,
+      instructor_name: instructorName,
       booking_type: item.booking_type!,
       checked_in_at: item.created_at
     };
@@ -160,7 +167,8 @@ export async function getCourseStatistics(): Promise<CourseStatistics> {
       course:courses(dance_style, scheduled_date)
     `)
     .eq('user_id', user.id)
-    .not('course_id', 'is', null);
+    .not('course_id', 'is', null)
+    .returns<CheckinWithCourseForStats[]>();
   
   if (error) throw error;
   
@@ -168,17 +176,15 @@ export async function getCourseStatistics(): Promise<CourseStatistics> {
   
   // Count this month
   const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-  const this_month = (checkins || []).filter(c => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const course = c.course as any;
+  const this_month = (checkins || []).filter((c: CheckinWithCourseForStats) => {
+    const course = unwrapSupabaseRelation(c.course);
     return course?.scheduled_date?.startsWith(currentMonth);
   }).length;
   
   // Find favorite style
   const styleCounts: Record<string, number> = {};
-  (checkins || []).forEach(c => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const course = c.course as any;
+  (checkins || []).forEach((c: CheckinWithCourseForStats) => {
+    const course = unwrapSupabaseRelation(c.course);
     const style = course?.dance_style;
     if (style) {
       styleCounts[style] = (styleCounts[style] || 0) + 1;

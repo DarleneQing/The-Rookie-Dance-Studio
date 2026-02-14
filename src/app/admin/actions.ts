@@ -3,7 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function checkInUser(userId: string) {
+export type PaymentMethod = 'cash' | 'twint' | 'abo';
+
+export async function checkInUser(userId: string, paymentMethod: PaymentMethod) {
   const supabase = createClient()
 
   const {
@@ -18,6 +20,7 @@ export async function checkInUser(userId: string) {
   const { data, error } = await supabase.rpc('perform_checkin', {
     p_user_id: userId,
     p_admin_id: user.id,
+    p_payment_method: paymentMethod,
   })
 
   if (error) {

@@ -46,12 +46,10 @@ BEGIN
   END IF;
   
   -- CRITICAL FIX: Use security definer context to bypass RLS
-  -- Check for active subscription with detailed logging
+  -- Check for active subscription
   SELECT COUNT(*) INTO v_subscription_count
   FROM subscriptions
   WHERE user_id = p_user_id AND status = 'active';
-  
-  RAISE NOTICE 'Subscription count for user %: %', p_user_id, v_subscription_count;
   
   -- Get the active subscription
   SELECT * INTO v_subscription
@@ -61,13 +59,9 @@ BEGIN
   ORDER BY created_at DESC
   LIMIT 1;
   
-  RAISE NOTICE 'Subscription found: %', v_subscription.id IS NOT NULL;
-  
   -- Determine booking type based on subscription
   IF v_subscription.id IS NOT NULL THEN
     v_booking_type := 'subscription'::booking_type;
-    
-    RAISE NOTICE 'Setting booking type to subscription';
     
     -- Additional validation for subscription
     IF v_subscription.type IN ('5_times', '10_times') THEN
@@ -87,15 +81,18 @@ BEGIN
     END IF;
   ELSE
     v_booking_type := 'single'::booking_type;
-    RAISE NOTICE 'No subscription found, setting booking type to single';
   END IF;
   
-  -- Create the booking
+  -- Create the booking (subscription_id only set for subscription bookings; single always NULL)
   INSERT INTO bookings (user_id, course_id, subscription_id, booking_type, status)
-  VALUES (p_user_id, p_course_id, v_subscription.id, v_booking_type, 'confirmed')
+  VALUES (
+    p_user_id,
+    p_course_id,
+    CASE WHEN v_booking_type = 'subscription' THEN v_subscription.id ELSE NULL END,
+    v_booking_type,
+    'confirmed'
+  )
   RETURNING id INTO v_booking_id;
-  
-  RAISE NOTICE 'Booking created with type: %', v_booking_type;
   
   -- Return success with detailed information
   RETURN jsonb_build_object(
@@ -104,7 +101,7 @@ BEGIN
     'booking_id', v_booking_id,
     'booking_type', v_booking_type,
     'subscription_found', v_subscription.id IS NOT NULL,
-    'subscription_id', v_subscription.id,
+    'subscription_id', CASE WHEN v_booking_type = 'subscription' THEN v_subscription.id ELSE NULL END,
     'subscription_count', v_subscription_count,
     'current_capacity', v_current_bookings + 1,
     'max_capacity', v_course.capacity

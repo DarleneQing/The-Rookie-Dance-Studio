@@ -2,6 +2,7 @@
 export type CourseStatus = 'scheduled' | 'completed' | 'cancelled';
 export type BookingStatus = 'confirmed' | 'cancelled';
 export type BookingType = 'subscription' | 'single' | 'drop_in';
+export type PaymentMethod = 'cash' | 'twint' | 'abo';
 
 // Base types matching database tables
 export interface Course {
@@ -148,4 +149,28 @@ export interface CourseStatistics {
   this_month: number;
   favorite_style: string | null;
   favorite_style_count: number;
+}
+
+// Supabase query result types (for nested relations)
+// Note: Supabase returns arrays for relations, so we need to handle that
+export interface CheckinWithCourseQuery {
+  course_id: string | null;
+  booking_type: BookingType | null;
+  created_at: string;
+  course: Array<{
+    dance_style: string;
+    scheduled_date: string;
+    instructor: Array<{
+      full_name: string;
+    }> | {
+      full_name: string;
+    } | null;
+  }> | null;
+}
+
+export interface CheckinWithCourseForStats {
+  course: Array<{
+    dance_style: string;
+    scheduled_date: string;
+  }> | null;
 }

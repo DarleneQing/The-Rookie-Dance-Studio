@@ -61,12 +61,33 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
     password: (formData.get('password') as string) ?? '',
     full_name: (formData.get('full_name') as string) ?? '',
     dob: (formData.get('dob') as string) ?? '',
+    phone_number: (formData.get('phone_number') as string) ?? '',
   }
 
   if (!data.email || !data.password || !data.full_name || !data.dob) {
     return {
       error: 'All fields (email, full name, password, and date of birth) are required.',
     }
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(data.email.trim())) {
+    return { error: 'Invalid email format' }
+  }
+
+  // Validate password length
+  if (data.password.length < 6) {
+    return { error: 'Password must be at least 6 characters' }
+  }
+
+  // Validate date of birth
+  const dobDate = new Date(data.dob)
+  if (isNaN(dobDate.getTime())) {
+    return { error: 'Invalid date of birth' }
+  }
+  if (dobDate > new Date()) {
+    return { error: 'Date of birth cannot be in the future' }
   }
 
   const { error } = await supabase.auth.signUp({
@@ -76,6 +97,7 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
       data: {
         full_name: data.full_name,
         dob: data.dob,
+        phone_number: data.phone_number || null,
       },
     }
   })

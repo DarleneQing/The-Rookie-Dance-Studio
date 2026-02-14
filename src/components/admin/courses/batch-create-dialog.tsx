@@ -57,7 +57,7 @@ export function BatchCreateDialog({
     location: 'Quatierzentrum Schütze Flex 4, Heinrichstrasse 238, 8005 Zurich',
     start_time: '15:00',
     duration_minutes: 90,
-    capacity: 25,
+    capacity: 20,
     song: null,
     singer: null,
     video_link: null,

@@ -13,9 +13,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Users, Clock, Loader2, Music, UserX } from 'lucide-react'
+import { formatDate, getTimeInterval, formatTimestampTime } from '@/lib/utils/date-formatters'
+import { BookingTypeBadge } from '@/components/ui/booking-type-badge'
 
 interface CourseDetailsDialogProps {
   courseId: string
@@ -52,56 +53,8 @@ export function CourseDetailsDialog({
     }
   }
 
-  const getTimeInterval = (startTime: string, durationMinutes: number) => {
-    const [hours, minutes] = startTime.split(':').map(Number)
-    const startDate = new Date()
-    startDate.setHours(hours, minutes, 0)
-    
-    const endDate = new Date(startDate.getTime() + durationMinutes * 60000)
-    
-    const formatTime = (date: Date) => {
-      const hours = date.getHours()
-      const minutes = date.getMinutes()
-      const ampm = hours >= 12 ? 'PM' : 'AM'
-      const displayHour = hours % 12 || 12
-      const displayMinutes = minutes.toString().padStart(2, '0')
-      return `${displayHour}:${displayMinutes} ${ampm}`
-    }
-    
-    return `${formatTime(startDate)} - ${formatTime(endDate)}`
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    })
-  }
-
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    })
-  }
-
-  const getBookingTypeBadge = (type: string) => {
-    switch (type) {
-      case 'subscription':
-        return <Badge variant="subscription" className="font-semibold">Subscription</Badge>
-      case 'single':
-        return <Badge variant="single" className="font-semibold">Single Class</Badge>
-      case 'drop_in':
-        return <Badge variant="drop_in" className="font-semibold">Drop-in</Badge>
-      default:
-        return <Badge className="font-semibold">{type}</Badge>
-    }
+    return `${formatDate(timestamp, { includeYear: true })} ${formatTimestampTime(timestamp)}`
   }
 
   return (
@@ -110,7 +63,7 @@ export function CourseDetailsDialog({
       <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-syne text-xl">
-            {courseDetails ? formatDate(courseDetails.scheduled_date) : courseName}
+            {courseDetails ? formatDate(courseDetails.scheduled_date, { includeYear: true }) : courseName}
           </DialogTitle>
           {courseDetails ? (
             <DialogDescription asChild>
@@ -196,7 +149,7 @@ export function CourseDetailsDialog({
                             Booked {formatTimestamp(booking.created_at)}
                           </div>
                         </div>
-                        {getBookingTypeBadge(booking.booking_type)}
+                        <BookingTypeBadge type={booking.booking_type} />
                       </div>
                     ))
                 ) : (
@@ -231,7 +184,7 @@ export function CourseDetailsDialog({
                             Booked {formatTimestamp(booking.created_at)}
                           </div>
                         </div>
-                        {getBookingTypeBadge(booking.booking_type)}
+                        <BookingTypeBadge type={booking.booking_type} />
                         <span title="Not checked in"><UserX className="h-4 w-4 text-amber-400 flex-shrink-0" /></span>
                       </div>
                     ))
@@ -269,7 +222,7 @@ export function CourseDetailsDialog({
                             {formatTimestamp(checkin.created_at)}
                           </div>
                         </div>
-                        {checkin.booking_type && getBookingTypeBadge(checkin.booking_type)}
+                        {checkin.booking_type && <BookingTypeBadge type={checkin.booking_type} />}
                       </div>
                     ))
                 ) : (

@@ -17,6 +17,8 @@ const Scanner = dynamic(
 )
 import { toast } from 'sonner'
 import { checkInUser, getMemberProfile } from '@/app/admin/actions'
+import { getUserActiveSubscription } from '@/app/admin/scanner/actions'
+import type { PaymentMethod } from '@/types/courses'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -28,6 +30,7 @@ import {
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2, SwitchCamera } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface QRScannerComponentProps {
   children?: React.ReactNode
@@ -47,6 +50,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     full_name: string | null
     avatar_url: string | null
     dob: string | null
+    member_type?: 'adult' | 'student'
     already_checked_in_today: boolean
   } | null>(null)
   const [showSameDayConfirmation, setShowSameDayConfirmation] = useState(false)
@@ -54,6 +58,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [pendingUserId, setPendingUserId] = useState<string | null>(null)
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen)
@@ -70,6 +75,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
       setScannedMember(null)
       setPendingUserId(null)
       setLoadingProfile(false)
+      setPaymentMethod(null)
     }
   }
 
@@ -95,6 +101,17 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
 
       if (profileResponse.success && profileResponse.profile) {
         setScannedMember(profileResponse.profile)
+        
+        // Check if user has active subscription
+        const subscriptionCheck = await getUserActiveSubscription(userId)
+
+        // Auto-select 'abo' if user has subscription
+        if (subscriptionCheck.hasSubscription) {
+          setPaymentMethod('abo')
+        } else {
+          setPaymentMethod(null)
+        }
+        
         setShowConfirmation(true)
       } else {
         toast.error(profileResponse.message || 'Failed to load member profile')
@@ -116,10 +133,11 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     setScannedMember(null)
     setPendingUserId(null)
     setLoadingProfile(false)
+    setPaymentMethod(null)
   }
 
   const handleConfirmCheckIn = async (forceSameDay?: boolean) => {
-    if (!pendingUserId) return
+    if (!pendingUserId || !paymentMethod) return
     if (scannedMember?.already_checked_in_today && !forceSameDay) {
       setShowSameDayConfirmation(true)
       return
@@ -127,7 +145,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
 
     setLoadingProfile(true)
     try {
-      const response = await checkInUser(pendingUserId)
+      const response = await checkInUser(pendingUserId, paymentMethod)
 
       if (response.success) {
         toast.success(response.message)
@@ -185,7 +203,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle className="text-center font-syne text-white">
             {showConfirmation ? 'Confirm Check-in' : 'Check-in Scanner'}
@@ -195,16 +213,21 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
           {showConfirmation && scannedMember ? (
             <div className="w-full max-w-sm flex flex-col items-center justify-center space-y-4">
               <Avatar className="h-40 w-40 border-4 border-white/20">
-                <AvatarImage src={scannedMember.avatar_url || undefined} alt={scannedMember.full_name || 'Member'} />
+                <AvatarImage src={scannedMember.avatar_url || undefined} alt={scannedMember.full_name || 'User'} />
                 <AvatarFallback className="text-4xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
                   {scannedMember.full_name ? scannedMember.full_name.charAt(0).toUpperCase() : '?'}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="text-center">
+              <div className="text-center space-y-1">
                 <h3 className="text-xl font-bold font-syne text-white">
-                  {scannedMember.full_name || 'Unknown Member'}
+                  {scannedMember.full_name || 'Unknown User'}
                 </h3>
+                {scannedMember.member_type && (
+                  <p className="text-xs font-outfit uppercase tracking-wide text-white/70">
+                    {scannedMember.member_type === 'student' ? 'Student' : 'Adult'}
+                  </p>
+                )}
               </div>
               
               <div className="text-center">
@@ -222,10 +245,36 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
               {showSameDayConfirmation && (
                 <div className="w-full rounded-xl border border-amber-400/50 bg-amber-500/10 px-3 py-2 text-center">
                   <p className="text-sm font-outfit text-amber-100">
-                    This member already checked in today (Zurich time). Confirm another check-in?
+                    This user already checked in today (Zurich time). Confirm another check-in?
                   </p>
                 </div>
               )}
+
+              {/* Payment Method Selection */}
+              <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/80 font-outfit text-sm font-semibold">
+                    Payment Method
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['cash', 'twint', 'abo'] as PaymentMethod[]).map((method) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setPaymentMethod(method)}
+                      className={cn(
+                        'px-4 py-2 rounded-lg border transition-all font-outfit text-sm font-semibold',
+                        paymentMethod === method
+                          ? 'bg-gradient-to-r from-rookie-purple to-rookie-pink text-white border-transparent'
+                          : 'bg-white/5 text-white/70 border-white/20 hover:bg-white/10 hover:text-white'
+                      )}
+                    >
+                      {method === 'cash' ? 'Cash' : method === 'twint' ? 'TWINT' : 'Abo'}
+                    </button>
+                  ))}
+                </div>
+              </div>
               
               <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 w-full pt-4">
                 <Button
@@ -239,7 +288,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                 <Button
                   onClick={() => handleConfirmCheckIn(showSameDayConfirmation)}
                   className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90 text-white"
-                  disabled={loadingProfile}
+                  disabled={loadingProfile || !paymentMethod}
                 >
                   {loadingProfile ? (
                     <>

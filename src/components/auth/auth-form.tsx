@@ -8,6 +8,35 @@ import { AuthMode, FormErrors } from '@/types/auth';
 import { login, signup, resetPassword } from '@/app/auth/actions';
 import { Input } from './auth-input';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
+
+// Inject styles to override dropdown colors
+if (typeof document !== 'undefined') {
+  const styleId = 'phone-input-dropdown-override'
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style')
+    style.id = styleId
+    style.textContent = `
+      .PhoneInputCountrySelectDropdown {
+        background: #000000 !important;
+        background-color: #000000 !important;
+      }
+      .PhoneInputCountrySelectDropdown * {
+        color: #ffffff !important;
+      }
+      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption {
+        background: #000000 !important;
+        color: #ffffff !important;
+      }
+      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover {
+        background: rgba(187, 119, 161, 0.4) !important;
+        color: #ffffff !important;
+      }
+    `
+    document.head.appendChild(style)
+  }
+}
 
 const initialState = {
   message: undefined as string | undefined,
@@ -57,6 +86,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
     password: '',
     confirmPassword: '',
     dob: '',
+    phone_number: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -86,7 +116,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
   const toggleMode = () => {
     setMode(prev => prev === AuthMode.LOGIN ? AuthMode.REGISTER : AuthMode.LOGIN);
     setErrors({});
-    setFormData({ email: '', full_name: '', password: '', confirmPassword: '', dob: '' });
+    setFormData({ email: '', full_name: '', password: '', confirmPassword: '', dob: '', phone_number: '' });
   };
 
   const validate = (): boolean => {
@@ -140,6 +170,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
     if (mode === AuthMode.REGISTER) {
       formDataToSubmit.append('full_name', formData.full_name);
       formDataToSubmit.append('dob', formData.dob);
+      if (formData.phone_number) {
+        formDataToSubmit.append('phone_number', formData.phone_number);
+      }
     }
 
     currentAction(formDataToSubmit);
@@ -199,6 +232,28 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                             </div>
                         </div>
                         {errors.dob && <p className="text-red-400 text-xs mt-1 font-outfit ml-1">{errors.dob}</p>}
+                    </div>
+                )}
+
+                {mode === AuthMode.REGISTER && (
+                    <div className="w-full mb-4 min-w-0">
+                        <label className="block text-rookie-pink text-xs font-outfit uppercase tracking-widest mb-1.5 ml-1">
+                            Phone Number (Optional)
+                        </label>
+                        <div className="w-full min-w-0">
+                            <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                                <PhoneInput
+                                    international
+                                    defaultCountry="CH"
+                                    value={formData.phone_number}
+                                    onChange={(value) => setFormData({ ...formData, phone_number: value || '' })}
+                                    className="phone-input-custom"
+                                    numberInputProps={{
+                                        className: 'w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-white/30 font-outfit focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
+                                    }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 )}
                 

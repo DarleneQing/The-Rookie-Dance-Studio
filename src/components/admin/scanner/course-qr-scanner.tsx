@@ -22,6 +22,7 @@ import {
   getUserBookingForCourse,
   getCourseCheckins,
   checkUserAlreadyCheckedIn,
+  getUserActiveSubscription,
 } from '@/app/admin/scanner/actions'
 import type { CourseWithBookingCount } from '@/types/courses'
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,10 @@ import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2, SwitchCamera, Calen
 import { DropInDialog } from './drop-in-dialog'
 import { CapacityOverrideDialog } from './capacity-override-dialog'
 import { cn } from '@/lib/utils'
+import { formatCourseDateTime } from '@/lib/utils/date-formatters'
+import { formatSubscriptionType } from '@/lib/utils/subscription-helpers'
+import { BookingTypeBadge } from '@/components/ui/booking-type-badge'
+import type { PaymentMethod } from '@/types/courses'
 
 interface CourseQRScannerProps {
   todaysCourses: CourseWithBookingCount[]
@@ -79,6 +84,15 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [attendanceCount, setAttendanceCount] = useState(0)
   const [isRepeatCheckin, setIsRepeatCheckin] = useState(false)
+  const [dropInSubscriptionInfo, setDropInSubscriptionInfo] = useState<{
+    hasSubscription: boolean
+    subscriptionDetails?: {
+      type: string
+      remainingCredits?: number
+      endDate?: string
+    }
+  } | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
 
   // Auto-select course if only one
   useEffect(() => {
@@ -124,6 +138,8 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     setPendingUserId(null)
     setLoadingProfile(false)
     setIsRepeatCheckin(false)
+    setDropInSubscriptionInfo(null)
+    setPaymentMethod(null)
   }
 
   const handleDecode = async (result: string) => {
@@ -173,12 +189,18 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
             subscriptionDetails: bookingCheck.subscriptionDetails
           })
           setShowConfirmation(true)
-        } else if (selectedCourse && attendanceCount >= selectedCourse.capacity) {
-          // No booking and capacity full - show override dialog
-          setShowCapacityOverride(true)
         } else {
-          // No booking but capacity available - show drop-in dialog
-          setShowDropInDialog(true)
+          // No booking - check for active subscription
+          const subscriptionCheck = await getUserActiveSubscription(userId)
+          setDropInSubscriptionInfo(subscriptionCheck)
+          
+          if (selectedCourse && attendanceCount >= selectedCourse.capacity) {
+            // No booking and capacity full - show override dialog
+            setShowCapacityOverride(true)
+          } else {
+            // No booking but capacity available - show drop-in dialog
+            setShowDropInDialog(true)
+          }
         }
       } else {
         toast.error(profileResponse.message || 'Failed to load member profile')
@@ -197,11 +219,11 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
   }
 
   const handleNormalCheckin = async () => {
-    if (!pendingUserId || !selectedCourseId) return
+    if (!pendingUserId || !selectedCourseId || !paymentMethod) return
 
     setLoadingProfile(true)
     try {
-      const response = await performCourseCheckin(pendingUserId, selectedCourseId, false)
+      const response = await performCourseCheckin(pendingUserId, selectedCourseId, false, paymentMethod)
 
       if (response.success) {
         const bookingTypeLabel = response.booking_type === 'subscription' ? 'Subscription' 
@@ -240,11 +262,19 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
   }
 
   const handleDropInCheckin = async () => {
-    if (!pendingUserId || !selectedCourseId) return
+    if (!pendingUserId || !selectedCourseId) {
+      toast.error('Missing user ID or course ID');
+      return;
+    }
+    
+    if (!paymentMethod) {
+      toast.error('Please select a payment method');
+      return;
+    }
 
     setLoadingProfile(true)
     try {
-      const response = await performCourseCheckin(pendingUserId, selectedCourseId, true)
+      const response = await performCourseCheckin(pendingUserId, selectedCourseId, true, paymentMethod)
 
       if (response.success) {
         const message = `${scannedMember?.full_name} checked in (Drop-in)`
@@ -267,9 +297,11 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
         toast.error(response.message)
         setLastResult({ success: false, message: response.message })
       }
-    } catch {
-      toast.error('Failed to process drop-in')
-      setLastResult({ success: false, message: 'Failed to process drop-in' })
+    } catch (error) {
+      console.error('Drop-in check-in error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process drop-in';
+      toast.error(errorMessage);
+      setLastResult({ success: false, message: errorMessage })
     } finally {
       setLoadingProfile(false)
       setShowDropInDialog(false)
@@ -279,11 +311,11 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
   }
 
   const handleCapacityOverrideCheckin = async () => {
-    if (!pendingUserId || !selectedCourseId) return
+    if (!pendingUserId || !selectedCourseId || !paymentMethod) return
 
     setLoadingProfile(true)
     try {
-      const response = await performCourseCheckin(pendingUserId, selectedCourseId, true)
+      const response = await performCourseCheckin(pendingUserId, selectedCourseId, true, paymentMethod)
 
       if (response.success) {
         const message = `${scannedMember?.full_name} checked in (Drop-in - Capacity Override)`
@@ -340,38 +372,6 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
   }
 
   const selectedCourse = todaysCourses.find(c => c.id === selectedCourseId)
-
-  const formatCourseDateTime = (date: string, time: string) => {
-    const dateObj = new Date(date)
-    const dateStr = dateObj.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    })
-    
-    const [hours, minutes] = time.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const displayHour = hour % 12 || 12
-    const timeStr = `${displayHour}:${minutes} ${ampm}`
-    
-    return { dateStr, timeStr }
-  }
-
-  const getBookingTypeBadge = (type: string) => {
-    if (type === 'subscription') {
-      return <Badge variant="subscription" className="font-semibold">Subscription</Badge>
-    } else if (type === 'single') {
-      return <Badge variant="single" className="font-semibold">Single Class</Badge>
-    }
-    return <Badge>{type}</Badge>
-  }
-
-  const formatSubscriptionType = (type: string) => {
-    if (type === 'monthly') return 'Monthly Card'
-    if (type === '5_times') return '5-Times Card'
-    if (type === '10_times') return '10-Times Card'
-    return type
-  }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -478,7 +478,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                     <span className="text-white/80 font-outfit text-sm font-semibold">
                       Booking Type
                     </span>
-                    {getBookingTypeBadge(bookingInfo.bookingType)}
+                    <BookingTypeBadge type={bookingInfo.bookingType} />
                   </div>
 
                   {/* Subscription Details */}
@@ -533,6 +533,32 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                     </div>
                   </div>
                 )}
+
+                {/* Payment Method Selection */}
+                <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/80 font-outfit text-sm font-semibold">
+                      Payment Method
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['cash', 'twint', 'abo'] as PaymentMethod[]).map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setPaymentMethod(method)}
+                        className={cn(
+                          'px-4 py-2 rounded-lg border transition-all font-outfit text-sm font-semibold',
+                          paymentMethod === method
+                            ? 'bg-gradient-to-r from-rookie-purple to-rookie-pink text-white border-transparent'
+                            : 'bg-white/5 text-white/70 border-white/20 hover:bg-white/10 hover:text-white'
+                        )}
+                      >
+                        {method === 'cash' ? 'Cash' : method === 'twint' ? 'TWINT' : 'Abo'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 
                 <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 w-full pt-2">
                   <Button
@@ -546,7 +572,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                   <Button
                     onClick={handleNormalCheckin}
                     className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90"
-                    disabled={loadingProfile}
+                    disabled={loadingProfile || !paymentMethod}
                   >
                     {loadingProfile ? (
                       <>
@@ -653,6 +679,9 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
           currentAttendance={attendanceCount}
           onConfirm={handleDropInCheckin}
           loading={loadingProfile}
+          subscriptionInfo={dropInSubscriptionInfo}
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
         />
       )}
 
@@ -666,6 +695,9 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
           currentAttendance={attendanceCount}
           onConfirm={handleCapacityOverrideCheckin}
           loading={loadingProfile}
+          subscriptionInfo={dropInSubscriptionInfo}
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
         />
       )}
     </Dialog>

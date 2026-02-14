@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { createClient } from '@/lib/supabase/server'
+import { getErrorMessage } from '@/lib/utils/error-helpers'
 
 interface UpdateAvatarResult {
   success: boolean
@@ -122,7 +123,7 @@ export async function updateProfileAvatar(base64Image: string, mimeType: string)
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
+      message: getErrorMessage(error, 'An unexpected error occurred. Please try again.'),
     }
   }
 }
@@ -278,7 +279,7 @@ export async function uploadStudentCard(
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.',
+      message: getErrorMessage(error, 'An unexpected error occurred. Please try again.'),
     }
   }
 }
@@ -286,6 +287,7 @@ export async function uploadStudentCard(
 export async function updateProfileInfo(data: {
   full_name?: string
   dob?: string
+  phone_number?: string
 }): Promise<{ success: boolean; message: string }> {
   try {
     const supabase = createClient()
@@ -311,12 +313,15 @@ export async function updateProfileInfo(data: {
     }
     
     // Build update object
-    const updateData: Record<string, string> = {}
+    const updateData: Record<string, string | null> = {}
     if (data.full_name !== undefined) {
       updateData.full_name = data.full_name.trim()
     }
     if (data.dob !== undefined) {
       updateData.dob = data.dob
+    }
+    if (data.phone_number !== undefined) {
+      updateData.phone_number = data.phone_number || null
     }
     
     const { error: updateError } = await supabase
@@ -340,7 +345,7 @@ export async function updateProfileInfo(data: {
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : 'An unexpected error occurred.',
+      message: getErrorMessage(error, 'An unexpected error occurred.'),
     }
   }
 }

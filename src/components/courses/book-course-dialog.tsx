@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Users, Loader2, ExternalLink, Music, AlertCircle } from 'lucide-react'
+import { formatDate, getTimeInterval } from '@/lib/utils/date-formatters'
 
 interface BookCourseDialogProps {
   course: CourseWithBookingCount
@@ -42,34 +43,6 @@ export function BookCourseDialog({
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  const getTimeInterval = (startTime: string, durationMinutes: number) => {
-    const [hours, minutes] = startTime.split(':')
-    const startDate = new Date()
-    startDate.setHours(parseInt(hours), parseInt(minutes), 0)
-    
-    const endDate = new Date(startDate.getTime() + durationMinutes * 60000)
-    
-    const formatTimeShort = (date: Date) => {
-      const hour = date.getHours()
-      const minute = date.getMinutes()
-      const ampm = hour >= 12 ? 'PM' : 'AM'
-      const displayHour = hour % 12 || 12
-      const displayMinute = minute.toString().padStart(2, '0')
-      return `${displayHour}:${displayMinute} ${ampm}`
-    }
-    
-    return `${formatTimeShort(startDate)} - ${formatTimeShort(endDate)}`
-  }
 
   const handleConfirm = async () => {
     setLoading(true)
@@ -125,7 +98,7 @@ export function BookCourseDialog({
           <div className="space-y-2 text-sm text-white/80 font-outfit">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-white/60" />
-              <span>{formatDate(course.scheduled_date)}</span>
+              <span>{formatDate(course.scheduled_date, { includeWeekday: true, includeYear: true, weekdayStyle: 'long', monthStyle: 'long' })}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-white/60" />

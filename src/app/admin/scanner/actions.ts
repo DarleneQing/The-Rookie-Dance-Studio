@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { CourseWithBookingCount } from '@/types/courses';
+import { getErrorMessage } from '@/lib/utils/error-helpers';
+import { unwrapSupabaseRelation } from '@/lib/utils/supabase-helpers';
 
 export interface CheckinWithUser {
   id: string;
@@ -40,7 +42,6 @@ export async function getTodaysCourses(): Promise<CourseWithBookingCount[]> {
     .order('start_time', { ascending: true });
   
   if (error) {
-    console.error('Error fetching today\'s courses:', error);
     return [];
   }
   
@@ -49,6 +50,7 @@ export async function getTodaysCourses(): Promise<CourseWithBookingCount[]> {
     booking_count: Array.isArray(course.booking_count) 
       ? course.booking_count.length 
       : 0,
+    instructor: unwrapSupabaseRelation(course.instructor),
   })) as CourseWithBookingCount[];
 }
 
@@ -67,7 +69,6 @@ export async function getCourseCheckins(courseId: string): Promise<CheckinWithUs
     .order('created_at', { ascending: false });
   
   if (error) {
-    console.error('Error fetching course check-ins:', error);
     return [];
   }
   
@@ -76,7 +77,7 @@ export async function getCourseCheckins(courseId: string): Promise<CheckinWithUs
     id: item.id,
     created_at: item.created_at,
     booking_type: item.booking_type,
-    user: Array.isArray(item.user) ? item.user[0] : item.user,
+    user: unwrapSupabaseRelation(item.user),
   })) as CheckinWithUser[];
 }
 
@@ -108,7 +109,6 @@ export async function getUserBookingForCourse(
     .maybeSingle();
   
   if (error) {
-    console.error('Error checking user booking:', error);
     return { hasBooking: false };
   }
   
@@ -118,7 +118,7 @@ export async function getUserBookingForCourse(
   
   // If booking type is subscription, validate the subscription is still active
   if (data.booking_type === 'subscription' && data.subscription_id) {
-    const sub = Array.isArray(data.subscription) ? data.subscription[0] : data.subscription;
+    const sub = unwrapSupabaseRelation(data.subscription);
     
     // Check if subscription exists and is active
     if (!sub || sub.status !== 'active') {
@@ -174,35 +174,113 @@ export async function checkUserAlreadyCheckedIn(
     .limit(1);
   
   if (error) {
-    console.error('Error checking if user already checked in:', error);
     return false;
   }
   
   return data && data.length > 0;
 }
 
+export async function getUserActiveSubscription(
+  userId: string
+): Promise<{ 
+  hasSubscription: boolean;
+  subscriptionDetails?: {
+    type: string;
+    remainingCredits?: number;
+    endDate?: string;
+  };
+}> {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('id, status, type, remaining_credits, end_date')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  
+  if (error) {
+    console.error('Error fetching user subscription:', error);
+    return { hasSubscription: false };
+  }
+  
+  if (!data) {
+    return { hasSubscription: false };
+  }
+  
+  // Validate subscription is still valid
+  if (data.type === '5_times' || data.type === '10_times') {
+    if (data.remaining_credits <= 0) {
+      return { hasSubscription: false };
+    }
+  } else if (data.type === 'monthly') {
+    if (new Date(data.end_date) < new Date()) {
+      return { hasSubscription: false };
+    }
+  }
+  
+  return {
+    hasSubscription: true,
+    subscriptionDetails: {
+      type: data.type,
+      remainingCredits: data.type === '5_times' || data.type === '10_times' 
+        ? data.remaining_credits 
+        : undefined,
+      endDate: data.type === 'monthly' ? data.end_date : undefined,
+    }
+  };
+}
+
+export type PaymentMethod = 'cash' | 'twint' | 'abo';
+
 export async function performCourseCheckin(
   userId: string,
   courseId: string,
-  isDropIn: boolean = false
+  isDropIn: boolean = false,
+  paymentMethod: PaymentMethod
 ): Promise<CourseCheckinResponse> {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return { success: false, message: 'Not authenticated' };
+  }
   
   try {
     const { data, error } = await supabase.rpc('perform_course_checkin', {
       p_user_id: userId,
       p_course_id: courseId,
+      p_admin_id: user.id,
       p_is_drop_in: isDropIn,
+      p_payment_method: paymentMethod,
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error('perform_course_checkin RPC error:', error);
+      // Extract Supabase error message
+      const errorMessage = error.message || error.details || 'Database error occurred';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+    
+    if (!data) {
+      return {
+        success: false,
+        message: 'No response from server'
+      };
+    }
     
     return data as CourseCheckinResponse;
   } catch (error) {
-    console.error('Check-in error:', error);
+    const errorMessage = getErrorMessage(error, 'Failed to perform check-in');
+    console.error('performCourseCheckin error:', errorMessage, error);
     return { 
       success: false, 
-      message: error instanceof Error ? error.message : 'Failed to perform check-in' 
+      message: errorMessage
     };
   }
 }

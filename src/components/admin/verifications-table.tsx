@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Eye } from 'lucide-react'
+import { formatDate } from '@/lib/utils/date-formatters'
 
 interface Verification {
   id: string
@@ -49,14 +50,6 @@ export function VerificationsTable({ verifications }: VerificationsTableProps) {
       .join('')
       .toUpperCase()
       .slice(0, 2)
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
   }
 
   return (
@@ -96,7 +89,7 @@ export function VerificationsTable({ verifications }: VerificationsTableProps) {
                   </TableCell>
                   <TableCell>
                     <span className="font-outfit text-white/70 text-sm">
-                      {formatDate(verification.created_at)}
+                      {formatDate(verification.created_at, { includeYear: true })}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">

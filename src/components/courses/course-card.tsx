@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Calendar, Clock, Users, CheckCircle2, ExternalLink, Music } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDate, getTimeInterval } from '@/lib/utils/date-formatters'
+import { getDisplayDanceStyle } from '@/lib/utils'
 
 interface CourseCardProps {
   course: CourseWithBookingCount
@@ -45,7 +46,7 @@ function CourseCardComponent({
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <h3 className="font-syne font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple">
-            {course.song || course.dance_style}
+            {course.song || getDisplayDanceStyle(course.dance_style)}
           </h3>
           {course.singer && (
             <p className="text-sm text-white/70 font-outfit mt-1">
@@ -58,7 +59,7 @@ function CourseCardComponent({
             variant={course.dance_style === 'Kpop' ? 'subscription' : 'single'}
             className="font-outfit font-semibold"
           >
-            {course.dance_style}
+            {getDisplayDanceStyle(course.dance_style)}
           </Badge>
           {isFull && <Badge variant="full">FULL</Badge>}
           {isBooked && (

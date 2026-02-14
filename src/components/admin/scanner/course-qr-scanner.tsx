@@ -39,7 +39,7 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2, SwitchCamera, Calendar, Clock, Music, AlertTriangle } from 'lucide-react'
 import { DropInDialog } from './drop-in-dialog'
 import { CapacityOverrideDialog } from './capacity-override-dialog'
-import { cn } from '@/lib/utils'
+import { cn, getDisplayDanceStyle } from '@/lib/utils'
 import { formatCourseDateTime } from '@/lib/utils/date-formatters'
 import { formatSubscriptionType } from '@/lib/utils/subscription-helpers'
 import { BookingTypeBadge } from '@/components/ui/booking-type-badge'
@@ -441,7 +441,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                   
                   <div>
                     <div className="font-syne font-bold text-white text-lg">
-                      {selectedCourse.song || selectedCourse.dance_style}
+                      {selectedCourse.song || getDisplayDanceStyle(selectedCourse.dance_style)}
                     </div>
                     {selectedCourse.singer && (
                       <div className="text-sm text-white/70 font-outfit mt-0.5">

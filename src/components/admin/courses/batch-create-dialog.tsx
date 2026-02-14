@@ -253,7 +253,7 @@ export function BatchCreateDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Kpop">Kpop</SelectItem>
-                <SelectItem value="Commercial">Commercial</SelectItem>
+                <SelectItem value="Choreography">Choreography</SelectItem>
               </SelectContent>
             </Select>
           </div>

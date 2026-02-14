@@ -1,17 +1,17 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
 
+import Link from 'next/link';
 import { AuthMode, FormErrors } from '@/types/auth';
 import { login, signup, resetPassword } from '@/app/auth/actions';
+import { usePhoneInputStyles } from '@/hooks';
 import { Input } from './auth-input';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
-
-const PHONE_INPUT_STYLE_ID = 'phone-input-dropdown-override';
 
 const initialState = {
   message: undefined as string | undefined,
@@ -77,19 +77,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
   const currentState = mode === AuthMode.LOGIN ? loginState : mode === AuthMode.REGISTER ? signupState : resetPasswordState;
   const currentAction = mode === AuthMode.LOGIN ? loginAction : mode === AuthMode.REGISTER ? signupAction : resetPasswordAction;
 
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    if (document.getElementById(PHONE_INPUT_STYLE_ID)) return;
-    const style = document.createElement('style');
-    style.id = PHONE_INPUT_STYLE_ID;
-    style.textContent = `
-      .PhoneInputCountrySelectDropdown { background: #000000 !important; background-color: #000000 !important; }
-      .PhoneInputCountrySelectDropdown * { color: #ffffff !important; }
-      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption { background: #000000 !important; color: #ffffff !important; }
-      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover { background: rgba(187, 119, 161, 0.4) !important; color: #ffffff !important; }
-    `;
-    document.head.appendChild(style);
-  }, []);
+  usePhoneInputStyles();
 
   useEffect(() => {
     if (currentState?.error) {
@@ -298,6 +286,15 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                         onChange={handleChange}
                         error={errors.confirmPassword}
                     />
+                )}
+
+                {mode === AuthMode.REGISTER && (
+                    <p className="mt-4 mb-2 text-white/70 font-outfit text-sm text-center">
+                        By continuing, you confirm that you are at least 18 years old and agree to our{' '}
+                        <Link href="/terms" className="text-rookie-cyan hover:underline">Terms &amp; Conditions</Link>
+                        {' '}and{' '}
+                        <Link href="/privacy" className="text-rookie-cyan hover:underline">Privacy Policy</Link>.
+                    </p>
                 )}
 
                 <SubmitButton mode={mode} isLoading={isLoading} />

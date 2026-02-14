@@ -41,7 +41,7 @@ export function EditCourseDialog({
   const [loading, setLoading] = useState(false)
   const [instructors, setInstructors] = useState<Array<{ id: string; full_name: string; avatar_url: string | null }>>([])
   const [formData, setFormData] = useState<Partial<CreateCourseInput>>({
-    dance_style: course.dance_style,
+    dance_style: course.dance_style === 'Commercial' ? 'Choreography' : course.dance_style,
     instructor_id: course.instructor_id,
     location: course.location,
     scheduled_date: course.scheduled_date,
@@ -115,7 +115,7 @@ export function EditCourseDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Kpop">Kpop</SelectItem>
-                <SelectItem value="Commercial">Commercial</SelectItem>
+                <SelectItem value="Choreography">Choreography</SelectItem>
               </SelectContent>
             </Select>
           </div>

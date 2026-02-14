@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { deleteCourse } from '@/app/admin/courses/actions'
 import type { CourseWithBookingCount } from '@/types/courses'
+import { getDisplayDanceStyle } from '@/lib/utils'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -96,7 +97,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
   }
 
   const getCourseName = (course: CourseWithBookingCount) => {
-    return `${course.dance_style} - ${formatDate(course.scheduled_date, { includeYear: true })}, ${formatTime(course.start_time)}`
+    return `${getDisplayDanceStyle(course.dance_style)} - ${formatDate(course.scheduled_date, { includeYear: true })}, ${formatTime(course.start_time)}`
   }
 
   if (courses.length === 0) {
@@ -124,7 +125,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
             <div className="flex items-start justify-between gap-2">
               <div className="flex flex-col gap-1">
                 <div className="font-syne font-bold text-white text-lg">
-                  {course.song || course.dance_style}
+                  {course.song || getDisplayDanceStyle(course.dance_style)}
                 </div>
                 {course.singer && (
                   <div className="text-sm text-white/70 font-outfit">
@@ -236,7 +237,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     <div className="font-syne font-semibold text-white">
-                      {course.song || course.dance_style}
+                      {course.song || getDisplayDanceStyle(course.dance_style)}
                     </div>
                     {course.singer && (
                       <div className="text-xs text-white/60 font-outfit mt-0.5">
@@ -331,7 +332,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
               </DialogHeader>
               <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                 <div className="font-syne font-semibold text-white mb-1">
-                  {courseToDelete.dance_style}
+                  {getDisplayDanceStyle(courseToDelete.dance_style)}
                 </div>
                 <div className="text-sm text-white/60 font-outfit">
                   {formatDate(courseToDelete.scheduled_date, { includeYear: true })} • {formatTime(courseToDelete.start_time)}

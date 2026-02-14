@@ -4,7 +4,7 @@ import type { CourseWithBookingCount } from '@/types/courses'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Users } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getDisplayDanceStyle } from '@/lib/utils'
 import { formatTime } from '@/lib/utils/date-formatters'
 
 interface CourseSelectorProps {
@@ -124,7 +124,7 @@ export function CourseSelector({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="font-syne font-semibold text-white text-sm">
-                      {course.song || course.dance_style}
+                      {course.song || getDisplayDanceStyle(course.dance_style)}
                     </div>
                     <div className="text-xs text-white/60 font-outfit">
                       {formatTime(course.start_time)}

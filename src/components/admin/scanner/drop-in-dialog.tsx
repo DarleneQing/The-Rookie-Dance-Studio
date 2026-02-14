@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle, Clock, Loader2, Calendar, Music } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getDisplayDanceStyle } from '@/lib/utils'
 import { formatCourseDateTime } from '@/lib/utils/date-formatters'
 import { formatSubscriptionType } from '@/lib/utils/subscription-helpers'
 
@@ -130,7 +130,7 @@ export function DropInDialog({
           
           <div>
             <div className="font-syne font-bold text-white text-lg">
-              {course.song || course.dance_style}
+              {course.song || getDisplayDanceStyle(course.dance_style)}
             </div>
             {course.singer && (
               <div className="text-sm text-white/70 font-outfit mt-0.5">

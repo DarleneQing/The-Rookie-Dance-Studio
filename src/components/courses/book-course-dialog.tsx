@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { CourseWithBookingCount } from '@/types/courses'
+import { useToggle } from '@/hooks'
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, Users, Loader2, ExternalLink, Music, AlertCircle } from 'lucide-react'
 import { formatDate, getTimeInterval } from '@/lib/utils/date-formatters'
+import { getDisplayDanceStyle } from '@/lib/utils'
 
 interface BookCourseDialogProps {
   course: CourseWithBookingCount
@@ -33,14 +35,12 @@ export function BookCourseDialog({
   onConfirm,
   onClose,
 }: BookCourseDialogProps) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useToggle(true)
   const [loading, setLoading] = useState(false)
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen)
-    if (!newOpen && onClose) {
-      onClose()
-    }
+    if (!newOpen && onClose) onClose()
   }
 
 
@@ -76,7 +76,7 @@ export function BookCourseDialog({
         <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
           <div>
             <h4 className="font-syne font-bold text-lg text-white mb-1">
-              {course.song || course.dance_style}
+              {course.song || getDisplayDanceStyle(course.dance_style)}
             </h4>
             {course.singer && (
               <p className="text-sm text-white/70 font-outfit mb-1">
@@ -85,7 +85,7 @@ export function BookCourseDialog({
             )}
             {!course.song && (
               <p className="text-xs text-white/50 font-outfit mb-1">
-                {course.dance_style}
+                {getDisplayDanceStyle(course.dance_style)}
               </p>
             )}
             {course.instructor && (

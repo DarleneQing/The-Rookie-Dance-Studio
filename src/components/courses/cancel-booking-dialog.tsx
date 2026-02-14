@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { BookingWithCourse } from '@/types/courses'
+import { useToggle } from '@/hooks'
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Calendar, Clock, AlertTriangle, Loader2, Info, ExternalLink, Music } from 'lucide-react'
 import { formatDate, getTimeInterval } from '@/lib/utils/date-formatters'
+import { getDisplayDanceStyle } from '@/lib/utils'
 import { BookingTypeBadge } from '@/components/ui/booking-type-badge'
 
 interface CancelBookingDialogProps {
@@ -31,14 +33,12 @@ export function CancelBookingDialog({
   onConfirm,
   onClose,
 }: CancelBookingDialogProps) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useToggle(true)
   const [loading, setLoading] = useState(false)
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen)
-    if (!newOpen && onClose) {
-      onClose()
-    }
+    if (!newOpen && onClose) onClose()
   }
 
 
@@ -94,7 +94,7 @@ export function CancelBookingDialog({
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <h4 className="font-syne font-bold text-lg text-white mb-1">
-                {booking.course.song || booking.course.dance_style}
+                {booking.course.song || getDisplayDanceStyle(booking.course.dance_style)}
               </h4>
               {booking.course.singer && (
                 <p className="text-sm text-white/70 font-outfit mb-1">
@@ -103,7 +103,7 @@ export function CancelBookingDialog({
               )}
               {!booking.course.song && (
                 <p className="text-xs text-white/50 font-outfit mb-1">
-                  {booking.course.dance_style}
+                  {getDisplayDanceStyle(booking.course.dance_style)}
                 </p>
               )}
               {booking.course.instructor && (

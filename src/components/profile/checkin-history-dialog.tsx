@@ -14,6 +14,7 @@ import { formatDateTime } from "@/lib/utils/date-formatters"
 import { BookingTypeBadge } from "@/components/ui/booking-type-badge"
 import type { BookingType } from "@/types/courses"
 import { unwrapSupabaseRelation } from "@/lib/utils/supabase-helpers"
+import { getDisplayDanceStyle } from "@/lib/utils"
 
 // Supabase returns arrays for relations, so we need to handle that
 export interface CheckinHistoryItem {
@@ -83,7 +84,7 @@ export function CheckinHistoryDialog({
                   {/* Course Title and Singer */}
                   <div>
                     <div className="font-syne font-bold text-white text-lg">
-                      {course?.song || course?.dance_style || 'Class'}
+                      {course?.song || (course?.dance_style ? getDisplayDanceStyle(course.dance_style) : 'Class')}
                     </div>
                     {course?.singer && (
                       <div className="text-sm text-white/70 font-outfit mt-0.5">

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, startTransition } from 'react'
+import { useState, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
 import { updateProfileInfo } from '@/app/profile/actions'
+import { useToggle, usePhoneInputStyles } from '@/hooks'
 import {
   Dialog,
   DialogContent,
@@ -20,8 +21,6 @@ import { toast } from 'sonner'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
 
-const PHONE_INPUT_STYLE_ID = 'phone-input-dropdown-override'
-
 interface EditProfileDialogProps {
   currentFullName: string | null
   currentDob: string | null
@@ -36,24 +35,13 @@ export function EditProfileDialog({
   children,
 }: EditProfileDialogProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useToggle(false)
   const [loading, setLoading] = useState(false)
   const [fullName, setFullName] = useState(currentFullName || '')
   const [dob, setDob] = useState(currentDob || '')
   const [phoneNumber, setPhoneNumber] = useState(currentPhoneNumber || '')
 
-  useEffect(() => {
-    if (typeof document === 'undefined' || document.getElementById(PHONE_INPUT_STYLE_ID)) return
-    const style = document.createElement('style')
-    style.id = PHONE_INPUT_STYLE_ID
-    style.textContent = `
-      .PhoneInputCountrySelectDropdown { background: #000000 !important; background-color: #000000 !important; }
-      .PhoneInputCountrySelectDropdown * { color: #ffffff !important; }
-      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption { background: #000000 !important; color: #ffffff !important; }
-      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover { background: rgba(187, 119, 161, 0.4) !important; color: #ffffff !important; }
-    `
-    document.head.appendChild(style)
-  }, [])
+  usePhoneInputStyles()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,7 +75,7 @@ export function EditProfileDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="w-[95vw] max-w-md">
         <DialogHeader>

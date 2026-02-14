@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, startTransition } from 'react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { approveStudentVerification, rejectStudentVerification } from '@/app/admin/actions'
@@ -60,7 +60,7 @@ export function VerificationDetailDialog({
       if (result.success) {
         toast.success(result.message)
         onClose()
-        router.refresh()
+        startTransition(() => router.refresh())
       } else {
         toast.error(result.message)
       }
@@ -84,7 +84,7 @@ export function VerificationDetailDialog({
         toast.success(result.message)
         onClose()
         setRejectionReason('')
-        router.refresh()
+        startTransition(() => router.refresh())
       } else {
         toast.error(result.message)
       }

@@ -2,6 +2,7 @@
 
 import type { CourseWithBookingCount, Booking } from '@/types/courses'
 import { CourseCard } from './course-card'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { Calendar } from 'lucide-react'
 
 interface CoursesListProps {
@@ -35,24 +36,26 @@ export function CoursesList({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {courses.map((course) => {
-        const userBooking = userBookings.get(course.id) || null
-        const canCancel = userBooking ? canCancelMap.get(userBooking.id) || false : false
+    <TooltipProvider delayDuration={300} skipDelayDuration={0}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {courses.map((course) => {
+          const userBooking = userBookings.get(course.id) || null
+          const canCancel = userBooking ? canCancelMap.get(userBooking.id) || false : false
 
-        return (
-          <CourseCard
-            key={course.id}
-            course={course}
-            userBooking={userBooking}
-            canCancelBooking={canCancel}
-            onBook={() => onBook(course.id)}
-            onCancel={() => userBooking && onCancel(userBooking.id)}
-            bookingLoading={bookingLoadingId === course.id}
-            cancelLoading={userBooking ? cancelLoadingId === userBooking.id : false}
-          />
-        )
-      })}
-    </div>
+          return (
+            <CourseCard
+              key={course.id}
+              course={course}
+              userBooking={userBooking}
+              canCancelBooking={canCancel}
+              onBook={() => onBook(course.id)}
+              onCancel={() => userBooking && onCancel(userBooking.id)}
+              bookingLoading={bookingLoadingId === course.id}
+              cancelLoading={userBooking ? cancelLoadingId === userBooking.id : false}
+            />
+          )
+        })}
+      </div>
+    </TooltipProvider>
   )
 }

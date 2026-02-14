@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
@@ -20,32 +20,7 @@ import { toast } from 'sonner'
 import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
 
-// Inject styles to override dropdown colors
-if (typeof document !== 'undefined') {
-  const styleId = 'phone-input-dropdown-override'
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement('style')
-    style.id = styleId
-    style.textContent = `
-      .PhoneInputCountrySelectDropdown {
-        background: #000000 !important;
-        background-color: #000000 !important;
-      }
-      .PhoneInputCountrySelectDropdown * {
-        color: #ffffff !important;
-      }
-      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption {
-        background: #000000 !important;
-        color: #ffffff !important;
-      }
-      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover {
-        background: rgba(187, 119, 161, 0.4) !important;
-        color: #ffffff !important;
-      }
-    `
-    document.head.appendChild(style)
-  }
-}
+const PHONE_INPUT_STYLE_ID = 'phone-input-dropdown-override'
 
 interface EditProfileDialogProps {
   currentFullName: string | null
@@ -67,6 +42,19 @@ export function EditProfileDialog({
   const [dob, setDob] = useState(currentDob || '')
   const [phoneNumber, setPhoneNumber] = useState(currentPhoneNumber || '')
 
+  useEffect(() => {
+    if (typeof document === 'undefined' || document.getElementById(PHONE_INPUT_STYLE_ID)) return
+    const style = document.createElement('style')
+    style.id = PHONE_INPUT_STYLE_ID
+    style.textContent = `
+      .PhoneInputCountrySelectDropdown { background: #000000 !important; background-color: #000000 !important; }
+      .PhoneInputCountrySelectDropdown * { color: #ffffff !important; }
+      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption { background: #000000 !important; color: #ffffff !important; }
+      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover { background: rgba(187, 119, 161, 0.4) !important; color: #ffffff !important; }
+    `
+    document.head.appendChild(style)
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -87,7 +75,7 @@ export function EditProfileDialog({
       if (result.success) {
         toast.success(result.message)
         setOpen(false)
-        router.refresh()
+        startTransition(() => router.refresh())
       } else {
         toast.error(result.message)
       }

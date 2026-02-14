@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, startTransition } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Upload, GraduationCap } from 'lucide-react'
@@ -124,7 +124,7 @@ export function StudentVerificationDialog({
         setOpen(false)
         setSelectedFile(null)
         setPreviewUrl(null)
-        router.refresh()
+        startTransition(() => router.refresh())
       } else {
         toast.error(result.message)
       }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { requestStudentReVerification } from '@/app/admin/actions'
@@ -42,7 +42,7 @@ export function RequestReVerificationDialog({
         toast.success(result.message)
         setOpen(false)
         setReason('')
-        router.refresh()
+        startTransition(() => router.refresh())
       } else {
         toast.error(result.message)
       }

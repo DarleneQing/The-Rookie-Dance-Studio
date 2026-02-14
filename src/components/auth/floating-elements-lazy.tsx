@@ -11,12 +11,11 @@ export function FloatingElementsLazy() {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    // Delay loading to allow initial render to complete
-    const timer = setTimeout(() => {
+    // Start loading on next frame so first paint isn't blocked, without a long delay
+    const id = requestAnimationFrame(() => {
       setShouldLoad(true);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
   if (!shouldLoad) {

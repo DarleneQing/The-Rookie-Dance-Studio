@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { CourseWithBookingCount, BookingWithCourse } from '@/types/courses'
 import { bookCourse, cancelBooking } from '@/app/courses/booking-actions'
@@ -35,27 +35,30 @@ export function CoursesPageClient({
   const [selectedCourseForBooking, setSelectedCourseForBooking] = useState<CourseWithBookingCount | null>(null)
   const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<BookingWithCourse | null>(null)
 
-  const handleBookClick = (courseId: string) => {
-    if (!isLoggedIn) {
-      router.push('/login?callbackUrl=/courses')
-      return
-    }
-    const course = allCourses.find((c) => c.id === courseId)
-    if (course) {
-      setSelectedCourseForBooking(course)
-    }
-  }
+  const handleBookClick = useCallback(
+    (courseId: string) => {
+      if (!isLoggedIn) {
+        router.push('/login?callbackUrl=/courses')
+        return
+      }
+      const course = allCourses.find((c) => c.id === courseId)
+      if (course) {
+        setSelectedCourseForBooking(course)
+      }
+    },
+    [isLoggedIn, router, allCourses]
+  )
 
-  const handleBookConfirm = async () => {
+  const handleBookConfirm = useCallback(async () => {
     if (!selectedCourseForBooking) return
 
     setBookingLoadingId(selectedCourseForBooking.id)
     try {
       const result = await bookCourse(selectedCourseForBooking.id)
-      
+
       if (result.success) {
         toast.success(result.message || 'Course booked successfully!')
-        router.refresh()
+        startTransition(() => router.refresh())
       } else {
         toast.error(result.message || 'Failed to book course')
       }
@@ -66,25 +69,28 @@ export function CoursesPageClient({
       setBookingLoadingId(null)
       setSelectedCourseForBooking(null)
     }
-  }
+  }, [selectedCourseForBooking, router])
 
-  const handleCancelClick = (bookingId: string) => {
-    const booking = Array.from(bookingsMap.values()).find((b) => b.id === bookingId)
-    if (booking) {
-      setSelectedBookingForCancel(booking)
-    }
-  }
+  const handleCancelClick = useCallback(
+    (bookingId: string) => {
+      const booking = Array.from(bookingsMap.values()).find((b) => b.id === bookingId)
+      if (booking) {
+        setSelectedBookingForCancel(booking)
+      }
+    },
+    [bookingsMap]
+  )
 
-  const handleCancelConfirm = async () => {
+  const handleCancelConfirm = useCallback(async () => {
     if (!selectedBookingForCancel) return
 
     setCancelLoadingId(selectedBookingForCancel.id)
     try {
       const result = await cancelBooking(selectedBookingForCancel.id)
-      
+
       if (result.success) {
         toast.success(result.message || 'Booking cancelled successfully')
-        router.refresh()
+        startTransition(() => router.refresh())
       } else {
         toast.error(result.message || 'Failed to cancel booking')
       }
@@ -95,7 +101,7 @@ export function CoursesPageClient({
       setCancelLoadingId(null)
       setSelectedBookingForCancel(null)
     }
-  }
+  }, [selectedBookingForCancel, router])
 
   return (
     <>

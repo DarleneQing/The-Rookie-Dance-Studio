@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { startTransition, useCallback, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import { useRouter } from 'next/navigation'
 import { Upload } from 'lucide-react'
@@ -153,7 +153,7 @@ export function AvatarUploadDialog({ children }: AvatarUploadDialogProps) {
         toast.success(result.message)
         setOpen(false)
         setImageSrc(null)
-        router.refresh()
+        startTransition(() => router.refresh())
       } else {
         toast.error(result.message)
       }

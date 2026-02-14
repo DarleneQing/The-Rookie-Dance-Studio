@@ -1,10 +1,11 @@
 'use client'
 
+import React from 'react'
 import type { CourseWithBookingCount, Booking } from '@/types/courses'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Calendar, Clock, Users, CheckCircle2, ExternalLink, Music } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDate, getTimeInterval } from '@/lib/utils/date-formatters'
@@ -19,7 +20,7 @@ interface CourseCardProps {
   cancelLoading?: boolean
 }
 
-export function CourseCard({
+function CourseCardComponent({
   course,
   userBooking,
   canCancelBooking,
@@ -28,7 +29,6 @@ export function CourseCard({
   bookingLoading = false,
   cancelLoading = false,
 }: CourseCardProps) {
-
   const getCapacityColor = (current: number, max: number) => {
     const percentage = (current / max) * 100
     if (percentage >= 100) return 'text-red-400'
@@ -129,28 +129,26 @@ export function CourseCard({
       <div className="pt-2 border-t border-white/10">
         {isBooked ? (
           <div className="flex gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={onCancel}
-                      disabled={!canCancelBooking || cancelLoading}
-                      className="w-full bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {cancelLoading ? 'Cancelling...' : canCancelBooking ? 'Cancel Booking' : 'Cancel Not Available'}
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                {!canCancelBooking && (
-                  <TooltipContent>
-                    <p>Cannot cancel within 24 hours of start</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onCancel}
+                    disabled={!canCancelBooking || cancelLoading}
+                    className="w-full bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {cancelLoading ? 'Cancelling...' : canCancelBooking ? 'Cancel Booking' : 'Cancel Not Available'}
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              {!canCancelBooking && (
+                <TooltipContent>
+                  <p>Cannot cancel within 24 hours of start</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
           </div>
         ) : (
           <Button
@@ -170,3 +168,5 @@ export function CourseCard({
     </div>
   )
 }
+
+export const CourseCard = React.memo(CourseCardComponent)

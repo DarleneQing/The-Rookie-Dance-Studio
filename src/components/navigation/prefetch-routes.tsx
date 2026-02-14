@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface PrefetchRoutesProps {
   routes: string[]
@@ -9,10 +9,12 @@ interface PrefetchRoutesProps {
 
 export function PrefetchRoutes({ routes }: PrefetchRoutesProps) {
   const router = useRouter()
+  const routesRef = useRef(routes)
+  routesRef.current = routes
 
   useEffect(() => {
-    routes.forEach((route) => router.prefetch(route))
-  }, [router, routes])
+    routesRef.current.forEach((route) => router.prefetch(route))
+  }, [router])
 
   return null
 }

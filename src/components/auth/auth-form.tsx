@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
 
@@ -11,32 +11,7 @@ import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 
-// Inject styles to override dropdown colors
-if (typeof document !== 'undefined') {
-  const styleId = 'phone-input-dropdown-override'
-  if (!document.getElementById(styleId)) {
-    const style = document.createElement('style')
-    style.id = styleId
-    style.textContent = `
-      .PhoneInputCountrySelectDropdown {
-        background: #000000 !important;
-        background-color: #000000 !important;
-      }
-      .PhoneInputCountrySelectDropdown * {
-        color: #ffffff !important;
-      }
-      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption {
-        background: #000000 !important;
-        color: #ffffff !important;
-      }
-      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover {
-        background: rgba(187, 119, 161, 0.4) !important;
-        color: #ffffff !important;
-      }
-    `
-    document.head.appendChild(style)
-  }
-}
+const PHONE_INPUT_STYLE_ID = 'phone-input-dropdown-override';
 
 const initialState = {
   message: undefined as string | undefined,
@@ -101,6 +76,20 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
 
   const currentState = mode === AuthMode.LOGIN ? loginState : mode === AuthMode.REGISTER ? signupState : resetPasswordState;
   const currentAction = mode === AuthMode.LOGIN ? loginAction : mode === AuthMode.REGISTER ? signupAction : resetPasswordAction;
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById(PHONE_INPUT_STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = PHONE_INPUT_STYLE_ID;
+    style.textContent = `
+      .PhoneInputCountrySelectDropdown { background: #000000 !important; background-color: #000000 !important; }
+      .PhoneInputCountrySelectDropdown * { color: #ffffff !important; }
+      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption { background: #000000 !important; color: #ffffff !important; }
+      .PhoneInputCountrySelectDropdown .PhoneInputCountryOption:hover { background: rgba(187, 119, 161, 0.4) !important; color: #ffffff !important; }
+    `;
+    document.head.appendChild(style);
+  }, []);
 
   useEffect(() => {
     if (currentState?.error) {
@@ -178,9 +167,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
     currentAction(formDataToSubmit);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
   return (
     <div className="w-full max-w-md relative z-10">
@@ -246,7 +236,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                                     international
                                     defaultCountry="CH"
                                     value={formData.phone_number}
-                                    onChange={(value) => setFormData({ ...formData, phone_number: value || '' })}
+                                    onChange={(value) => setFormData((prev) => ({ ...prev, phone_number: value || '' }))}
                                     className="phone-input-custom"
                                     numberInputProps={{
                                         className: 'w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-white/30 font-outfit focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',

@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { AuthMode, FormErrors } from '@/types/auth';
 import { login, signup, resetPassword } from '@/app/auth/actions';
 import { Input } from './auth-input';
-import { Mail, Lock, User as UserIcon, ArrowRight, Phone } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 
@@ -116,7 +116,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
   const toggleMode = () => {
     setMode(prev => prev === AuthMode.LOGIN ? AuthMode.REGISTER : AuthMode.LOGIN);
     setErrors({});
-    setFormData({ email: '', full_name: '', password: '', confirmPassword: '', dob: '' });
+    setFormData({ email: '', full_name: '', password: '', confirmPassword: '', dob: '', phone_number: '' });
   };
 
   const validate = (): boolean => {

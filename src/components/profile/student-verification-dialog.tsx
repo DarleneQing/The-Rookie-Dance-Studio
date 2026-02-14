@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Upload, GraduationCap } from 'lucide-react'
 import { toast } from 'sonner'
@@ -197,10 +198,13 @@ export function StudentVerificationDialog({
           </div>
           {previewUrl && (
             <div className="relative w-full rounded-lg overflow-hidden border border-gray-200">
-              <img
+              <Image
                 src={previewUrl}
                 alt="Student card preview"
+                width={800}
+                height={400}
                 className="w-full h-auto max-h-[400px] object-contain"
+                unoptimized
               />
             </div>
           )}

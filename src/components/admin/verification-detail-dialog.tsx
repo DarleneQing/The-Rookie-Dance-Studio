@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { approveStudentVerification, rejectStudentVerification } from '@/app/admin/actions'
 import { useRouter } from 'next/navigation'
@@ -138,10 +139,13 @@ export function VerificationDetailDialog({
             <div className="space-y-2">
               <Label className="text-white/90 font-outfit font-medium">Student Card Image</Label>
               <div className="relative w-full rounded-lg overflow-hidden border border-white/20 bg-black/20">
-                <img
+                <Image
                   src={verification.student_card_url}
                   alt="Student card"
+                  width={800}
+                  height={500}
                   className="w-full h-auto max-h-[500px] object-contain"
+                  unoptimized
                 />
               </div>
             </div>

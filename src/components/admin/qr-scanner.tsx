@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import dynamic from 'next/dynamic'
 
 // Defer loading until user opens scanner - reduces initial bundle and INP
@@ -59,7 +59,6 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
   const [pendingUserId, setPendingUserId] = useState<string | null>(null)
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
-  const [hasSubscription, setHasSubscription] = useState(false)
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen)
@@ -77,7 +76,6 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
       setPendingUserId(null)
       setLoadingProfile(false)
       setPaymentMethod(null)
-      setHasSubscription(false)
     }
   }
 
@@ -106,8 +104,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
         
         // Check if user has active subscription
         const subscriptionCheck = await getUserActiveSubscription(userId)
-        setHasSubscription(subscriptionCheck.hasSubscription)
-        
+
         // Auto-select 'abo' if user has subscription
         if (subscriptionCheck.hasSubscription) {
           setPaymentMethod('abo')
@@ -137,7 +134,6 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
     setPendingUserId(null)
     setLoadingProfile(false)
     setPaymentMethod(null)
-    setHasSubscription(false)
   }
 
   const handleConfirmCheckIn = async (forceSameDay?: boolean) => {

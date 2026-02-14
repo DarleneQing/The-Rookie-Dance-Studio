@@ -21,6 +21,9 @@ export default async function AdminCoursesPage() {
   const supabase = createClient()
 
   const today = new Date().toISOString().split('T')[0]
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  const yesterdayStr = yesterday.toISOString().split('T')[0]
 
   const [
     { data: profile },
@@ -34,7 +37,7 @@ export default async function AdminCoursesPage() {
       .eq('id', user.id)
       .single(),
     getCourses({ status: 'scheduled', fromDate: today }),
-    getCourses({ status: 'completed', toDate: today }),
+    getCourses({ toDate: yesterdayStr }),
     getInstructors(),
   ])
 

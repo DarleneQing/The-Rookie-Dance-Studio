@@ -1,7 +1,8 @@
-import dynamic from "next/dynamic"
+import nextDynamic from "next/dynamic"
+import Image from "next/image"
 import { Footer } from "@/components/footer"
 
-const FloatingElementsLazy = dynamic(
+const FloatingElementsLazy = nextDynamic(
   () =>
     import("@/components/auth/floating-elements-lazy").then((mod) => ({
       default: mod.FloatingElementsLazy,
@@ -30,15 +31,13 @@ export default function Home() {
 
         <div className="flex-1 flex items-center justify-center w-full px-4 my-2 max-h-[300px]">
           <div className="relative w-full max-w-[180px] md:max-w-[240px]">
-            {/* Native img so image loads with HTML, no wait for JS */}
-            <img
+            <Image
               src="/assets/pose1.webp"
               alt="Welcome illustration"
               width={200}
               height={200}
-              fetchPriority="high"
+              priority
               className="w-full h-auto object-contain"
-              decoding="async"
             />
           </div>
         </div>

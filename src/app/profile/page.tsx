@@ -179,6 +179,13 @@ export default async function ProfilePage() {
           </div>
         </QRCodeDisplay>
 
+        {/* TWINT payment banner */}
+        <div className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-center">
+          <p className="font-outfit text-sm font-medium text-white/90">
+            Pay by TWINT: <span className="font-syne font-semibold text-white">+41 76 722 49 78</span>
+          </p>
+        </div>
+
         {/* 3. Current Plan Section */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-2">

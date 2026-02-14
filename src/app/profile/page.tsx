@@ -1,9 +1,17 @@
+import dynamic from "next/dynamic"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedUser } from "@/lib/supabase/cached"
 import { getCachedProfile } from "@/lib/supabase/cached"
-import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { PrefetchRoutes } from "@/components/navigation/prefetch-routes"
+
+const FloatingElementsLazy = dynamic(
+  () =>
+    import("@/components/auth/floating-elements-lazy").then((mod) => ({
+      default: mod.FloatingElementsLazy,
+    })),
+  { ssr: false }
+)
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { QRCodeDisplay } from "@/components/profile/qr-code-display"

@@ -1,10 +1,18 @@
+import dynamic from "next/dynamic"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedUser } from "@/lib/supabase/cached"
 import { UsersTable } from "@/components/admin/users-table"
-import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
+
+const FloatingElementsLazy = dynamic(
+  () =>
+    import("@/components/auth/floating-elements-lazy").then((mod) => ({
+      default: mod.FloatingElementsLazy,
+    })),
+  { ssr: false }
+)
 
 export default async function UserManagementPage() {
   const user = await getCachedUser()
@@ -15,34 +23,25 @@ export default async function UserManagementPage() {
 
   const supabase = createClient()
 
-  // Check if admin
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single()
+  const [{ data: profile }, { data: profiles }, { data: subscriptions }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single(),
+      supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase.from("subscriptions").select("*").eq("status", "active"),
+    ])
 
   if (profile?.role !== "admin") {
     return redirect("/")
   }
 
-  // Fetch all users and their active subscription
-  // We need to join manually or use separate queries if foreign key logic is complex.
-  // Profiles has 1:Many subs. We want the active one.
-  
-  // Fetch profiles
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("*")
-    .order("created_at", { ascending: false })
-
   if (!profiles) return <div>No users found</div>
-
-  // Fetch active subscriptions for all users
-  const { data: subscriptions } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .eq("status", "active")
 
   // Merge data using Map for O(n) lookup instead of O(n²) find inside map
   const subscriptionMap = new Map(

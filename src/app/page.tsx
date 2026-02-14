@@ -1,18 +1,24 @@
-import Image from "next/image"
-import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
+import dynamic from "next/dynamic"
 import { Footer } from "@/components/footer"
 
-export const dynamic = 'force-static'
+const FloatingElementsLazy = dynamic(
+  () =>
+    import("@/components/auth/floating-elements-lazy").then((mod) => ({
+      default: mod.FloatingElementsLazy,
+    })),
+  { ssr: false }
+)
+
+export const dynamic = "force-static"
 
 export default function Home() {
   return (
     <main className="relative flex flex-col items-center justify-center overflow-hidden bg-black min-h-screen">
-      {/* Floating decorative elements */}
+      {/* Decoration loads in separate chunk – does not block content or interaction */}
       <FloatingElementsLazy />
 
-      {/* Content Container - plain <a> for CTAs so they work before hydration */}
+      {/* Critical content: static HTML, no client JS required (progressive enhancement) */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-8">
-        {/* Title Section */}
         <div className="w-full text-center pt-8 pb-4 px-4">
           <h1 className="font-syne font-bold text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-1 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
             The Rookie Dance Studio
@@ -22,21 +28,21 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Illustration Section */}
         <div className="flex-1 flex items-center justify-center w-full px-4 my-2 max-h-[300px]">
           <div className="relative w-full max-w-[180px] md:max-w-[240px]">
-            <Image
+            {/* Native img so image loads with HTML, no wait for JS */}
+            <img
               src="/assets/pose1.webp"
               alt="Welcome illustration"
               width={200}
               height={200}
+              fetchPriority="high"
               className="w-full h-auto object-contain"
-              priority
+              decoding="async"
             />
           </div>
         </div>
 
-        {/* Buttons Section - native anchors so Login/Sign up work before JS loads */}
         <div className="w-full max-w-md px-4 pb-2 space-y-3">
           <a
             href="/login"

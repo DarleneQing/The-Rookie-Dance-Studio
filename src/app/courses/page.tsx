@@ -1,10 +1,18 @@
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedUser } from '@/lib/supabase/cached'
 import { getCourses, getUserBookings, canCancelBooking } from '@/app/courses/actions'
 import { MemberLayout } from '@/components/navigation/member-layout'
 import { CoursesPageClient } from '@/components/courses/courses-page-client'
-import { FloatingElementsLazy } from '@/components/auth/floating-elements-lazy'
 import { Footer } from '@/components/footer'
+
+const FloatingElementsLazy = dynamic(
+  () =>
+    import('@/components/auth/floating-elements-lazy').then((mod) => ({
+      default: mod.FloatingElementsLazy,
+    })),
+  { ssr: false }
+)
 
 const coursesPageContent = (
   allCourses: Awaited<ReturnType<typeof getCourses>>,
@@ -47,14 +55,12 @@ const coursesPageContent = (
 )
 
 export default async function CoursesPage() {
-  const user = await getCachedUser()
-  const supabase = createClient()
-
   const today = new Date().toISOString().split('T')[0]
-  const allCourses = await getCourses({
-    status: 'scheduled',
-    fromDate: today,
-  })
+
+  const [user, allCourses] = await Promise.all([
+    getCachedUser(),
+    getCourses({ status: 'scheduled', fromDate: today }),
+  ])
 
   if (!user) {
     const bookingsMap = new Map<string, Awaited<ReturnType<typeof getUserBookings>>[number]>()
@@ -75,17 +81,22 @@ export default async function CoursesPage() {
     )
   }
 
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
+  const supabase = createClient()
 
-  const userBookingsData = await getUserBookings()
-  const canCancelResults = userBookingsData.length > 0
-    ? await Promise.all(userBookingsData.map((b) => canCancelBooking(b.id)))
-    : []
+  const [{ data: subscription }, userBookingsData] = await Promise.all([
+    supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle(),
+    getUserBookings(),
+  ])
+
+  const canCancelResults =
+    userBookingsData.length > 0
+      ? await Promise.all(userBookingsData.map((b) => canCancelBooking(b.id)))
+      : []
   const canCancelMap = new Map(
     userBookingsData.map((b, i) => [b.id, canCancelResults[i] ?? false])
   )

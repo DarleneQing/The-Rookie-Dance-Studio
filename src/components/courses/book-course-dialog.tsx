@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { CourseWithBookingCount } from '@/types/courses'
-import { useToggle } from '@/hooks'
+import { useToggle } from '@/hooks/use-toggle'
 import {
   Dialog,
   DialogContent,

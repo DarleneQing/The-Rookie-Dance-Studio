@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Calendar } from 'lucide-react'
@@ -5,8 +6,15 @@ import { createClient } from '@/lib/supabase/server'
 import { getCachedUser } from '@/lib/supabase/cached'
 import { getCourses } from '@/app/courses/actions'
 import { getInstructors } from '@/app/admin/courses/actions'
-import { FloatingElementsLazy } from '@/components/auth/floating-elements-lazy'
 import { Button } from '@/components/ui/button'
+
+const FloatingElementsLazy = dynamic(
+  () =>
+    import('@/components/auth/floating-elements-lazy').then((mod) => ({
+      default: mod.FloatingElementsLazy,
+    })),
+  { ssr: false }
+)
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CoursesTable } from '@/components/admin/courses/courses-table'
 import { CreateCourseDialog } from '@/components/admin/courses/create-course-dialog'
@@ -21,33 +29,27 @@ export default async function AdminCoursesPage() {
 
   const supabase = createClient()
 
-  // Check if admin
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  const today = new Date().toISOString().split('T')[0]
+
+  const [
+    { data: profile },
+    futureCourses,
+    pastCourses,
+    instructors,
+  ] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single(),
+    getCourses({ status: 'scheduled', fromDate: today }),
+    getCourses({ status: 'completed', toDate: today }),
+    getInstructors(),
+  ])
 
   if (profile?.role !== 'admin') {
     return redirect('/admin')
   }
-
-  // Fetch courses
-  const today = new Date().toISOString().split('T')[0]
-  
-  const futureCourses = await getCourses({
-    status: 'scheduled',
-    fromDate: today,
-  })
-
-  // For past courses, get completed ones before today
-  const pastCourses = await getCourses({
-    status: 'completed',
-    toDate: today,
-  })
-
-  // Fetch instructors
-  const instructors = await getInstructors()
 
   return (
     <main className="relative min-h-screen overflow-hidden">

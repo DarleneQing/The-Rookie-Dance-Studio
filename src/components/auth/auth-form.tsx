@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { AuthMode, FormErrors } from '@/types/auth';
 import { login, signup, resetPassword } from '@/app/auth/actions';
-import { usePhoneInputStyles } from '@/hooks';
+import { usePhoneInputStyles } from '@/hooks/use-phone-input-styles';
 import { Input } from './auth-input';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import PhoneInput from 'react-phone-number-input';

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
 import { updateProfileInfo } from '@/app/profile/actions'
-import { useToggle, usePhoneInputStyles } from '@/hooks'
+import { useToggle } from '@/hooks/use-toggle'
+import { usePhoneInputStyles } from '@/hooks/use-phone-input-styles'
 import {
   Dialog,
   DialogContent,

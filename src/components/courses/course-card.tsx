@@ -159,7 +159,7 @@ function CourseCardComponent({
               'w-full font-outfit',
               isFull
                 ? 'bg-white/10 text-white/40 cursor-not-allowed'
-                : 'bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90'
+                : ''
             )}
           >
             {bookingLoading ? 'Booking...' : isFull ? 'Full - Cannot Book' : 'Book Now'}

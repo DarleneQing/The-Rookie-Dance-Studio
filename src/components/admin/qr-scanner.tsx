@@ -266,7 +266,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                       className={cn(
                         'px-4 py-2 rounded-lg border transition-all font-outfit text-sm font-semibold',
                         paymentMethod === method
-                          ? 'bg-gradient-to-r from-rookie-purple to-rookie-pink text-white border-transparent'
+                          ? 'bg-primary text-primary-foreground border-transparent'
                           : 'bg-white/5 text-white/70 border-white/20 hover:bg-white/10 hover:text-white'
                       )}
                     >
@@ -287,7 +287,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                 </Button>
                 <Button
                   onClick={() => handleConfirmCheckIn(showSameDayConfirmation)}
-                  className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90 text-white"
+                  className="w-full sm:w-auto"
                   disabled={loadingProfile || !paymentMethod}
                 >
                   {loadingProfile ? (

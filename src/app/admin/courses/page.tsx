@@ -74,7 +74,7 @@ export default async function AdminCoursesPage() {
               </h2>
               <div className="flex flex-col sm:flex-row gap-2">
                 <CreateCourseDialog instructors={instructors}>
-                  <Button className="bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90 font-outfit">
+                  <Button>
                     <Plus className="mr-2 h-4 w-4" />
                     Create Course
                   </Button>

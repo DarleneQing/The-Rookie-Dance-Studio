@@ -475,7 +475,7 @@ export function BatchCreateDialog({
             <Button
               type="submit"
               disabled={loading || newCoursesCount === 0}
-              className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90"
+              className="w-full sm:w-auto"
             >
               {loading ? 'Creating...' : `Create ${newCoursesCount} Course${newCoursesCount !== 1 ? 's' : ''}`}
             </Button>

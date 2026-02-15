@@ -80,7 +80,7 @@ export function PDFDownloadButton({ contentId, filename }: PDFDownloadButtonProp
     <button
       onClick={generatePDF}
       disabled={isGenerating}
-      className="inline-flex items-center gap-2 bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90 text-white font-outfit font-semibold px-6 py-3 rounded-xl transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+      className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 font-outfit font-semibold px-6 py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
     >
       {isGenerating ? (
         <>

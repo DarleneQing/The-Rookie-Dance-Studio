@@ -134,7 +134,7 @@ export default function ResetPasswordPage() {
             <button 
               type="submit"
               disabled={isLoading}
-              className="w-full mt-4 h-12 bg-gradient-to-r from-rookie-purple to-indigo-600 hover:from-rookie-pink hover:to-rookie-purple rounded-xl font-syne font-bold text-white tracking-wide shadow-lg shadow-rookie-purple/30 transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 group"
+              className="w-full mt-4 h-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-syne font-bold tracking-wide transition-colors duration-300 flex items-center justify-center gap-2 group"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

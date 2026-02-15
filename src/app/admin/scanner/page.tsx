@@ -59,7 +59,7 @@ export default async function AdminScannerPage() {
               Course Check-in
             </h2>
             <CourseQRScanner todaysCourses={todaysCourses}>
-              <button className="w-full h-14 bg-gradient-to-r from-rookie-purple to-rookie-blue hover:opacity-90 border-2 border-white/20 rounded-xl font-syne font-bold text-white text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg">
+              <button className="w-full h-14 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-syne font-bold text-center flex items-center justify-center transition-colors duration-300 shadow-lg">
                 Open Scanner
               </button>
             </CourseQRScanner>

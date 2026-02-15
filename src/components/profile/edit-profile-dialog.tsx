@@ -149,7 +149,7 @@ export function EditProfileDialog({
             <Button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto bg-gradient-to-r from-rookie-purple to-rookie-pink hover:opacity-90"
+              className="w-full sm:w-auto"
             >
               {loading ? (
                 <>

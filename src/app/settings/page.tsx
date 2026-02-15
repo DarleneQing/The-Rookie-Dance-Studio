@@ -8,6 +8,7 @@ import { EditProfileDialog } from '@/components/profile/edit-profile-dialog'
 import { StudentVerificationDialog } from '@/components/profile/student-verification-dialog'
 import { LogoutButton } from '@/components/profile/logout-button'
 import { FindUsDialog } from '@/components/legal/find-us-dialog'
+import { SubscriptionPricingDialog } from '@/components/legal/subscription-pricing-dialog'
 import { 
   User, 
   Mail, 
@@ -18,7 +19,8 @@ import {
   Clock,
   AlertTriangle,
   MapPin,
-  Phone
+  Phone,
+  Tag
 } from 'lucide-react'
 
 export default async function SettingsPage() {
@@ -311,6 +313,27 @@ export default async function SettingsPage() {
               </svg>
             </button>
           </FindUsDialog>
+
+          {/* Subscription Pricing */}
+          <SubscriptionPricingDialog>
+            <button
+              type="button"
+              className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="bg-white/10 rounded-full p-2">
+                  <Tag className="h-5 w-5 text-white/60" />
+                </div>
+                <div className="text-left">
+                  <p className="font-outfit text-white/90 font-medium">Subscription Pricing</p>
+                  <p className="font-outfit text-xs text-white/60">Class card prices — payment offline</p>
+                </div>
+              </div>
+              <svg className="h-5 w-5 text-white/60 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </SubscriptionPricingDialog>
 
           {/* Terms and Conditions */}
           <a

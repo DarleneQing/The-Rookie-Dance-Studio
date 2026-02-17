@@ -12,6 +12,7 @@ const PUBLIC_ROUTES = [
   '/privacy',
   '/verify-email',
   '/reset-password',
+  '/auth/callback', // Code exchange for OAuth, email confirmation, password reset
 ]
 
 export async function middleware(request: NextRequest) {

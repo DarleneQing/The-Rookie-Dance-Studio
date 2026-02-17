@@ -30,7 +30,21 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  try {
+    await supabase.auth.getUser()
+  } catch {
+    // Invalid refresh token (e.g. after password reset, expired, or revoked).
+    // Clear auth cookies and redirect to login so the user can sign in again.
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/login'
+    redirectUrl.searchParams.set('callbackUrl', request.nextUrl.pathname)
+    response = NextResponse.redirect(redirectUrl)
+    request.cookies.getAll().forEach(({ name }) => {
+      if (name.startsWith('sb-')) {
+        response.cookies.set(name, '', { maxAge: 0, path: '/' })
+      }
+    })
+  }
 
   return response
 }

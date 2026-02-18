@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   description: "Zurich non-profit dance community, offering K-pop and other dance classes, open and vibrant.",
   metadataBase: new URL(siteUrl),
   openGraph: {
-    title: "The Rookie Dance Studio | Zurich non-profit dance community",
+    title: "The Rookie Dance Studio | Zurich non-profit dance community for K-pop",
     description: "Zurich non-profit dance community, offering K-pop and other dance classes, open and vibrant.",
     url: siteUrl,
     siteName: "The Rookie Dance Studio",

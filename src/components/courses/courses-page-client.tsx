@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, startTransition } from 'react'
+import { useState, useCallback, useEffect, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { CourseWithBookingCount, BookingWithCourse } from '@/types/courses'
 import { bookCourse, cancelBooking } from '@/app/courses/booking-actions'
@@ -34,6 +34,15 @@ export function CoursesPageClient({
   const [cancelLoadingId, setCancelLoadingId] = useState<string | null>(null)
   const [selectedCourseForBooking, setSelectedCourseForBooking] = useState<CourseWithBookingCount | null>(null)
   const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<BookingWithCourse | null>(null)
+
+  // Periodically refresh so capacity updates when other users book/cancel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      startTransition(() => router.refresh())
+    }, 10000) // every 10 seconds
+
+    return () => clearInterval(interval)
+  }, [router])
 
   const handleBookClick = useCallback(
     (courseId: string) => {

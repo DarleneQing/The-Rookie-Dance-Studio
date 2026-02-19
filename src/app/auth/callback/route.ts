@@ -11,19 +11,22 @@ export async function GET(request: Request) {
 
   const supabase = createClient()
 
-  // Password reset and magic link use token_hash + type (no PKCE code verifier in browser)
+  // Password reset and magic link: token_hash + type (custom template) or code (default template + client-side init)
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash, type })
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`)
     }
+    console.error('[auth/callback] verifyOtp failed:', error?.message)
   }
-  // OAuth and some flows use code (PKCE)
   else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`)
     }
+    console.error('[auth/callback] exchangeCodeForSession failed:', error?.message)
+  } else {
+    console.error('[auth/callback] Missing code, token_hash, or type in URL')
   }
 
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)

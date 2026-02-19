@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import { AuthMode, FormErrors } from '@/types/auth';
 import { login, signup, resetPassword } from '@/app/auth/actions';
+import { createClient } from '@/lib/supabase/client';
 import { usePhoneInputStyles } from '@/hooks/use-phone-input-styles';
 import { Input } from './auth-input';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
@@ -128,21 +129,29 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsLoading(true);
     
-    const formDataToSubmit = new FormData();
-    formDataToSubmit.append('email', formData.email);
-    
     if (mode === AuthMode.FORGOT_PASSWORD) {
-      // Only email needed for password reset
-      currentAction(formDataToSubmit);
+      // Client-side reset stores PKCE verifier so email link works with default template
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+      const { error } = await createClient().auth.resetPasswordForEmail(formData.email.trim(), {
+        redirectTo: `${baseUrl}/auth/callback?next=/reset-password`,
+      });
+      setIsLoading(false);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Password reset link sent to your email.');
+      }
       return;
     }
     
+    const formDataToSubmit = new FormData();
+    formDataToSubmit.append('email', formData.email);
     formDataToSubmit.append('password', formData.password);
     if (mode === AuthMode.REGISTER) {
       formDataToSubmit.append('full_name', formData.full_name);

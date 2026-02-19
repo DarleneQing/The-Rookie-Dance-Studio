@@ -49,7 +49,7 @@ export async function getCourses(filters?: {
   // Transform data to include booking count, check-in count, and user's booking
   const coursesWithBookings = await Promise.all(
     (courses || []).map(async (course) => {
-      // Get booking count
+      // Get booking count (RLS now allows everyone to view bookings for capacity display)
       const { count: bookingCount } = await supabase
         .from('bookings')
         .select('*', { count: 'exact', head: true })

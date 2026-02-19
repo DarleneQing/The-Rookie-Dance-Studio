@@ -160,6 +160,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
         formDataToSubmit.append('phone_number', formData.phone_number);
       }
     }
+    if (callbackUrl) {
+      formDataToSubmit.append('callbackUrl', callbackUrl);
+    }
 
     currentAction(formDataToSubmit);
   };

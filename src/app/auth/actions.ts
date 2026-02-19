@@ -92,6 +92,11 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
     return { error: 'Date of birth cannot be in the future' }
   }
 
+  // Get callback URL if provided
+  const callbackUrl = formData.get('callbackUrl') as string | null
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const redirectPath = isValidCallbackUrl(callbackUrl) ? callbackUrl : '/profile'
+
   const { error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
@@ -101,6 +106,7 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
         dob: data.dob,
         phone_number: data.phone_number || null,
       },
+      emailRedirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
     }
   })
 

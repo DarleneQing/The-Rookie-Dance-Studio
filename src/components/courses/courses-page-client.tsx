@@ -47,7 +47,7 @@ export function CoursesPageClient({
   const handleBookClick = useCallback(
     (courseId: string) => {
       if (!isLoggedIn) {
-        router.push('/login?callbackUrl=/courses')
+        router.push('/register?callbackUrl=/courses')
         return
       }
       const course = allCourses.find((c) => c.id === courseId)

@@ -2,9 +2,14 @@ import { AuthForm } from "@/components/auth/auth-form"
 import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
 import { AuthMode } from "@/types/auth"
 
-export const dynamic = 'force-static'
+export const dynamic = 'force-dynamic'
 
-export default function RegisterPage() {
+interface RegisterPageProps {
+  searchParams: { callbackUrl?: string }
+}
+
+export default function RegisterPage({ searchParams }: RegisterPageProps) {
+  const callbackUrl = searchParams?.callbackUrl
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
       {/* Background */}
@@ -22,7 +27,7 @@ export default function RegisterPage() {
 
       {/* Auth Form - Centered (starts in register mode) */}
       <div className="relative z-10 w-full flex items-center justify-center px-4 pb-12">
-        <AuthForm initialMode={AuthMode.REGISTER} />
+        <AuthForm initialMode={AuthMode.REGISTER} callbackUrl={callbackUrl} />
       </div>
     </main>
   )

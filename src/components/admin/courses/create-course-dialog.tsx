@@ -75,8 +75,11 @@ export function CreateCourseDialog({
     setLoading(true)
     try {
       await createCourse(formData)
-      toast.success('Course created successfully')
       setOpen(false)
+      // Show toast after dialog starts closing
+      setTimeout(() => {
+        toast.success('Course created successfully')
+      }, 100)
       // Reset form
       setFormData({
         dance_style: 'Kpop',

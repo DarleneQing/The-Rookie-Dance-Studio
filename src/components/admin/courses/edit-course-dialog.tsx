@@ -75,8 +75,11 @@ export function EditCourseDialog({
     setLoading(true)
     try {
       await updateCourse(course.id, formData)
-      toast.success('Course updated successfully')
       setOpen(false)
+      // Show toast after dialog starts closing
+      setTimeout(() => {
+        toast.success('Course updated successfully')
+      }, 100)
       onSuccess?.()
     } catch (error) {
       if (error instanceof Error) {

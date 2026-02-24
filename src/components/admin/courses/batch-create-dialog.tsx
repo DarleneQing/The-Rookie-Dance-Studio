@@ -153,11 +153,14 @@ export function BatchCreateDialog({
     setLoading(true)
     try {
       const result = await batchCreateCourses(formData)
-      toast.success(
-        `Successfully created ${result.created_count} course${result.created_count !== 1 ? 's' : ''}. ` +
-        `Skipped ${result.skipped_count} existing.`
-      )
       setOpen(false)
+      // Show toast after dialog starts closing
+      setTimeout(() => {
+        toast.success(
+          `Successfully created ${result.created_count} course${result.created_count !== 1 ? 's' : ''}. ` +
+          `Skipped ${result.skipped_count} existing.`
+        )
+      }, 100)
       onSuccess?.()
     } catch (error) {
       if (error instanceof Error) {

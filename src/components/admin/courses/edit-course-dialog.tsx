@@ -92,7 +92,7 @@ export function EditCourseDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto !top-[5vh] !translate-y-0 sm:!top-[50%] sm:!-translate-y-1/2">
         <DialogHeader>
           <DialogTitle className="font-syne text-xl">Edit Course</DialogTitle>
           <DialogDescription>

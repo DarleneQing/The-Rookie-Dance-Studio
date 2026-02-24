@@ -5,6 +5,7 @@
 .specify/
 .tasks/
 .specify/
+.agents/
 
 # dependencies
 /node_modules

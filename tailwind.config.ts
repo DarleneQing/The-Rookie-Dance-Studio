@@ -9,6 +9,12 @@ const config = {
     './src/**/*.{ts,tsx}',
   ],
   prefix: "",
+  safelist: [
+    '!top-[5vh]',
+    '!translate-y-0',
+    'sm:!top-[50%]',
+    'sm:!translate-y-[-50%]',
+  ],
   theme: {
     container: {
       center: true,

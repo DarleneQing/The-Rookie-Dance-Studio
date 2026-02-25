@@ -13,6 +13,7 @@ const PUBLIC_ROUTES = [
   '/verify-email',
   '/reset-password',
   '/auth/callback', // Code exchange for OAuth, email confirmation, password reset
+  '/auth/auth-code-error', // Error page for failed verification
 ]
 
 export async function middleware(request: NextRequest) {

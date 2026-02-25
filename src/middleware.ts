@@ -14,6 +14,7 @@ const PUBLIC_ROUTES = [
   '/reset-password',
   '/auth/callback', // Code exchange for OAuth, email confirmation, password reset
   '/auth/auth-code-error', // Error page for failed verification
+  '/auth/debug', // Debug page for troubleshooting auth issues
 ]
 
 export async function middleware(request: NextRequest) {

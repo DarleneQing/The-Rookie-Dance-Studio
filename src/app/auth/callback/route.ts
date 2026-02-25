@@ -10,15 +10,7 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') as EmailOtpType | null
   const next = searchParams.get('next') ?? '/'
 
-  console.log('[auth/callback] Received params:', { 
-    hasCode: !!code, 
-    hasTokenHash: !!token_hash, 
-    type,
-    next 
-  })
-
   if (!code && !token_hash) {
-    console.error('[auth/callback] Missing code and token_hash in URL')
     return NextResponse.redirect(`${origin}/auth/auth-code-error`)
   }
 
@@ -26,7 +18,7 @@ export async function GET(request: NextRequest) {
   const redirectUrl = `${origin}${next}`
   const errorUrl = `${origin}/auth/auth-code-error`
   
-  let response = NextResponse.redirect(redirectUrl)
+  const response = NextResponse.redirect(redirectUrl)
   const cookieStore = cookies()
 
   // Create supabase client with response cookie handler
@@ -50,41 +42,26 @@ export async function GET(request: NextRequest) {
 
   // Handle token_hash + type (custom email template or magic link)
   if (token_hash && type) {
-    console.log('[auth/callback] Attempting verifyOtp with token_hash and type:', type)
-    const { data, error } = await supabase.auth.verifyOtp({ token_hash, type })
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type })
     
     if (error) {
-      console.error('[auth/callback] verifyOtp failed:', {
-        message: error?.message,
-        status: error?.status,
-        name: error?.name
-      })
       return NextResponse.redirect(errorUrl)
     }
     
-    console.log('[auth/callback] verifyOtp succeeded for user:', data.user?.id)
     return response
   }
 
   // Handle code (PKCE flow - default email verification)
   if (code) {
-    console.log('[auth/callback] Attempting exchangeCodeForSession with code')
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (error) {
-      console.error('[auth/callback] exchangeCodeForSession failed:', {
-        message: error?.message,
-        status: error?.status,
-        name: error?.name
-      })
       return NextResponse.redirect(errorUrl)
     }
     
-    console.log('[auth/callback] exchangeCodeForSession succeeded for user:', data.user?.id)
     return response
   }
 
-  console.log('[auth/callback] No valid auth method found, redirecting to error page')
   return NextResponse.redirect(errorUrl)
 }
 

@@ -60,25 +60,11 @@ BEGIN
   LIMIT 1;
   
   -- Determine booking type based on subscription
+  -- Business rule: only subscriptions with status = 'active' are considered usable.
+  -- Monthly cards that are past end_date should already have been moved to 'archived',
+  -- and times cards with no credits should be 'depleted', so we don't block booking here.
   IF v_subscription.id IS NOT NULL THEN
     v_booking_type := 'subscription'::booking_type;
-    
-    -- Additional validation for subscription
-    IF v_subscription.type IN ('5_times', '10_times') THEN
-      IF v_subscription.remaining_credits <= 0 THEN
-        RETURN jsonb_build_object(
-          'success', false, 
-          'message', 'No credits remaining in your subscription'
-        );
-      END IF;
-    ELSIF v_subscription.type = 'monthly' THEN
-      IF v_subscription.end_date < CURRENT_DATE THEN
-        RETURN jsonb_build_object(
-          'success', false, 
-          'message', 'Your monthly subscription has expired'
-        );
-      END IF;
-    END IF;
   ELSE
     v_booking_type := 'single'::booking_type;
   END IF;

@@ -63,6 +63,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
     confirmPassword: '',
     dob: '',
     phone_number: '',
+    isGuardianForMinor: false,
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -94,7 +95,24 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
   const toggleMode = () => {
     setMode(prev => prev === AuthMode.LOGIN ? AuthMode.REGISTER : AuthMode.LOGIN);
     setErrors({});
-    setFormData({ email: '', full_name: '', password: '', confirmPassword: '', dob: '', phone_number: '' });
+    setFormData({ email: '', full_name: '', password: '', confirmPassword: '', dob: '', phone_number: '', isGuardianForMinor: false });
+  };
+
+  const calculateAge = (dobString: string): number | null => {
+    const dobDate = new Date(dobString);
+    if (Number.isNaN(dobDate.getTime())) {
+      return null;
+    }
+
+    const today = new Date();
+    let age = today.getFullYear() - dobDate.getFullYear();
+    const monthDiff = today.getMonth() - dobDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dobDate.getDate())) {
+      age--;
+    }
+
+    return age;
   };
 
   const validate = (): boolean => {
@@ -121,6 +139,11 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
         const dobDate = new Date(formData.dob);
         if (Number.isNaN(dobDate.getTime())) {
           newErrors.dob = "Please enter a valid date";
+        } else {
+          const age = calculateAge(formData.dob);
+          if (age !== null && age < 18 && !formData.isGuardianForMinor) {
+            newErrors.dob = "A guardian must confirm registration for users under 18";
+          }
         }
       }
     }
@@ -159,6 +182,10 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
       if (formData.phone_number) {
         formDataToSubmit.append('phone_number', formData.phone_number);
       }
+      const age = formData.dob ? calculateAge(formData.dob) : null;
+      const isMinor = age !== null && age < 18;
+      const guardianForMinor = isMinor && formData.isGuardianForMinor;
+      formDataToSubmit.append('is_guardian_for_minor', guardianForMinor ? 'true' : 'false');
     }
     if (callbackUrl) {
       formDataToSubmit.append('callbackUrl', callbackUrl);
@@ -221,6 +248,34 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                                 />
                             </div>
                         </div>
+                      {(() => {
+                        if (!formData.dob) return null;
+                        const age = calculateAge(formData.dob);
+                        const isMinor = age !== null && age < 18;
+                        if (!isMinor) return null;
+                        return (
+                          <div className="flex items-start gap-2 mt-2">
+                            <input
+                              id="guardian_for_minor"
+                              type="checkbox"
+                              checked={formData.isGuardianForMinor}
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  isGuardianForMinor: e.target.checked,
+                                }))
+                              }
+                              className="mt-0.5 h-4 w-4 rounded border-white/40 bg-transparent text-rookie-pink focus:ring-rookie-pink"
+                            />
+                            <label
+                              htmlFor="guardian_for_minor"
+                              className="text-xs font-outfit text-white/80"
+                            >
+                              I am a guardian for this user
+                            </label>
+                          </div>
+                        );
+                      })()}
                         {errors.dob && <p className="text-red-400 text-xs mt-1 font-outfit ml-1">{errors.dob}</p>}
                     </div>
                 )}

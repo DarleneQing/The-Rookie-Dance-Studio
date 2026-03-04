@@ -92,6 +92,22 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
     return { error: 'Date of birth cannot be in the future' }
   }
 
+  // Determine if user is a minor (under 18) and whether a guardian confirmed
+  const today = new Date()
+  let age = today.getFullYear() - dobDate.getFullYear()
+  const monthDiff = today.getMonth() - dobDate.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dobDate.getDate())) {
+    age--
+  }
+
+  const isMinor = age < 18
+  const isGuardianForMinor =
+    (formData.get('is_guardian_for_minor') as string | null) === 'true'
+
+  if (isMinor && !isGuardianForMinor) {
+    return { error: 'A guardian must confirm registration for users under 18.' }
+  }
+
   // Get callback URL if provided
   const callbackUrl = formData.get('callbackUrl') as string | null
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
@@ -105,6 +121,7 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
         full_name: data.full_name,
         dob: data.dob,
         phone_number: data.phone_number || null,
+        guardian_for_minor: isMinor && isGuardianForMinor ? 'true' : 'false',
       },
       emailRedirectTo: `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
     }

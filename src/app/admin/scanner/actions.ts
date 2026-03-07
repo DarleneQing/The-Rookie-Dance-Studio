@@ -155,10 +155,11 @@ export async function getUserBookingForCourse(
     };
   }
   
-  // For 'single' bookings, check if the user has acquired an active subscription
-  // since the booking was made (e.g., they purchased one on the day of the class).
+  // For 'single' or 'drop_in' bookings, check if the user has acquired an active
+  // subscription since the booking was made (e.g., bought a card on the day of the
+  // class, or acquired one between a first and second check-in for a drop-in).
   // If so, surface the subscription details so the UI reflects the upgrade.
-  if (data.booking_type === 'single') {
+  if (data.booking_type === 'single' || data.booking_type === 'drop_in') {
     const { data: activeSub } = await supabase
       .from('subscriptions')
       .select('id, status, type, remaining_credits, end_date')

@@ -155,6 +155,43 @@ export async function getUserBookingForCourse(
     };
   }
   
+  // For 'single' bookings, check if the user has acquired an active subscription
+  // since the booking was made (e.g., they purchased one on the day of the class).
+  // If so, surface the subscription details so the UI reflects the upgrade.
+  if (data.booking_type === 'single') {
+    const { data: activeSub } = await supabase
+      .from('subscriptions')
+      .select('id, status, type, remaining_credits, end_date')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (activeSub) {
+      const today = new Date().toISOString().split('T')[0];
+      const isValid =
+        ((activeSub.type === '5_times' || activeSub.type === '10_times') &&
+          activeSub.remaining_credits > 0) ||
+        (activeSub.type === 'monthly' && activeSub.end_date >= today);
+
+      if (isValid) {
+        return {
+          hasBooking: true,
+          bookingType: 'subscription',
+          subscriptionDetails: {
+            type: activeSub.type,
+            remainingCredits:
+              activeSub.type === '5_times' || activeSub.type === '10_times'
+                ? activeSub.remaining_credits
+                : undefined,
+            endDate: activeSub.type === 'monthly' ? activeSub.end_date : undefined,
+          },
+        };
+      }
+    }
+  }
+
   // For non-subscription bookings (single or drop-in)
   return {
     hasBooking: true,

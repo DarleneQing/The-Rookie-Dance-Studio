@@ -133,8 +133,10 @@ export async function getUserBookingForCourse(
     }
     
     // Validate end date for monthly subscriptions
+    // Compare date strings (YYYY-MM-DD) to avoid UTC midnight vs local time mismatch
     if (sub.type === 'monthly') {
-      if (new Date(sub.end_date) < new Date()) {
+      const today = new Date().toISOString().split('T')[0];
+      if (sub.end_date < today) {
         return { hasBooking: true, bookingType: 'single' };
       }
     }
@@ -216,7 +218,9 @@ export async function getUserActiveSubscription(
       return { hasSubscription: false };
     }
   } else if (data.type === 'monthly') {
-    if (new Date(data.end_date) < new Date()) {
+    // Compare date strings (YYYY-MM-DD) to avoid UTC midnight vs local time mismatch
+    const today = new Date().toISOString().split('T')[0];
+    if (data.end_date < today) {
       return { hasSubscription: false };
     }
   }

@@ -277,20 +277,28 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
       const response = await performCourseCheckin(pendingUserId, selectedCourseId, true, paymentMethod)
 
       if (response.success) {
-        const message = `${scannedMember?.full_name} checked in (Drop-in)`
-        const attendance = response.current_attendance && response.max_capacity 
-          ? `${response.current_attendance}/${response.max_capacity} attended`
-          : ''
-        
+        const bookingTypeLabel =
+          response.booking_type === 'subscription'
+            ? 'Subscription'
+            : response.booking_type === 'single'
+              ? 'Single Class'
+              : response.booking_type || 'Unknown'
+
+        const message = `${scannedMember?.full_name} checked in (${bookingTypeLabel})`
+        const attendance =
+          response.current_attendance && response.max_capacity
+            ? `${response.current_attendance}/${response.max_capacity} attended`
+            : ''
+
         toast.success(message + (attendance ? ` - ${attendance}` : ''))
-        
+
         setLastResult({
           success: true,
           message: message,
-          bookingType: 'Drop-in',
+          bookingType: bookingTypeLabel,
           attendance: attendance,
         })
-        
+
         // Reload attendance count
         await loadAttendanceCount()
       } else {
@@ -298,9 +306,9 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
         setLastResult({ success: false, message: response.message })
       }
     } catch (error) {
-      console.error('Drop-in check-in error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to process drop-in';
-      toast.error(errorMessage);
+      console.error('Drop-in check-in error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process check-in'
+      toast.error(errorMessage)
       setLastResult({ success: false, message: errorMessage })
     } finally {
       setLoadingProfile(false)
@@ -318,20 +326,28 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
       const response = await performCourseCheckin(pendingUserId, selectedCourseId, true, paymentMethod)
 
       if (response.success) {
-        const message = `${scannedMember?.full_name} checked in (Drop-in - Capacity Override)`
-        const attendance = response.current_attendance && response.max_capacity 
-          ? `${response.current_attendance}/${response.max_capacity} attended`
-          : ''
-        
+        const bookingTypeLabel =
+          response.booking_type === 'subscription'
+            ? 'Subscription'
+            : response.booking_type === 'single'
+              ? 'Single Class'
+              : response.booking_type || 'Unknown'
+
+        const message = `${scannedMember?.full_name} checked in (${bookingTypeLabel} - Capacity Override)`
+        const attendance =
+          response.current_attendance && response.max_capacity
+            ? `${response.current_attendance}/${response.max_capacity} attended`
+            : ''
+
         toast.success(message + (attendance ? ` - ${attendance}` : ''))
-        
+
         setLastResult({
           success: true,
           message: message,
-          bookingType: 'Drop-in',
+          bookingType: bookingTypeLabel,
           attendance: attendance,
         })
-        
+
         // Reload attendance count
         await loadAttendanceCount()
       } else {

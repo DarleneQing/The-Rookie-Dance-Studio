@@ -74,10 +74,10 @@ export function DropInDialog({
         <DialogHeader>
           <DialogTitle className="font-syne text-xl flex items-center gap-2 text-orange-400">
             <AlertTriangle className="h-5 w-5" />
-            Drop-in Check-in
+            Walk-in Check-in
           </DialogTitle>
           <DialogDescription className="text-white/70">
-            No booking found for this course. Confirm to create drop-in booking and check-in.
+            No booking found for this course. Confirm to create a booking and check-in.
           </DialogDescription>
         </DialogHeader>
 
@@ -217,8 +217,8 @@ export function DropInDialog({
           <AlertTriangle className="h-4 w-4 text-orange-400 shrink-0 mt-0.5" />
           <p className="text-xs text-orange-300 font-outfit">
             {subscriptionInfo?.hasSubscription 
-              ? 'Subscription will be used and credits will be deducted if applicable.'
-              : 'This will create a drop-in booking and check in the user immediately.'}
+              ? 'This will create a subscription booking and check in the user immediately, deducting credits if applicable.'
+              : 'This will create a single-class booking and check in the user immediately.'}
           </p>
         </div>
 

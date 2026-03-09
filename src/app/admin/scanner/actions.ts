@@ -291,30 +291,29 @@ export async function performCourseCheckin(
       p_is_drop_in: isDropIn,
       p_payment_method: paymentMethod,
     });
-    
+
     if (error) {
       console.error('perform_course_checkin RPC error:', error);
-      // Extract Supabase error message
       const errorMessage = error.message || error.details || 'Database error occurred';
       return {
         success: false,
         message: errorMessage
       };
     }
-    
+
     if (!data) {
       return {
         success: false,
         message: 'No response from server'
       };
     }
-    
+
     return data as CourseCheckinResponse;
   } catch (error) {
     const errorMessage = getErrorMessage(error, 'Failed to perform check-in');
     console.error('performCourseCheckin error:', errorMessage, error);
-    return { 
-      success: false, 
+    return {
+      success: false,
       message: errorMessage
     };
   }

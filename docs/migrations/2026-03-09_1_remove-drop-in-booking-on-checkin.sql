@@ -4,7 +4,12 @@ CREATE OR REPLACE FUNCTION perform_course_checkin(
   p_admin_id UUID DEFAULT auth.uid(),
   p_is_drop_in BOOLEAN DEFAULT false,
   p_payment_method payment_method DEFAULT NULL
-) RETURNS JSONB AS $$
+) RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+SET row_security = off
+AS $$
 DECLARE
   v_booking bookings%ROWTYPE;
   v_sub subscriptions%ROWTYPE;
@@ -12,6 +17,8 @@ DECLARE
   v_booking_type booking_type;
   v_course courses%ROWTYPE;
   v_current_attendance INTEGER;
+  v_book_result JSONB;
+  v_booking_id UUID;
 BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Only admins can perform check-ins';
@@ -22,37 +29,31 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'message', 'Course not found');
   END IF;
 
-  -- Walk-in path: user has no prior booking and scans QR
+  -- Walk-in path: user has no prior booking and scans QR.
+  -- Reuse the same booking logic as the normal user-facing flow by
+  -- delegating to book_course, then immediately check in that booking.
   IF p_is_drop_in THEN
-    -- Find any CURRENTLY USABLE subscription:
-    --   - 5/10 times: remaining_credits > 0
-    --   - monthly:    end_date today or in future
-    SELECT *
-    INTO v_sub
-    FROM subscriptions
-    WHERE user_id = p_user_id
-      AND (
-        (type IN ('5_times', '10_times') AND remaining_credits > 0)
-        OR (type = 'monthly' AND end_date >= CURRENT_DATE)
-      )
-    ORDER BY created_at DESC
-    LIMIT 1;
+    -- Let book_course handle capacity, duplicate booking checks and
+    -- subscription vs single detection.
+    v_book_result := book_course(p_user_id, p_course_id);
 
-    IF v_sub IS NOT NULL THEN
-      -- Usable subscription → create subscription booking
-      INSERT INTO bookings (user_id, course_id, subscription_id, booking_type, status)
-      VALUES (p_user_id, p_course_id, v_sub.id, 'subscription', 'confirmed')
-      RETURNING * INTO v_booking;
-
-      v_booking_type := 'subscription'::booking_type;
-    ELSE
-      -- No usable subscription → create single-class booking
-      INSERT INTO bookings (user_id, course_id, booking_type, status)
-      VALUES (p_user_id, p_course_id, 'single', 'confirmed')
-      RETURNING * INTO v_booking;
-
-      v_booking_type := 'single'::booking_type;
+    IF NOT COALESCE((v_book_result->>'success')::BOOLEAN, false) THEN
+      -- Bubble up the booking error (course full, already booked, etc.)
+      RETURN v_book_result;
     END IF;
+
+    v_booking_id := (v_book_result->>'booking_id')::UUID;
+
+    SELECT *
+    INTO v_booking
+    FROM bookings
+    WHERE id = v_booking_id;
+
+    IF v_booking IS NULL THEN
+      RETURN jsonb_build_object('success', false, 'message', 'Booking not found after creation');
+    END IF;
+
+    v_booking_type := v_booking.booking_type;
 
   ELSE
     -- Normal path: user must already have a confirmed booking
@@ -179,7 +180,7 @@ BEGIN
     END
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 COMMENT ON FUNCTION perform_course_checkin IS
   'Performs course check-in. For walk-ins (p_is_drop_in = true), auto-creates '

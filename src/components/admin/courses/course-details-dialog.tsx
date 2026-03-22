@@ -34,7 +34,7 @@ export function CourseDetailsDialog({
   const [courseDetails, setCourseDetails] = useState<CourseWithDetails | null>(null)
 
   useEffect(() => {
-    if (open && !courseDetails) {
+    if (open) {
       loadCourseDetails()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

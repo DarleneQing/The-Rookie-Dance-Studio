@@ -116,29 +116,23 @@ export async function getUserBookingForCourse(
     return { hasBooking: false };
   }
   
-  // If booking type is subscription, validate the subscription is still active
+  // If booking type is subscription, validate the subscription is still usable.
+  // Mirror the SQL usability-based check: don't rely on `status` (can be stale),
+  // instead check remaining credits / end_date directly.
   if (data.booking_type === 'subscription' && data.subscription_id) {
     const sub = unwrapSupabaseRelation(data.subscription);
-    
-    // Check if subscription exists and is active
-    if (!sub || sub.status !== 'active') {
+
+    if (!sub) {
       return { hasBooking: true, bookingType: 'single' };
     }
-    
-    // Validate credits for times-based subscriptions
-    if (sub.type === '5_times' || sub.type === '10_times') {
-      if (sub.remaining_credits <= 0) {
-        return { hasBooking: true, bookingType: 'single' };
-      }
-    }
-    
-    // Validate end date for monthly subscriptions
-    // Compare date strings (YYYY-MM-DD) to avoid UTC midnight vs local time mismatch
-    if (sub.type === 'monthly') {
-      const today = new Date().toISOString().split('T')[0];
-      if (sub.end_date < today) {
-        return { hasBooking: true, bookingType: 'single' };
-      }
+
+    const today = new Date().toISOString().split('T')[0];
+    const isUsable =
+      ((sub.type === '5_times' || sub.type === '10_times') && sub.remaining_credits > 0) ||
+      (sub.type === 'monthly' && sub.end_date >= today);
+
+    if (!isUsable) {
+      return { hasBooking: true, bookingType: 'single' };
     }
     
     // Subscription is valid - return with details

@@ -55,7 +55,9 @@ export interface CheckinContext {
 // Shared Supabase filter for "find usable subscription" — mirrors the SQL
 // find_usable_subscription() helper so client and server stay in sync.
 function usableSubscriptionFilter(today: string): string {
-  return `and(type.in.(5_times,10_times),remaining_credits.gt.0,status.neq.depleted),and(type.eq.monthly,status.eq.active,end_date.gte.${today})`;
+  // For times cards: remaining_credits > 0 is sufficient (depleted cards have 0).
+  // For monthly: must be active and within validity period.
+  return `and(type.in.(5_times,10_times),remaining_credits.gt.0),and(type.eq.monthly,status.eq.active,end_date.gte.${today})`;
 }
 
 function formatSubDetails(sub: {

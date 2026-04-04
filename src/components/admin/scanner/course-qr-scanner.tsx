@@ -16,14 +16,12 @@ const Scanner = dynamic(
   }
 )
 import { toast } from 'sonner'
-import { getMemberProfile } from '@/app/admin/actions'
-import { 
-  performCourseCheckin, 
-  getUserBookingForCourse,
+import {
+  getCheckinContext,
+  performCourseCheckin,
   getCourseCheckins,
-  checkUserAlreadyCheckedIn,
-  getUserActiveSubscription,
 } from '@/app/admin/scanner/actions'
+import type { CheckinContext } from '@/app/admin/scanner/actions'
 import type { CourseWithBookingCount } from '@/types/courses'
 import { Button } from '@/components/ui/button'
 import {
@@ -60,21 +58,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     bookingType?: string
     attendance?: string
   } | null>(null)
-  const [scannedMember, setScannedMember] = useState<{
-    id: string
-    full_name: string
-    avatar_url: string | null
-    dob: string | null
-    member_type: 'adult' | 'student'
-  } | null>(null)
-  const [bookingInfo, setBookingInfo] = useState<{
-    bookingType: 'subscription' | 'single' | 'drop_in'
-    subscriptionDetails?: {
-      type: string
-      remainingCredits?: number
-      endDate?: string
-    }
-  } | null>(null)
+  const [scanContext, setScanContext] = useState<CheckinContext | null>(null)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [showDropInDialog, setShowDropInDialog] = useState(false)
   const [showCapacityOverride, setShowCapacityOverride] = useState(false)
@@ -83,15 +67,6 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [attendanceCount, setAttendanceCount] = useState(0)
-  const [isRepeatCheckin, setIsRepeatCheckin] = useState(false)
-  const [dropInSubscriptionInfo, setDropInSubscriptionInfo] = useState<{
-    hasSubscription: boolean
-    subscriptionDetails?: {
-      type: string
-      remainingCredits?: number
-      endDate?: string
-    }
-  } | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
 
   // Auto-select course if only one
@@ -133,12 +108,9 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     setShowConfirmation(false)
     setShowDropInDialog(false)
     setShowCapacityOverride(false)
-    setScannedMember(null)
-    setBookingInfo(null)
+    setScanContext(null)
     setPendingUserId(null)
     setLoadingProfile(false)
-    setIsRepeatCheckin(false)
-    setDropInSubscriptionInfo(null)
     setPaymentMethod(null)
   }
 
@@ -162,48 +134,25 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
       setLoadingProfile(true)
       setPendingUserId(userId)
 
-      const profileResponse = await getMemberProfile(userId)
+      // Single server call fetches profile + booking + subscription + repeat-checkin status
+      const ctx = await getCheckinContext(userId, selectedCourseId)
       setLoadingProfile(false)
 
-      if (profileResponse.success && profileResponse.profile) {
-        setScannedMember({
-          id: profileResponse.profile.id,
-          full_name: profileResponse.profile.full_name || 'Unknown',
-          avatar_url: profileResponse.profile.avatar_url,
-          dob: profileResponse.profile.dob,
-          member_type: profileResponse.profile.member_type,
-        })
+      if (ctx.success && ctx.profile) {
+        setScanContext(ctx)
 
-        // Check if user already checked in for this course (for notification purposes)
-        const alreadyCheckedIn = await checkUserAlreadyCheckedIn(userId, selectedCourseId)
-        setIsRepeatCheckin(alreadyCheckedIn)
-
-        // Check if user has booking for this course
-        const bookingCheck = await getUserBookingForCourse(userId, selectedCourseId)
-        const selectedCourse = todaysCourses.find(c => c.id === selectedCourseId)
-
-        if (bookingCheck.hasBooking) {
-          // Has booking - store booking info and proceed with normal check-in
-          setBookingInfo({
-            bookingType: bookingCheck.bookingType as 'subscription' | 'single' | 'drop_in',
-            subscriptionDetails: bookingCheck.subscriptionDetails
-          })
+        if (ctx.hasBooking) {
           setShowConfirmation(true)
         } else {
-          // No booking - check for active subscription
-          const subscriptionCheck = await getUserActiveSubscription(userId)
-          setDropInSubscriptionInfo(subscriptionCheck)
-          
+          const selectedCourse = todaysCourses.find(c => c.id === selectedCourseId)
           if (selectedCourse && attendanceCount >= selectedCourse.capacity) {
-            // No booking and capacity full - show override dialog
             setShowCapacityOverride(true)
           } else {
-            // No booking but capacity available - show drop-in dialog
             setShowDropInDialog(true)
           }
         }
       } else {
-        toast.error(profileResponse.message || 'Failed to load member profile')
+        toast.error(ctx.message || 'Failed to load member profile')
         resetScanner()
       }
     } catch {
@@ -218,45 +167,50 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     setScanning(true)
   }
 
+  const processCheckinResponse = (
+    response: { success: boolean; message: string; booking_type?: string; current_attendance?: number; max_capacity?: number },
+    suffix?: string
+  ) => {
+    if (response.success) {
+      const bookingTypeLabel = response.booking_type === 'subscription' ? 'Subscription'
+        : response.booking_type === 'single' ? 'Single Class' : 'Drop-in'
+
+      const repeatLabel = scanContext?.isRepeatCheckin ? ' - REPEAT CHECK-IN' : ''
+      const suffixLabel = suffix ? ` - ${suffix}` : ''
+      const message = `${scanContext?.profile?.full_name} checked in (${bookingTypeLabel})${repeatLabel}${suffixLabel}`
+      const attendance = response.current_attendance && response.max_capacity
+        ? `${response.current_attendance}/${response.max_capacity} attended`
+        : ''
+
+      toast.success(message + (attendance ? ` - ${attendance}` : ''))
+
+      setLastResult({
+        success: true,
+        message,
+        bookingType: bookingTypeLabel,
+        attendance,
+      })
+    } else {
+      toast.error(response.message)
+      setLastResult({ success: false, message: response.message })
+    }
+  }
+
   const handleNormalCheckin = async () => {
     if (!pendingUserId || !selectedCourseId || !paymentMethod) return
 
     setLoadingProfile(true)
     try {
       const response = await performCourseCheckin(pendingUserId, selectedCourseId, false, paymentMethod)
-
-      if (response.success) {
-        const bookingTypeLabel = response.booking_type === 'subscription' ? 'Subscription' 
-          : response.booking_type === 'single' ? 'Single Class' : 'Drop-in'
-        
-        const repeatLabel = isRepeatCheckin ? ' - REPEAT CHECK-IN' : ''
-        const message = `${scannedMember?.full_name} checked in (${bookingTypeLabel})${repeatLabel}`
-        const attendance = response.current_attendance && response.max_capacity 
-          ? `${response.current_attendance}/${response.max_capacity} attended`
-          : ''
-        
-        toast.success(message + (attendance ? ` - ${attendance}` : ''))
-        
-        setLastResult({
-          success: true,
-          message: message,
-          bookingType: bookingTypeLabel,
-          attendance: attendance,
-        })
-        
-        // Reload attendance count
-        await loadAttendanceCount()
-      } else {
-        toast.error(response.message)
-        setLastResult({ success: false, message: response.message })
-      }
+      processCheckinResponse(response)
+      if (response.success) await loadAttendanceCount()
     } catch {
       toast.error('Failed to process check-in')
       setLastResult({ success: false, message: 'Failed to process check-in' })
     } finally {
       setLoadingProfile(false)
       setShowConfirmation(false)
-      setScannedMember(null)
+      setScanContext(null)
       setPendingUserId(null)
     }
   }
@@ -266,7 +220,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
       toast.error('Missing user ID or course ID');
       return;
     }
-    
+
     if (!paymentMethod) {
       toast.error('Please select a payment method');
       return;
@@ -275,36 +229,8 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     setLoadingProfile(true)
     try {
       const response = await performCourseCheckin(pendingUserId, selectedCourseId, true, paymentMethod)
-
-      if (response.success) {
-        const bookingTypeLabel =
-          response.booking_type === 'subscription'
-            ? 'Subscription'
-            : response.booking_type === 'single'
-              ? 'Single Class'
-              : response.booking_type || 'Unknown'
-
-        const message = `${scannedMember?.full_name} checked in (${bookingTypeLabel})`
-        const attendance =
-          response.current_attendance && response.max_capacity
-            ? `${response.current_attendance}/${response.max_capacity} attended`
-            : ''
-
-        toast.success(message + (attendance ? ` - ${attendance}` : ''))
-
-        setLastResult({
-          success: true,
-          message: message,
-          bookingType: bookingTypeLabel,
-          attendance: attendance,
-        })
-
-        // Reload attendance count
-        await loadAttendanceCount()
-      } else {
-        toast.error(response.message)
-        setLastResult({ success: false, message: response.message })
-      }
+      processCheckinResponse(response)
+      if (response.success) await loadAttendanceCount()
     } catch (error) {
       console.error('Drop-in check-in error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to process check-in'
@@ -313,7 +239,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     } finally {
       setLoadingProfile(false)
       setShowDropInDialog(false)
-      setScannedMember(null)
+      setScanContext(null)
       setPendingUserId(null)
     }
   }
@@ -324,50 +250,22 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     setLoadingProfile(true)
     try {
       const response = await performCourseCheckin(pendingUserId, selectedCourseId, true, paymentMethod)
-
-      if (response.success) {
-        const bookingTypeLabel =
-          response.booking_type === 'subscription'
-            ? 'Subscription'
-            : response.booking_type === 'single'
-              ? 'Single Class'
-              : response.booking_type || 'Unknown'
-
-        const message = `${scannedMember?.full_name} checked in (${bookingTypeLabel} - Capacity Override)`
-        const attendance =
-          response.current_attendance && response.max_capacity
-            ? `${response.current_attendance}/${response.max_capacity} attended`
-            : ''
-
-        toast.success(message + (attendance ? ` - ${attendance}` : ''))
-
-        setLastResult({
-          success: true,
-          message: message,
-          bookingType: bookingTypeLabel,
-          attendance: attendance,
-        })
-
-        // Reload attendance count
-        await loadAttendanceCount()
-      } else {
-        toast.error(response.message)
-        setLastResult({ success: false, message: response.message })
-      }
+      processCheckinResponse(response, 'Capacity Override')
+      if (response.success) await loadAttendanceCount()
     } catch {
       toast.error('Failed to process override check-in')
       setLastResult({ success: false, message: 'Failed to process override check-in' })
     } finally {
       setLoadingProfile(false)
       setShowCapacityOverride(false)
-      setScannedMember(null)
+      setScanContext(null)
       setPendingUserId(null)
     }
   }
 
   const handleCancelConfirmation = () => {
     setShowConfirmation(false)
-    setScannedMember(null)
+    setScanContext(null)
     setPendingUserId(null)
     resetScanner()
   }
@@ -388,6 +286,18 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
   }
 
   const selectedCourse = todaysCourses.find(c => c.id === selectedCourseId)
+
+  // Derive UI values from scanContext
+  const scannedMember = scanContext?.profile ?? null
+  const bookingInfo = scanContext ? {
+    bookingType: scanContext.bookingType ?? 'single' as const,
+    subscriptionDetails: scanContext.subscriptionDetails,
+  } : null
+  // Adapt for drop-in / capacity-override dialogs which expect { hasSubscription, subscriptionDetails? }
+  const dropInSubscriptionInfo = scanContext ? {
+    hasSubscription: !!scanContext.subscriptionDetails,
+    subscriptionDetails: scanContext.subscriptionDetails,
+  } : null
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -417,7 +327,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                     {scannedMember.full_name.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div className="text-center space-y-2">
                   <h3 className="text-2xl font-bold font-syne text-white">
                     {scannedMember.full_name}
@@ -432,12 +342,12 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                         })}
                       </span>
                     )}
-                    <Badge 
-                      variant="default" 
+                    <Badge
+                      variant="default"
                       className={cn(
                         "font-outfit text-xs",
-                        scannedMember.member_type === 'student' 
-                          ? "border-pink-500/40 bg-pink-500/20 text-pink-300" 
+                        scannedMember.member_type === 'student'
+                          ? "border-pink-500/40 bg-pink-500/20 text-pink-300"
                           : "border-white/30 bg-white/10 text-white"
                       )}
                     >
@@ -452,9 +362,9 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                     <Music className="h-4 w-4" />
                     <span>Course Information</span>
                   </div>
-                  
+
                   <div className="border-t border-white/10" />
-                  
+
                   <div>
                     <div className="font-syne font-bold text-white text-lg">
                       {selectedCourse.song || getDisplayDanceStyle(selectedCourse.dance_style)}
@@ -508,7 +418,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                             {formatSubscriptionType(bookingInfo.subscriptionDetails.type)}
                           </span>
                         </div>
-                        
+
                         {bookingInfo.subscriptionDetails.remainingCredits !== undefined && (
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-white/70 font-outfit">Remaining:</span>
@@ -517,7 +427,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                             </span>
                           </div>
                         )}
-                        
+
                         {bookingInfo.subscriptionDetails.endDate && (
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-white/70 font-outfit">Valid Until:</span>
@@ -536,7 +446,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                 </div>
 
                 {/* Repeat Check-in Warning */}
-                {isRepeatCheckin && (
+                {scanContext?.isRepeatCheckin && (
                   <div className="w-full bg-orange-500/20 border border-orange-500/50 rounded-xl p-3 flex items-start gap-2">
                     <AlertTriangle className="h-5 w-5 text-orange-400 shrink-0 mt-0.5" />
                     <div>
@@ -575,7 +485,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                     ))}
                   </div>
                 </div>
-                
+
                 <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 w-full pt-2">
                   <Button
                     onClick={handleCancelConfirmation}
@@ -651,9 +561,9 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                   <h3 className="text-xl font-bold font-syne text-white">
                     {lastResult.success ? 'Check-in Successful' : 'Check-in Failed'}
                   </h3>
-                  
+
                   <p className="text-white/70 font-outfit mt-2">{lastResult.message}</p>
-                  
+
                   <div className="flex flex-wrap gap-2 justify-center items-center">
                     {lastResult.bookingType && (
                       <Badge variant="scheduled">
@@ -661,7 +571,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                       </Badge>
                     )}
                   </div>
-                  
+
                   {lastResult.attendance && (
                     <p className="font-semibold mt-2 font-outfit text-white">
                       {lastResult.attendance}

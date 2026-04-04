@@ -2,11 +2,12 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import type { 
-  CreateCourseInput, 
+import type {
+  CreateCourseInput,
   BatchCreateCoursesInput,
   BatchCreateResponse,
-  CourseWithDetails 
+  CourseWithDetails,
+  PaymentMethod,
 } from '@/types/courses';
 
 export async function createCourse(input: CreateCourseInput) {
@@ -135,6 +136,71 @@ export async function getCourseDetails(courseId: string): Promise<CourseWithDeta
   if (error) throw error;
   
   return data as CourseWithDetails;
+}
+
+export async function deleteCheckin(
+  checkinId: string
+): Promise<{ success: boolean; message: string }> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc('delete_course_checkin', {
+    p_checkin_id: checkinId,
+  });
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  revalidatePath('/admin/courses');
+  return data as { success: boolean; message: string };
+}
+
+export async function manualCheckin(
+  userId: string,
+  courseId: string,
+  paymentMethod: PaymentMethod
+): Promise<{ success: boolean; message: string; booking_type?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, message: 'Not authenticated' };
+  }
+
+  const { data, error } = await supabase.rpc('perform_course_checkin', {
+    p_user_id: userId,
+    p_course_id: courseId,
+    p_admin_id: user.id,
+    p_is_drop_in: true,
+    p_payment_method: paymentMethod,
+  });
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  revalidatePath('/admin/courses');
+  return data as { success: boolean; message: string; booking_type?: string };
+}
+
+export async function searchUsers(query: string): Promise<Array<{
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+}>> {
+  if (!query || query.length < 2) return [];
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .ilike('full_name', `%${query}%`)
+    .order('full_name')
+    .limit(10);
+
+  if (error) return [];
+  return data || [];
 }
 
 export async function getInstructors() {

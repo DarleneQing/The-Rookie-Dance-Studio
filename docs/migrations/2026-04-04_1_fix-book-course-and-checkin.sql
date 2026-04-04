@@ -101,7 +101,6 @@ DECLARE
   v_subscription subscriptions%ROWTYPE;
   v_booking_type booking_type;
   v_booking_id UUID;
-  v_course_end TIMESTAMPTZ;
 BEGIN
   SELECT * INTO v_course FROM courses WHERE id = p_course_id FOR UPDATE;
 
@@ -110,15 +109,10 @@ BEGIN
   END IF;
 
   -- Time check: normal users cannot book after start time.
-  -- Admin override (walk-ins) can book until the course END time.
+  -- Admin override (walk-ins) can book anytime on the course day.
   IF p_is_admin_override THEN
-    v_course_end := (
-      (v_course.scheduled_date + v_course.start_time)
-      AT TIME ZONE 'Europe/Zurich'
-      + (v_course.duration_minutes || ' minutes')::INTERVAL
-    );
-    IF NOW() AT TIME ZONE 'Europe/Zurich' > v_course_end THEN
-      RETURN jsonb_build_object('success', false, 'message', 'Course has already ended');
+    IF (NOW() AT TIME ZONE 'Europe/Zurich')::DATE > v_course.scheduled_date THEN
+      RETURN jsonb_build_object('success', false, 'message', 'Course day has passed');
     END IF;
   ELSE
     IF (v_course.scheduled_date + v_course.start_time) < NOW() AT TIME ZONE 'Europe/Zurich' THEN

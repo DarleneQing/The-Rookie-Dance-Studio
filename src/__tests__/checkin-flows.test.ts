@@ -45,7 +45,6 @@ vi.mock('@/lib/supabase/server', () => ({
 
 // Import AFTER mocking
 import { getCheckinContext } from '@/app/admin/scanner/actions'
-import type { CheckinContext } from '@/app/admin/scanner/actions'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -518,7 +517,6 @@ describe('SQL flow tracing — book_course logic', () => {
   })
 
   it('admin override during course, capacity full → succeeds', () => {
-    const isAdminOverride = true
     const courseEnded = false
 
     // Admin override skips start-time check, only checks end time
@@ -612,7 +610,6 @@ describe('SQL flow tracing — perform_course_checkin logic', () => {
   })
 
   it('times card check-in → deducts 1 credit, depletes at 0', () => {
-    const subType = '5_times'
     const creditsBefore = 1
 
     const creditsAfter = creditsBefore - 1

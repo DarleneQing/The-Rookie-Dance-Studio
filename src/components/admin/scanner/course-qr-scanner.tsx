@@ -21,7 +21,7 @@ import {
   performCourseCheckin,
   getCourseCheckins,
 } from '@/app/admin/scanner/actions'
-import type { CheckinContext, SubscriptionDetails } from '@/app/admin/scanner/actions'
+import type { CheckinContext } from '@/app/admin/scanner/actions'
 import type { CourseWithBookingCount } from '@/types/courses'
 import { Button } from '@/components/ui/button'
 import {

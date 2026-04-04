@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getCourseDetails } from '@/app/admin/courses/actions'
-import type { CourseWithDetails } from '@/types/courses'
+import { getCourseDetails, deleteCheckin, manualCheckin } from '@/app/admin/courses/actions'
+import type { CourseWithDetails, PaymentMethod } from '@/types/courses'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -14,9 +14,12 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Users, Clock, Loader2, Music, UserX } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Users, Clock, Loader2, Music, UserX, Trash2, CheckCircle2, UserPlus } from 'lucide-react'
 import { formatDate, getTimeInterval, formatTimestampTime } from '@/lib/utils/date-formatters'
 import { BookingTypeBadge } from '@/components/ui/booking-type-badge'
+import { AddCheckinDialog } from './add-checkin-dialog'
+import { cn } from '@/lib/utils'
 
 interface CourseDetailsDialogProps {
   courseId: string
@@ -32,6 +35,10 @@ export function CourseDetailsDialog({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [courseDetails, setCourseDetails] = useState<CourseWithDetails | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [checkinInId, setCheckinInId] = useState<string | null>(null)
+  const [showAddCheckin, setShowAddCheckin] = useState(false)
+  const [checkinPayment, setCheckinPayment] = useState<{ bookingId: string; method: PaymentMethod | null } | null>(null)
 
   useEffect(() => {
     if (open) {
@@ -55,6 +62,41 @@ export function CourseDetailsDialog({
 
   const formatTimestamp = (timestamp: string) => {
     return `${formatDate(timestamp, { includeYear: true })} ${formatTimestampTime(timestamp)}`
+  }
+
+  const handleDeleteCheckin = async (checkinId: string, userName: string) => {
+    setDeletingId(checkinId)
+    try {
+      const result = await deleteCheckin(checkinId)
+      if (result.success) {
+        toast.success(`Removed check-in for ${userName}`)
+        await loadCourseDetails()
+      } else {
+        toast.error(result.message)
+      }
+    } catch {
+      toast.error('Failed to delete check-in')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const handleQuickCheckin = async (userId: string, userName: string, paymentMethod: PaymentMethod) => {
+    setCheckinInId(userId)
+    try {
+      const result = await manualCheckin(userId, courseId, paymentMethod)
+      if (result.success) {
+        toast.success(`${userName} checked in`)
+        setCheckinPayment(null)
+        await loadCourseDetails()
+      } else {
+        toast.error(result.message)
+      }
+    } catch {
+      toast.error('Failed to check in')
+    } finally {
+      setCheckinInId(null)
+    }
   }
 
   return (
@@ -126,9 +168,8 @@ export function CourseDetailsDialog({
 
             <TabsContent value="bookings" className="mt-4">
               <div className="space-y-2">
-                {courseDetails.bookings && courseDetails.bookings.filter(b => b.status === 'confirmed').length > 0 ? (
-                  courseDetails.bookings
-                    .filter(b => b.status === 'confirmed')
+                {confirmedBookings.length > 0 ? (
+                  confirmedBookings
                     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                     .map((booking) => (
                       <div
@@ -184,8 +225,47 @@ export function CourseDetailsDialog({
                             Booked {formatTimestamp(booking.created_at)}
                           </div>
                         </div>
-                        <BookingTypeBadge type={booking.booking_type} />
-                        <span title="Not checked in"><UserX className="h-4 w-4 text-amber-400 flex-shrink-0" /></span>
+
+                        {/* Quick check-in: show payment selector or check-in button */}
+                        {checkinPayment?.bookingId === booking.id ? (
+                          <div className="flex items-center gap-1">
+                            {(['cash', 'twint', 'abo'] as PaymentMethod[]).map((method) => (
+                              <button
+                                key={method}
+                                type="button"
+                                disabled={checkinInId === booking.user_id}
+                                onClick={() => handleQuickCheckin(booking.user_id, booking.user.full_name, method)}
+                                className={cn(
+                                  'px-2 py-1 rounded-md border text-xs font-outfit font-semibold transition-all',
+                                  'bg-white/5 text-white/70 border-white/20 hover:bg-green-500/20 hover:text-green-300 hover:border-green-500/40'
+                                )}
+                              >
+                                {checkinInId === booking.user_id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  method === 'cash' ? 'Cash' : method === 'twint' ? 'TWINT' : 'Abo'
+                                )}
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setCheckinPayment(null)}
+                              className="px-1.5 py-1 rounded-md text-xs text-white/40 hover:text-white/70"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setCheckinPayment({ bookingId: booking.id, method: null })}
+                            className="text-green-400 hover:text-green-300 hover:bg-green-500/10 gap-1 px-2"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span className="text-xs hidden sm:inline">Check in</span>
+                          </Button>
+                        )}
                       </div>
                     ))
                 ) : (
@@ -199,6 +279,17 @@ export function CourseDetailsDialog({
 
             <TabsContent value="attendance" className="mt-4">
               <div className="space-y-2">
+                {/* Add check-in button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddCheckin(true)}
+                  className="w-full border-dashed border-white/20 text-white/60 hover:text-white hover:bg-white/5 gap-2"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Add Check-in
+                </Button>
+
                 {courseDetails.checkins && courseDetails.checkins.length > 0 ? (
                   courseDetails.checkins
                     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -223,6 +314,19 @@ export function CourseDetailsDialog({
                           </div>
                         </div>
                         {checkin.booking_type && <BookingTypeBadge type={checkin.booking_type} />}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteCheckin(checkin.id, checkin.user.full_name)}
+                          disabled={deletingId === checkin.id}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2"
+                        >
+                          {deletingId === checkin.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
                       </div>
                     ))
                 ) : (
@@ -238,6 +342,15 @@ export function CourseDetailsDialog({
           </Tabs>
         ) : null}
       </DialogContent>
+
+      {showAddCheckin && (
+        <AddCheckinDialog
+          open={showAddCheckin}
+          onOpenChange={setShowAddCheckin}
+          courseId={courseId}
+          onSuccess={loadCourseDetails}
+        />
+      )}
     </Dialog>
   )
 }

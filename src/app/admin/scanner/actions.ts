@@ -149,41 +149,38 @@ export async function getUserBookingForCourse(
     };
   }
   
-  // For 'single' or 'drop_in' bookings, check if the user has acquired an active
+  // For 'single' or 'drop_in' bookings, check if the user has acquired a usable
   // subscription since the booking was made (e.g., bought a card on the day of the
-  // class, or acquired one between a first and second check-in for a drop-in).
-  // If so, surface the subscription details so the UI reflects the upgrade.
+  // class). If so, surface the subscription details so the UI reflects the upgrade
+  // that perform_course_checkin will do at check-in time.
+  // Use the same relaxed detection as the SQL RPC: for times cards, trust
+  // remaining_credits > 0 regardless of status (covers archived cards with credits);
+  // for monthly, require status = 'active' AND end_date >= today.
   if (data.booking_type === 'single' || data.booking_type === 'drop_in') {
-    const { data: activeSub } = await supabase
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data: usableSub } = await supabase
       .from('subscriptions')
       .select('id, status, type, remaining_credits, end_date')
       .eq('user_id', userId)
-      .eq('status', 'active')
+      .or(`and(type.in.(5_times,10_times),remaining_credits.gt.0,status.neq.depleted),and(type.eq.monthly,status.eq.active,end_date.gte.${today})`)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    if (activeSub) {
-      const today = new Date().toISOString().split('T')[0];
-      const isValid =
-        ((activeSub.type === '5_times' || activeSub.type === '10_times') &&
-          activeSub.remaining_credits > 0) ||
-        (activeSub.type === 'monthly' && activeSub.end_date >= today);
-
-      if (isValid) {
-        return {
-          hasBooking: true,
-          bookingType: 'subscription',
-          subscriptionDetails: {
-            type: activeSub.type,
-            remainingCredits:
-              activeSub.type === '5_times' || activeSub.type === '10_times'
-                ? activeSub.remaining_credits
-                : undefined,
-            endDate: activeSub.type === 'monthly' ? activeSub.end_date : undefined,
-          },
-        };
-      }
+    if (usableSub) {
+      return {
+        hasBooking: true,
+        bookingType: 'subscription',
+        subscriptionDetails: {
+          type: usableSub.type,
+          remainingCredits:
+            usableSub.type === '5_times' || usableSub.type === '10_times'
+              ? usableSub.remaining_credits
+              : undefined,
+          endDate: usableSub.type === 'monthly' ? usableSub.end_date : undefined,
+        },
+      };
     }
   }
 

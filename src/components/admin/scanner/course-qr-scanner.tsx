@@ -155,8 +155,10 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
         toast.error(ctx.message || 'Failed to load member profile')
         resetScanner()
       }
-    } catch {
-      toast.error('Invalid QR Code')
+    } catch (error) {
+      console.error('QR scan error:', error)
+      const message = error instanceof Error ? error.message : 'Invalid QR Code'
+      toast.error(message)
       setLoadingProfile(false)
       resetScanner()
     }

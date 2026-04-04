@@ -212,9 +212,14 @@ BEGIN
 
     v_booking_type := v_booking.booking_type;
 
-    -- Upgrade legacy single/drop_in bookings to subscription if a usable
-    -- subscription exists now.
+    -- Try to (re-)link to a usable subscription. This covers:
+    --   1. 'single' / 'drop_in' bookings: user had no subscription at booking
+    --      time but has since acquired one.
+    --   2. 'subscription' bookings whose linked card is now depleted/expired:
+    --      the user may have been assigned a new card since.
+    -- In all cases, find the best usable subscription for this user.
     IF v_booking_type IN ('single'::booking_type, 'drop_in'::booking_type) THEN
+      -- No linked subscription yet — look for any usable one
       SELECT *
       INTO v_sub
       FROM subscriptions
@@ -242,22 +247,61 @@ BEGIN
         v_booking.booking_type    := 'subscription';
         v_booking.subscription_id := v_sub.id;
       END IF;
+
+    ELSIF v_booking_type = 'subscription' THEN
+      -- Booking is already linked to a subscription — check if it's still usable
+      SELECT *
+      INTO v_sub
+      FROM subscriptions
+      WHERE id = v_booking.subscription_id;
+
+      IF v_sub IS NULL
+         OR (v_sub.type IN ('5_times', '10_times') AND v_sub.remaining_credits <= 0)
+         OR (v_sub.type = 'monthly' AND v_sub.end_date < CURRENT_DATE)
+      THEN
+        -- Linked subscription is depleted/expired/missing — try to find
+        -- a different usable subscription for this user
+        v_sub := NULL;
+
+        SELECT *
+        INTO v_sub
+        FROM subscriptions
+        WHERE user_id = p_user_id
+          AND id <> COALESCE(v_booking.subscription_id, '00000000-0000-0000-0000-000000000000'::UUID)
+          AND (
+            (type IN ('5_times', '10_times')
+             AND remaining_credits > 0
+             AND status <> 'depleted')
+            OR
+            (type = 'monthly'
+             AND status = 'active'
+             AND end_date >= CURRENT_DATE)
+          )
+        ORDER BY created_at DESC
+        LIMIT 1;
+
+        IF v_sub IS NOT NULL THEN
+          -- Re-link booking to the new usable subscription
+          UPDATE bookings
+          SET subscription_id = v_sub.id
+          WHERE id = v_booking.id;
+
+          v_booking.subscription_id := v_sub.id;
+        END IF;
+        -- If no alternative found, v_sub stays NULL and validation below
+        -- will return the appropriate error.
+      END IF;
     END IF;
   END IF;
 
   -- If this check-in uses a subscription, validate it
   IF v_booking_type = 'subscription' THEN
+    -- Load subscription if not already loaded (e.g. drop-in path set it via book_course)
     IF v_sub IS NULL THEN
       SELECT *
       INTO v_sub
       FROM subscriptions
-      WHERE id = v_booking.subscription_id
-        AND (
-          (type IN ('5_times', '10_times')
-           AND remaining_credits >= 0)
-          OR
-          (type = 'monthly')
-        );
+      WHERE id = v_booking.subscription_id;
     END IF;
 
     IF v_sub IS NULL THEN
@@ -324,6 +368,8 @@ COMMENT ON FUNCTION perform_course_checkin IS
   'book_course with admin override to allow booking during the course and skip '
   'capacity enforcement. Uses relaxed subscription detection: any non-depleted '
   'times card with remaining credits, or active monthly within validity. '
-  'Upgrades legacy single/drop_in bookings to subscription at check-in time. '
+  'Upgrades single/drop_in bookings to subscription at check-in time. '
+  'Re-links subscription bookings to a new usable card when the originally '
+  'linked subscription is depleted or expired. '
   'Deducts one credit per check-in for times cards. '
   'Marks expired monthly subscriptions as expired when used after end_date.';

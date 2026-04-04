@@ -116,49 +116,47 @@ export async function getUserBookingForCourse(
     return { hasBooking: false };
   }
   
-  // If booking type is subscription, validate the subscription is still usable.
-  // Mirror the SQL usability-based check: don't rely on `status` (can be stale),
-  // instead check remaining credits / end_date directly.
-  if (data.booking_type === 'subscription' && data.subscription_id) {
-    const sub = unwrapSupabaseRelation(data.subscription);
-
-    if (!sub) {
-      return { hasBooking: true, bookingType: 'single' };
-    }
-
-    const today = new Date().toISOString().split('T')[0];
-    const isUsable =
-      ((sub.type === '5_times' || sub.type === '10_times') && sub.remaining_credits > 0) ||
-      (sub.type === 'monthly' && sub.end_date >= today);
-
-    if (!isUsable) {
-      return { hasBooking: true, bookingType: 'single' };
-    }
-    
-    // Subscription is valid - return with details
-    return { 
-      hasBooking: true, 
-      bookingType: 'subscription',
-      subscriptionDetails: {
-        type: sub.type,
-        remainingCredits: sub.type === '5_times' || sub.type === '10_times' 
-          ? sub.remaining_credits 
-          : undefined,
-        endDate: sub.type === 'monthly' ? sub.end_date : undefined,
-      }
-    };
-  }
-  
-  // For 'single' or 'drop_in' bookings, check if the user has acquired a usable
-  // subscription since the booking was made (e.g., bought a card on the day of the
-  // class). If so, surface the subscription details so the UI reflects the upgrade
-  // that perform_course_checkin will do at check-in time.
+  // Check if the linked subscription (if any) is still usable.
+  // If the booking was 'subscription' but the linked card is now depleted/expired,
+  // OR if the booking was 'single'/'drop_in', look for any usable subscription
+  // the user may have. This covers:
+  //   - User booked with sub A, sub A depleted, admin assigned new sub B
+  //   - User booked without sub, later bought a card
   // Use the same relaxed detection as the SQL RPC: for times cards, trust
   // remaining_credits > 0 regardless of status (covers archived cards with credits);
   // for monthly, require status = 'active' AND end_date >= today.
-  if (data.booking_type === 'single' || data.booking_type === 'drop_in') {
-    const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0];
+  let linkedSubUsable = false;
 
+  if (data.booking_type === 'subscription' && data.subscription_id) {
+    const sub = unwrapSupabaseRelation(data.subscription);
+    if (sub) {
+      linkedSubUsable =
+        ((sub.type === '5_times' || sub.type === '10_times') && sub.remaining_credits > 0) ||
+        (sub.type === 'monthly' && sub.end_date >= today);
+
+      if (linkedSubUsable) {
+        return {
+          hasBooking: true,
+          bookingType: 'subscription',
+          subscriptionDetails: {
+            type: sub.type,
+            remainingCredits: sub.type === '5_times' || sub.type === '10_times'
+              ? sub.remaining_credits
+              : undefined,
+            endDate: sub.type === 'monthly' ? sub.end_date : undefined,
+          }
+        };
+      }
+    }
+    // Linked subscription is depleted/expired/missing — fall through to find
+    // an alternative usable subscription below.
+  }
+
+  // For bookings without a usable linked subscription (single, drop_in, or
+  // subscription with a depleted/expired card), check if the user has any
+  // usable subscription that the RPC can use at check-in time.
+  if (!linkedSubUsable) {
     const { data: usableSub } = await supabase
       .from('subscriptions')
       .select('id, status, type, remaining_credits, end_date')

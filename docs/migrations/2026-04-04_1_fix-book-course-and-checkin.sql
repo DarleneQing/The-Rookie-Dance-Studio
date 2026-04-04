@@ -1,4 +1,5 @@
 -- Migration: Fix book_course() subscription detection + allow admin walk-in overrides
+--            + extract find_usable_subscription() helper to eliminate duplication
 -- Date: 2026-04-04
 -- Depends on: 2026-03-09_1_remove-drop-in-booking-on-checkin.sql
 --
@@ -22,14 +23,66 @@
 --    which delegates to book_course(), which enforces capacity. Fix: skip the
 --    capacity check when p_is_admin_override is true.
 --
--- 4. Client-server subscription detection mismatch (handled in TypeScript, not SQL)
+-- 4. Subscription detection logic was duplicated in 5 places (book_course,
+--    perform_course_checkin x3, TypeScript actions x2). Fix: extract a single
+--    SQL helper find_usable_subscription() used by all SQL consumers.
+--
+-- 5. Client-server subscription detection mismatch (handled in TypeScript, not SQL)
 --    getUserBookingForCourse() checks status = 'active' only when looking for
 --    upgraded subscriptions on single/drop_in bookings. The RPC uses the relaxed
---    check. This causes the admin UI to show "Single Class" while the RPC
---    upgrades to "Subscription". (Fixed in accompanying TypeScript change.)
+--    check. (Fixed in accompanying TypeScript change.)
 
 -- ============================================================================
--- Step 1: Fix book_course() with admin override and proper subscription detection
+-- Step 1: Create find_usable_subscription() helper — single source of truth
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION find_usable_subscription(
+  p_user_id UUID,
+  p_exclude_id UUID DEFAULT NULL
+) RETURNS subscriptions
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+SET row_security = off
+AS $$
+DECLARE
+  v_sub subscriptions%ROWTYPE;
+BEGIN
+  -- Relaxed subscription detection:
+  --   Times cards (5_times / 10_times): any card with remaining_credits > 0
+  --     that is not marked 'depleted'. Ignores 'active' vs 'archived'.
+  --   Monthly: must be status = 'active' AND end_date >= today.
+  -- Always picks the most recently created usable subscription.
+  SELECT *
+  INTO v_sub
+  FROM subscriptions
+  WHERE user_id = p_user_id
+    AND (p_exclude_id IS NULL OR id <> p_exclude_id)
+    AND (
+      (type IN ('5_times', '10_times')
+       AND remaining_credits > 0
+       AND status <> 'depleted')
+      OR
+      (type = 'monthly'
+       AND status = 'active'
+       AND end_date >= CURRENT_DATE)
+    )
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  RETURN v_sub;
+END;
+$$;
+
+COMMENT ON FUNCTION find_usable_subscription IS
+  'Returns the most recently created usable subscription for a user. '
+  'For times cards: remaining_credits > 0 and not depleted (ignores active/archived). '
+  'For monthly: status = active and end_date >= today. '
+  'Optionally excludes a specific subscription ID (for re-linking).';
+
+-- ============================================================================
+-- Step 2: Fix book_course() with admin override, using the helper
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION book_course(
@@ -74,13 +127,9 @@ BEGIN
   END IF;
 
   -- Capacity check: skip for admin overrides (walk-ins / capacity override)
-  IF NOT p_is_admin_override THEN
-    v_current_bookings := get_course_booking_count(p_course_id);
-    IF v_current_bookings >= v_course.capacity THEN
-      RETURN jsonb_build_object('success', false, 'message', 'Course is full');
-    END IF;
-  ELSE
-    v_current_bookings := get_course_booking_count(p_course_id);
+  v_current_bookings := get_course_booking_count(p_course_id);
+  IF NOT p_is_admin_override AND v_current_bookings >= v_course.capacity THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Course is full');
   END IF;
 
   -- Duplicate booking check
@@ -91,25 +140,8 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'message', 'You already have a booking for this course');
   END IF;
 
-  -- Subscription detection: use the same relaxed logic as perform_course_checkin.
-  -- For times cards: any card with remaining_credits > 0 that is not depleted
-  --   (ignores 'active' vs 'archived' distinction).
-  -- For monthly: must be status = 'active' AND end_date >= today.
-  -- Always pick the most recently created usable subscription.
-  SELECT * INTO v_subscription
-  FROM subscriptions
-  WHERE user_id = p_user_id
-    AND (
-      (type IN ('5_times', '10_times')
-       AND remaining_credits > 0
-       AND status <> 'depleted')
-      OR
-      (type = 'monthly'
-       AND status = 'active'
-       AND end_date >= CURRENT_DATE)
-    )
-  ORDER BY created_at DESC
-  LIMIT 1;
+  -- Subscription detection via shared helper
+  v_subscription := find_usable_subscription(p_user_id);
 
   IF v_subscription IS NOT NULL THEN
     v_booking_type := 'subscription'::booking_type;
@@ -133,13 +165,12 @@ END;
 $$;
 
 COMMENT ON FUNCTION book_course IS
-  'Books a user into a course. Detects usable subscriptions (times cards with '
-  'remaining credits regardless of status, or active monthly cards within validity). '
+  'Books a user into a course. Uses find_usable_subscription() for detection. '
   'When p_is_admin_override is true (walk-in / capacity override), allows booking '
   'until the course end time and skips the capacity check.';
 
 -- ============================================================================
--- Step 2: Update perform_course_checkin to pass admin override to book_course
+-- Step 3: Update perform_course_checkin to use the helper
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION perform_course_checkin(
@@ -173,11 +204,7 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'message', 'Course not found');
   END IF;
 
-  -- Walk-in path: user has no prior booking and scans QR.
-  -- Delegate to book_course with admin override so it:
-  --   - allows booking during the course (until end time)
-  --   - skips capacity check (admin decides via the UI)
-  --   - uses the relaxed subscription detection
+  -- Walk-in path: delegate to book_course with admin override
   IF p_is_drop_in THEN
     v_book_result := book_course(p_user_id, p_course_id, true);
 
@@ -187,10 +214,7 @@ BEGIN
 
     v_booking_id := (v_book_result->>'booking_id')::UUID;
 
-    SELECT *
-    INTO v_booking
-    FROM bookings
-    WHERE id = v_booking_id;
+    SELECT * INTO v_booking FROM bookings WHERE id = v_booking_id;
 
     IF v_booking IS NULL THEN
       RETURN jsonb_build_object('success', false, 'message', 'Booking not found after creation');
@@ -212,29 +236,11 @@ BEGIN
 
     v_booking_type := v_booking.booking_type;
 
-    -- Try to (re-)link to a usable subscription. This covers:
-    --   1. 'single' / 'drop_in' bookings: user had no subscription at booking
-    --      time but has since acquired one.
-    --   2. 'subscription' bookings whose linked card is now depleted/expired:
-    --      the user may have been assigned a new card since.
-    -- In all cases, find the best usable subscription for this user.
+    -- Try to (re-)link to a usable subscription. Covers:
+    --   1. single/drop_in: user acquired a subscription after booking
+    --   2. subscription with depleted/expired card: user has a new card
     IF v_booking_type IN ('single'::booking_type, 'drop_in'::booking_type) THEN
-      -- No linked subscription yet — look for any usable one
-      SELECT *
-      INTO v_sub
-      FROM subscriptions
-      WHERE user_id = p_user_id
-        AND (
-          (type IN ('5_times', '10_times')
-           AND remaining_credits > 0
-           AND status <> 'depleted')
-          OR
-          (type = 'monthly'
-           AND status = 'active'
-           AND end_date >= CURRENT_DATE)
-        )
-      ORDER BY created_at DESC
-      LIMIT 1;
+      v_sub := find_usable_subscription(p_user_id);
 
       IF v_sub IS NOT NULL THEN
         v_booking_type := 'subscription'::booking_type;
@@ -249,59 +255,32 @@ BEGIN
       END IF;
 
     ELSIF v_booking_type = 'subscription' THEN
-      -- Booking is already linked to a subscription — check if it's still usable
-      SELECT *
-      INTO v_sub
-      FROM subscriptions
-      WHERE id = v_booking.subscription_id;
+      -- Check if the linked subscription is still usable
+      SELECT * INTO v_sub FROM subscriptions WHERE id = v_booking.subscription_id;
 
       IF v_sub IS NULL
          OR (v_sub.type IN ('5_times', '10_times') AND v_sub.remaining_credits <= 0)
          OR (v_sub.type = 'monthly' AND v_sub.end_date < CURRENT_DATE)
       THEN
-        -- Linked subscription is depleted/expired/missing — try to find
-        -- a different usable subscription for this user
-        v_sub := NULL;
-
-        SELECT *
-        INTO v_sub
-        FROM subscriptions
-        WHERE user_id = p_user_id
-          AND id <> COALESCE(v_booking.subscription_id, '00000000-0000-0000-0000-000000000000'::UUID)
-          AND (
-            (type IN ('5_times', '10_times')
-             AND remaining_credits > 0
-             AND status <> 'depleted')
-            OR
-            (type = 'monthly'
-             AND status = 'active'
-             AND end_date >= CURRENT_DATE)
-          )
-        ORDER BY created_at DESC
-        LIMIT 1;
+        -- Linked card is gone/depleted/expired — find an alternative
+        v_sub := find_usable_subscription(p_user_id, v_booking.subscription_id);
 
         IF v_sub IS NOT NULL THEN
-          -- Re-link booking to the new usable subscription
           UPDATE bookings
           SET subscription_id = v_sub.id
           WHERE id = v_booking.id;
 
           v_booking.subscription_id := v_sub.id;
         END IF;
-        -- If no alternative found, v_sub stays NULL and validation below
-        -- will return the appropriate error.
       END IF;
     END IF;
   END IF;
 
-  -- If this check-in uses a subscription, validate it
+  -- Validate subscription before check-in
   IF v_booking_type = 'subscription' THEN
-    -- Load subscription if not already loaded (e.g. drop-in path set it via book_course)
+    -- Load subscription if not already loaded (drop-in path set it via book_course)
     IF v_sub IS NULL THEN
-      SELECT *
-      INTO v_sub
-      FROM subscriptions
-      WHERE id = v_booking.subscription_id;
+      SELECT * INTO v_sub FROM subscriptions WHERE id = v_booking.subscription_id;
     END IF;
 
     IF v_sub IS NULL THEN
@@ -365,11 +344,8 @@ $$;
 
 COMMENT ON FUNCTION perform_course_checkin IS
   'Performs course check-in. For walk-ins (p_is_drop_in = true), delegates to '
-  'book_course with admin override to allow booking during the course and skip '
-  'capacity enforcement. Uses relaxed subscription detection: any non-depleted '
-  'times card with remaining credits, or active monthly within validity. '
-  'Upgrades single/drop_in bookings to subscription at check-in time. '
-  'Re-links subscription bookings to a new usable card when the originally '
-  'linked subscription is depleted or expired. '
+  'book_course with admin override. Uses find_usable_subscription() for all '
+  'subscription detection. Upgrades single/drop_in bookings and re-links '
+  'subscription bookings with depleted/expired cards. '
   'Deducts one credit per check-in for times cards. '
   'Marks expired monthly subscriptions as expired when used after end_date.';

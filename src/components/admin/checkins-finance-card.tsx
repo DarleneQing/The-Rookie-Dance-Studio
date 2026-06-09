@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Calendar, Loader2, Calculator } from "lucide-react"
+import { Calendar, Loader2, Calculator, FileSpreadsheet } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -122,6 +122,16 @@ export function CheckinsFinanceCard() {
             <div className="w-full font-syne font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-green-300 to-blue-300">
               Check-ins & Finance
             </div>
+
+            <a
+              href="https://docs.google.com/spreadsheets/d/1YpN-v_DlKRBf1JOzGkvt2QeXXCzY52I2/edit?usp=sharing&ouid=112848159860136796283&rtpof=true&sd=true"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-90 text-white font-outfit font-medium py-3 px-4 transition-opacity flex items-center justify-center gap-2"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              To Finance Excel
+            </a>
           </div>
 
           <div className="space-y-4 pt-2">

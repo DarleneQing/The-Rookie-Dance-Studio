@@ -32,12 +32,12 @@ function CourseCardComponent({
 }: CourseCardProps) {
   const getCapacityColor = (current: number, max: number) => {
     const percentage = (current / max) * 100
-    if (percentage >= 100) return 'text-red-400'
-    if (percentage >= 80) return 'text-orange-400'
-    return 'text-green-400'
+    if (percentage >= 100) return 'text-destructive'
+    if (percentage >= 80) return 'text-warning'
+    return 'text-success'
   }
 
-  const isFull = course.booking_count >= course.capacity
+  const isFull = course.capacity > 0 && course.booking_count >= course.capacity
   const isBooked = !!userBooking
 
   return (
@@ -45,11 +45,11 @@ function CourseCardComponent({
       {/* Header with Song Name or Dance Style and Status */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className="font-syne font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple">
+          <h3 className="font-syne font-bold text-xl text-foreground">
             {course.song || getDisplayDanceStyle(course.dance_style)}
           </h3>
           {course.singer && (
-            <p className="text-sm text-white/70 font-outfit mt-1">
+            <p className="text-sm text-foreground/70 font-outfit mt-1">
               {course.singer}
             </p>
           )}
@@ -73,12 +73,12 @@ function CourseCardComponent({
 
       {/* Date and Time */}
       <div className="space-y-1.5">
-        <div className="flex items-center gap-1.5 text-sm text-white/80 font-outfit">
-          <Calendar className="h-4 w-4 text-white/60" />
+        <div className="flex items-center gap-1.5 text-sm text-foreground/80 font-outfit">
+          <Calendar className="h-4 w-4 text-foreground/60" />
           <span>{formatDate(course.scheduled_date, { includeWeekday: true })}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-sm text-white/80 font-outfit">
-          <Clock className="h-4 w-4 text-white/60" />
+        <div className="flex items-center gap-1.5 text-sm text-foreground/80 font-outfit">
+          <Clock className="h-4 w-4 text-foreground/60" />
           <span>{getTimeInterval(course.start_time, course.duration_minutes)}</span>
         </div>
       </div>
@@ -98,7 +98,7 @@ function CourseCardComponent({
             </span>
           </>
         ) : (
-          <span className="text-sm text-white/60 font-outfit italic">Unassigned</span>
+          <span className="text-sm text-foreground/60 font-outfit italic">Unassigned</span>
         )}
       </div>
 
@@ -106,7 +106,7 @@ function CourseCardComponent({
       {/* Capacity and Video Link */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-white/60" />
+          <Users className="h-4 w-4 text-foreground/60" />
           <span className={cn('text-sm font-outfit font-semibold', getCapacityColor(course.booking_count, course.capacity))}>
             {course.booking_count}/{course.capacity} spots
           </span>
@@ -116,7 +116,7 @@ function CourseCardComponent({
             href={course.video_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs text-rookie-cyan hover:text-rookie-cyan/80 font-outfit font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-rookie-cyan hover:text-rookie-cyan/80 font-outfit font-medium transition-colors min-h-11"
             onClick={(e) => e.stopPropagation()}
           >
             <Music className="h-3.5 w-3.5" />
@@ -138,7 +138,7 @@ function CourseCardComponent({
                     size="sm"
                     onClick={onCancel}
                     disabled={!canCancelBooking || cancelLoading}
-                    className="w-full bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-destructive/10 hover:bg-destructive/20 border-destructive/30 text-destructive disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {cancelLoading ? 'Cancelling...' : canCancelBooking ? 'Cancel Booking' : 'Cancel Not Available'}
                   </Button>
@@ -158,7 +158,7 @@ function CourseCardComponent({
             className={cn(
               'w-full font-outfit',
               isFull
-                ? 'bg-white/10 text-white/40 cursor-not-allowed'
+                ? 'bg-white/10 text-foreground/60 cursor-not-allowed'
                 : ''
             )}
           >

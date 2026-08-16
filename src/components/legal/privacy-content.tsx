@@ -1,6 +1,6 @@
 export function PrivacyContent() {
   return (
-    <div id="privacy-content" className="space-y-8 text-white/90">
+    <div id="privacy-content" className="space-y-8 text-foreground/90">
       {/* Introduction */}
       <section>
         <p className="mb-4">
@@ -17,7 +17,7 @@ export function PrivacyContent() {
       </section>
 
       {/* Summary */}
-      <section id="summary" className="bg-white/5 rounded-xl p-6 border border-white/10">
+      <section id="summary" className="bg-white/5 rounded-xl p-6 border border-border/40">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">SUMMARY OF KEY POINTS</h2>
         <div className="space-y-4 text-sm">
           <p>
@@ -39,7 +39,7 @@ export function PrivacyContent() {
       <section id="information-collect">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">1. WHAT INFORMATION DO WE COLLECT?</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">Personal Information You Disclose to Us</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">Personal Information You Disclose to Us</h3>
         <p className="mb-4">
           We collect personal information that you voluntarily provide to us when you register on the Services, book classes, and use our Platform.
         </p>
@@ -58,7 +58,7 @@ export function PrivacyContent() {
           When necessary, with your consent, we process student verification documents and date of birth for age verification and member eligibility.
         </p>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">Information Automatically Collected</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">Information Automatically Collected</h3>
         <p className="mb-4">
           We automatically collect certain information when you visit our Services, including IP address, browser and device characteristics, operating system, and usage information. This information is primarily needed to maintain security and operation of our Services.
         </p>
@@ -127,24 +127,24 @@ export function PrivacyContent() {
           We share your data with third-party service providers necessary to operate our Platform. <strong>We do not sell your personal information.</strong>
         </p>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">Third-Party Service Providers:</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">Third-Party Service Providers:</h3>
         
         <div className="space-y-4">
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+          <div className="bg-white/5 rounded-xl p-4 border border-border/40">
             <h4 className="font-semibold mb-2">Supabase (Database and Authentication)</h4>
             <p className="text-sm mb-2"><strong>Purpose:</strong> User authentication, database storage, backend services</p>
             <p className="text-sm mb-2"><strong>Data Shared:</strong> Email, encrypted passwords, profile information, booking records, subscription data, check-in records</p>
             <p className="text-sm"><strong>Privacy Policy:</strong> <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-rookie-cyan hover:underline">https://supabase.com/privacy</a></p>
           </div>
           
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+          <div className="bg-white/5 rounded-xl p-4 border border-border/40">
             <h4 className="font-semibold mb-2">Vercel (Hosting and Analytics)</h4>
             <p className="text-sm mb-2"><strong>Purpose:</strong> Website hosting, performance monitoring, analytics</p>
             <p className="text-sm mb-2"><strong>Data Shared:</strong> Anonymized usage data, server logs, performance metrics</p>
             <p className="text-sm"><strong>Privacy Policy:</strong> <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-rookie-cyan hover:underline">https://vercel.com/legal/privacy-policy</a></p>
           </div>
           
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+          <div className="bg-white/5 rounded-xl p-4 border border-border/40">
             <h4 className="font-semibold mb-2">Google Services</h4>
             <p className="text-sm mb-2"><strong>Purpose:</strong> Email delivery, typography (Google Fonts)</p>
             <p className="text-sm mb-2"><strong>Data Shared:</strong> Email addresses for communication; technical browser data for font loading</p>
@@ -168,7 +168,7 @@ export function PrivacyContent() {
           We may use cookies and similar tracking technologies to access or store information.
         </p>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">Types of Cookies:</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">Types of Cookies:</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li><strong>Essential Cookies (Required):</strong> Authentication cookies, session cookies</li>
           <li><strong>Analytics Cookies (Optional):</strong> Vercel Analytics and Speed Insights for anonymized usage data</li>
@@ -187,7 +187,7 @@ export function PrivacyContent() {
           We keep your information for as long as necessary to fulfill the purposes outlined in this privacy notice, unless otherwise required by law.
         </p>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">Retention Periods:</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">Retention Periods:</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li><strong>Active Account Data:</strong> Retained for the duration of your active account</li>
           <li><strong>Booking Records:</strong> Active account duration plus 3 years</li>
@@ -215,7 +215,7 @@ export function PrivacyContent() {
           <li><strong>Secure File Storage:</strong> Encrypted storage for student verification documents</li>
         </ul>
         
-        <p className="mt-4 text-sm text-white/70">
+        <p className="mt-4 text-sm text-foreground/70">
           However, no electronic transmission over the internet can be guaranteed to be 100% secure. Transmission of personal information is at your own risk.
         </p>
       </section>
@@ -246,7 +246,7 @@ export function PrivacyContent() {
           <li><strong>Right to Lodge a Complaint:</strong> File a complaint with the Swiss FDPIC</li>
         </ul>
         
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10 mt-6">
+        <div className="bg-white/5 rounded-xl p-4 border border-border/40 mt-6">
           <h4 className="font-semibold mb-2">Swiss Federal Data Protection and Information Commissioner (FDPIC)</h4>
           <p className="text-sm mb-1">Website: <a href="https://www.edoeb.admin.ch/" target="_blank" rel="noopener noreferrer" className="text-rookie-cyan hover:underline">https://www.edoeb.admin.ch/</a></p>
           <p className="text-sm mb-1">Address: Feldeggweg 1, 3003 Bern, Switzerland</p>
@@ -254,7 +254,7 @@ export function PrivacyContent() {
           <p className="text-sm">Email: info@edoeb.admin.ch</p>
         </div>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">How to Exercise Your Rights:</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">How to Exercise Your Rights:</h3>
         <p className="mb-4">
           To exercise any of your rights, contact us at therookiestudio.ch@gmail.com with the subject line &quot;Privacy Rights Request - [Your Name]&quot;. We will respond within 30 days.
         </p>
@@ -274,11 +274,11 @@ export function PrivacyContent() {
       {/* Section 12 */}
       <section id="contact-privacy">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">12. HOW CAN YOU CONTACT US?</h2>
-        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-6 border border-border/40">
           <p className="font-semibold mb-4">The Rookie Dance Studio</p>
           <p className="mb-2"><strong>Email:</strong> therookiestudio.ch@gmail.com</p>
           <p className="mb-4"><strong>Subject Line for Data Protection:</strong> &quot;Data Protection Inquiry&quot;</p>
-          <p className="text-sm text-white/70">We aim to respond to all inquiries within 5 business days.</p>
+          <p className="text-sm text-foreground/70">We aim to respond to all inquiries within 5 business days.</p>
         </div>
       </section>
 
@@ -286,21 +286,21 @@ export function PrivacyContent() {
       <section id="review-data">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">13. HOW CAN YOU REVIEW, UPDATE, OR DELETE YOUR DATA?</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">To Review Your Data:</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">To Review Your Data:</h3>
         <p className="mb-4">
           Log in to your account and go to Settings to view your profile information, booking history, check-in records, and subscription information. Or email us at therookiestudio.ch@gmail.com with subject &quot;Data Access Request&quot;.
         </p>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">To Update Your Data:</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">To Update Your Data:</h3>
         <p className="mb-4">
           Log in to your account, go to Settings, and click the edit icon next to the information you want to update. For information you cannot update yourself, email us.
         </p>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">To Delete Your Account:</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">To Delete Your Account:</h3>
         <p className="mb-4">
           Email us at therookiestudio.ch@gmail.com with subject &quot;Account Deletion Request&quot;. Include your full name, email address, and reason for deletion (optional). We will process your request within 30 days.
         </p>
-        <p className="text-sm text-white/70">
+        <p className="text-sm text-foreground/70">
           Note: Deletion is permanent and cannot be undone. Some records may be retained as required by law.
         </p>
       </section>

@@ -2,29 +2,28 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/utils/admin-guard'
 
 export type PaymentMethod = 'cash' | 'twint' | 'abo';
 
 export async function checkInUser(userId: string, paymentMethod: PaymentMethod) {
   const supabase = createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  const admin = await requireAdmin()
+  if (!admin) {
     return { success: false, message: 'Unauthorized' }
   }
 
   // Call the RPC
   const { data, error } = await supabase.rpc('perform_checkin', {
     p_user_id: userId,
-    p_admin_id: user.id,
+    p_admin_id: admin.id,
     p_payment_method: paymentMethod,
   })
 
   if (error) {
-    return { success: false, message: error.message }
+    console.error('perform_checkin RPC error:', error)
+    return { success: false, message: 'Failed to check in member' }
   }
 
   // RPC returns JSONB with success/message
@@ -45,11 +44,8 @@ export async function getMemberProfile(userId: string): Promise<{
 }> {
   const supabase = createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  const admin = await requireAdmin()
+  if (!admin) {
     return { success: false, message: 'Unauthorized' }
   }
 
@@ -64,7 +60,8 @@ export async function getMemberProfile(userId: string): Promise<{
     if (error.code === 'PGRST116') {
       return { success: false, message: 'Member not found' }
     }
-    return { success: false, message: error.message || 'Failed to fetch member profile' }
+    console.error('getMemberProfile error:', error)
+    return { success: false, message: 'Failed to fetch member profile' }
   }
 
   if (!profile) {
@@ -105,11 +102,8 @@ export async function assignUserSubscription(
 ) {
   const supabase = createClient()
   
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  const admin = await requireAdmin()
+  if (!admin) {
     return { success: false, message: 'Unauthorized' }
   }
 
@@ -118,11 +112,12 @@ export async function assignUserSubscription(
     p_user_id: userId,
     p_type: type,
     p_start_date: startDate || null,
-    p_admin_id: user.id
+    p_admin_id: admin.id
   })
 
   if (error) {
-    return { success: false, message: error.message }
+    console.error('assign_subscription RPC error:', error)
+    return { success: false, message: 'Failed to assign subscription' }
   }
 
   revalidatePath('/admin/users')
@@ -181,7 +176,8 @@ export async function approveStudentVerification(
     .eq('id', userId)
 
   if (updateError) {
-    return { success: false, message: updateError.message || 'Failed to approve verification' }
+    console.error('approveStudentVerification error:', updateError)
+    return { success: false, message: 'Failed to approve verification' }
   }
 
   revalidatePath('/admin/verifications')
@@ -249,7 +245,8 @@ export async function rejectStudentVerification(
     .eq('id', userId)
 
   if (updateError) {
-    return { success: false, message: updateError.message || 'Failed to reject verification' }
+    console.error('rejectStudentVerification error:', updateError)
+    return { success: false, message: 'Failed to reject verification' }
   }
 
   revalidatePath('/admin/verifications')
@@ -318,11 +315,202 @@ export async function requestStudentReVerification(
     .eq('id', userId)
 
   if (updateError) {
-    return { success: false, message: updateError.message || 'Failed to request re-verification' }
+    console.error('requestStudentReVerification error:', updateError)
+    return { success: false, message: 'Failed to request re-verification' }
   }
 
   revalidatePath('/admin/users')
   revalidatePath('/profile')
 
   return { success: true, message: 'Re-verification request sent successfully' }
+}
+
+export interface FinanceCheckinItem {
+  id: string
+  full_name: string | null
+  member_type: 'adult' | 'student' | null
+  payment_method: 'cash' | 'twint' | 'abo' | null
+  phone_number: string | null
+  created_at: string
+}
+
+/**
+ * Admin-only: check-ins with member details for the finance view, for one day.
+ * Runs on the server so phone numbers are never fetched into a client bundle
+ * (RLS alone is not an authorization boundary for browser-replayed queries).
+ */
+export async function getFinanceCheckins(
+  selectedDate: string
+): Promise<{ success: boolean; message?: string; items?: FinanceCheckinItem[] }> {
+  const admin = await requireAdmin()
+  if (!admin) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  const supabase = createClient()
+
+  const dateStart = new Date(selectedDate)
+  dateStart.setHours(0, 0, 0, 0)
+  const dateStartISO = dateStart.toISOString()
+
+  const dateEnd = new Date(selectedDate)
+  dateEnd.setHours(23, 59, 59, 999)
+  const dateEndISO = dateEnd.toISOString()
+
+  const { data, error } = await supabase
+    .from('checkins')
+    .select('id, created_at, payment_method, profiles!user_id(full_name, member_type, phone_number)')
+    .not('course_id', 'is', null)
+    .gte('created_at', dateStartISO)
+    .lte('created_at', dateEndISO)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('getFinanceCheckins error:', error)
+    return { success: false, message: 'Failed to load check-ins' }
+  }
+
+  const items: FinanceCheckinItem[] = ((data as Array<{
+    id: string
+    created_at: string
+    payment_method: 'cash' | 'twint' | 'abo' | null
+    profiles:
+      | { full_name: string | null; member_type: string | null; phone_number: string | null }
+      | { full_name: string | null; member_type: string | null; phone_number: string | null }[]
+      | null
+  }> | null) ?? []).map((item) => {
+    const profile = item.profiles
+    const p = profile && !Array.isArray(profile) ? profile : Array.isArray(profile) && profile[0] ? profile[0] : null
+    return {
+      id: item.id,
+      full_name: p?.full_name ?? null,
+      member_type: (p?.member_type === 'adult' || p?.member_type === 'student' ? p.member_type : null) as 'adult' | 'student' | null,
+      payment_method: item.payment_method,
+      phone_number: p?.phone_number ?? null,
+      created_at: item.created_at,
+    }
+  })
+
+  return { success: true, items }
+}
+
+export interface AdminUserRow {
+  id: string
+  full_name: string | null
+  avatar_url: string | null
+  role: string
+  member_type: string | null
+  verification_status: string | null
+  subscription: {
+    type: string
+    status: string
+    remaining_credits?: number | null
+    end_date?: string | null
+  } | null
+}
+
+/**
+ * Admin-only server-side member search. Replaces client-side filtering of the
+ * whole profiles table: at most 25 matches, searched by name via ilike.
+ */
+export async function searchAdminUsers(query: string): Promise<AdminUserRow[]> {
+  const admin = await requireAdmin()
+  if (!admin) return []
+
+  const q = query.trim()
+  if (q.length < 2) return []
+
+  const supabase = createClient()
+
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url, role, member_type, verification_status')
+    .ilike('full_name', `%${q}%`)
+    .order('created_at', { ascending: false })
+    .limit(25)
+
+  if (error || !profiles) {
+    if (error) console.error('searchAdminUsers error:', error)
+    return []
+  }
+
+  const ids = profiles.map((p) => p.id)
+
+  const { data: subscriptions } = await supabase
+    .from('subscriptions')
+    .select('type, status, remaining_credits, end_date, user_id')
+    .eq('status', 'active')
+    .in('user_id', ids)
+
+  const subMap = new Map(
+    (subscriptions || []).map((s) => [s.user_id, s])
+  )
+
+  return profiles.map((p) => ({
+    id: p.id,
+    full_name: p.full_name,
+    avatar_url: p.avatar_url,
+    role: p.role,
+    member_type: p.member_type,
+    verification_status: p.verification_status,
+    subscription: subMap.get(p.id) || null,
+  }))
+}
+
+export interface CheckinHistoryItem {
+  id: string
+  full_name: string | null
+  created_at: string
+}
+
+/** Admin-only: all check-ins (with member names) for one day, server-side. */
+export async function getCheckinHistory(
+  selectedDate: string
+): Promise<{ success: boolean; message?: string; items?: CheckinHistoryItem[] }> {
+  const admin = await requireAdmin()
+  if (!admin) {
+    return { success: false, message: 'Unauthorized' }
+  }
+
+  const supabase = createClient()
+
+  const dateStart = new Date(selectedDate)
+  dateStart.setHours(0, 0, 0, 0)
+  const dateStartISO = dateStart.toISOString()
+
+  const dateEnd = new Date(selectedDate)
+  dateEnd.setHours(23, 59, 59, 999)
+  const dateEndISO = dateEnd.toISOString()
+
+  const { data, error } = await supabase
+    .from('checkins')
+    .select('id, created_at, profiles!user_id(full_name)')
+    .gte('created_at', dateStartISO)
+    .lte('created_at', dateEndISO)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('getCheckinHistory error:', error)
+    return { success: false, message: 'Failed to load check-ins' }
+  }
+
+  const items: CheckinHistoryItem[] = ((data as Array<{
+    id: string
+    created_at: string
+    profiles: { full_name: string | null } | { full_name: string | null }[] | null
+  }> | null) ?? []).map((item) => {
+    const profile = item.profiles
+    return {
+      id: item.id,
+      full_name:
+        profile && !Array.isArray(profile)
+          ? profile.full_name
+          : Array.isArray(profile) && profile[0]
+          ? profile[0].full_name
+          : null,
+      created_at: item.created_at,
+    }
+  })
+
+  return { success: true, items }
 }

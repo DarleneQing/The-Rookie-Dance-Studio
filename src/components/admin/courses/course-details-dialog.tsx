@@ -109,7 +109,7 @@ export function CourseDetailsDialog({
           </DialogTitle>
           {courseDetails ? (
             <DialogDescription asChild>
-              <div className="flex flex-col gap-2 text-white/70 mt-2">
+              <div className="flex flex-col gap-2 text-foreground/70 mt-2">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   <span>{getTimeInterval(courseDetails.start_time, courseDetails.duration_minutes)}</span>
@@ -174,7 +174,7 @@ export function CourseDetailsDialog({
                     .map((booking) => (
                       <div
                         key={booking.id}
-                        className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10"
+                        className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-border/40"
                       >
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={booking.user.avatar_url || undefined} />
@@ -186,7 +186,7 @@ export function CourseDetailsDialog({
                           <div className="font-syne font-semibold text-white">
                             {booking.user.full_name}
                           </div>
-                          <div className="text-xs text-white/60 font-outfit">
+                          <div className="text-xs text-foreground/60 font-outfit">
                             Booked {formatTimestamp(booking.created_at)}
                           </div>
                         </div>
@@ -194,7 +194,7 @@ export function CourseDetailsDialog({
                       </div>
                     ))
                 ) : (
-                  <div className="text-center py-12 text-white/60 font-outfit">
+                  <div className="text-center py-12 text-foreground/60 font-outfit">
                     No bookings yet
                   </div>
                 )}
@@ -209,7 +209,7 @@ export function CourseDetailsDialog({
                     .map((booking) => (
                       <div
                         key={booking.id}
-                        className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10"
+                        className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-border/40"
                       >
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={booking.user.avatar_url || undefined} />
@@ -221,7 +221,7 @@ export function CourseDetailsDialog({
                           <div className="font-syne font-semibold text-white">
                             {booking.user.full_name}
                           </div>
-                          <div className="text-xs text-white/60 font-outfit">
+                          <div className="text-xs text-foreground/60 font-outfit">
                             Booked {formatTimestamp(booking.created_at)}
                           </div>
                         </div>
@@ -237,7 +237,7 @@ export function CourseDetailsDialog({
                                 onClick={() => handleQuickCheckin(booking.user_id, booking.user.full_name, method)}
                                 className={cn(
                                   'px-2 py-1 rounded-md border text-xs font-outfit font-semibold transition-all',
-                                  'bg-white/5 text-white/70 border-white/20 hover:bg-green-500/20 hover:text-green-300 hover:border-green-500/40'
+                                  'bg-white/5 text-foreground/70 border-border/60 hover:bg-success/20 hover:text-success hover:border-success/40'
                                 )}
                               >
                                 {checkinInId === booking.user_id ? (
@@ -250,7 +250,7 @@ export function CourseDetailsDialog({
                             <button
                               type="button"
                               onClick={() => setCheckinPayment(null)}
-                              className="px-1.5 py-1 rounded-md text-xs text-white/40 hover:text-white/70"
+                              className="px-1.5 py-1 rounded-md text-xs text-foreground/40 hover:text-white/70"
                             >
                               ✕
                             </button>
@@ -260,7 +260,7 @@ export function CourseDetailsDialog({
                             variant="ghost"
                             size="sm"
                             onClick={() => setCheckinPayment({ bookingId: booking.id, method: null })}
-                            className="text-green-400 hover:text-green-300 hover:bg-green-500/10 gap-1 px-2"
+                            className="text-success hover:text-success hover:bg-success/10 gap-1 px-2"
                           >
                             <CheckCircle2 className="h-4 w-4" />
                             <span className="text-xs hidden sm:inline">Check in</span>
@@ -269,8 +269,8 @@ export function CourseDetailsDialog({
                       </div>
                     ))
                 ) : (
-                  <div className="text-center py-12 text-white/60 font-outfit flex flex-col items-center gap-2">
-                    <UserX className="h-10 w-10 text-white/40" />
+                  <div className="text-center py-12 text-foreground/60 font-outfit flex flex-col items-center gap-2">
+                    <UserX className="h-10 w-10 text-foreground/40" />
                     <span>Everyone who booked has checked in</span>
                   </div>
                 )}
@@ -284,7 +284,7 @@ export function CourseDetailsDialog({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowAddCheckin(true)}
-                  className="w-full border-dashed border-white/20 text-white/60 hover:text-white hover:bg-white/5 gap-2"
+                  className="w-full border-dashed border-border/60 text-foreground/60 hover:text-white hover:bg-white/5 gap-2"
                 >
                   <UserPlus className="h-4 w-4" />
                   Add Check-in
@@ -296,7 +296,7 @@ export function CourseDetailsDialog({
                     .map((checkin) => (
                       <div
                         key={checkin.id}
-                        className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10"
+                        className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-border/40"
                       >
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={checkin.user.avatar_url || undefined} />
@@ -308,7 +308,7 @@ export function CourseDetailsDialog({
                           <div className="font-syne font-semibold text-white">
                             {checkin.user.full_name}
                           </div>
-                          <div className="text-xs text-white/60 font-outfit flex items-center gap-1">
+                          <div className="text-xs text-foreground/60 font-outfit flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {formatTimestamp(checkin.created_at)}
                           </div>
@@ -319,7 +319,7 @@ export function CourseDetailsDialog({
                           size="sm"
                           onClick={() => handleDeleteCheckin(checkin.id, checkin.user.full_name)}
                           disabled={deletingId === checkin.id}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 px-2"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
                         >
                           {deletingId === checkin.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -330,7 +330,7 @@ export function CourseDetailsDialog({
                       </div>
                     ))
                 ) : (
-                  <div className="text-center py-12 text-white/60 font-outfit">
+                  <div className="text-center py-12 text-foreground/60 font-outfit">
                     No check-ins yet
                   </div>
                 )}

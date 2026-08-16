@@ -97,7 +97,7 @@ export function AssignSubscriptionDialog({
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                 />
               </div>
             </div>

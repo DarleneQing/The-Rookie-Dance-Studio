@@ -1,10 +1,12 @@
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedUser } from '@/lib/supabase/cached'
-import { getCourses, getUserBookings, canCancelBooking } from '@/app/courses/actions'
+import { getCourses, getUserBookings, canCancelBookings } from '@/app/courses/actions'
 import { MemberLayout } from '@/components/navigation/member-layout'
 import { CoursesPageClient } from '@/components/courses/courses-page-client'
+import { getZurichToday } from '@/lib/utils/date-helpers'
 import { Footer } from '@/components/footer'
+import { usableSubscriptionFilter } from '@/lib/utils/subscription-helpers'
 
 const FloatingElementsLazy = dynamic(
   () =>
@@ -23,21 +25,16 @@ const coursesPageContent = (
   subscriptionType: string | null,
   isLoggedIn: boolean
 ) => (
-  <main className="relative min-h-screen overflow-hidden">
-    <div className="absolute inset-0 z-0 bg-black" />
+  <main id="main-content" className="relative min-h-screen overflow-hidden">
+    <div className="absolute inset-0 z-0 bg-background" />
     {!isLoggedIn && <FloatingElementsLazy />}
     <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">
       <div className="relative">
-        <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
-        <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-4 md:p-6 shadow-2xl overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+        <div className="relative bg-card border border-border/60 rounded-3xl p-4 md:p-6 shadow-2xl overflow-hidden">
           <div className="mb-6">
-            <h2 className="font-syne font-bold text-2xl md:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple px-2">
+            <h1 className="font-syne font-bold text-2xl md:text-3xl text-foreground px-2">
               Upcoming Courses
-            </h2>
-            <p className="text-white/70 font-outfit text-sm mt-2 px-2">
-              Browse and book dance courses
-            </p>
+            </h1>
           </div>
           <CoursesPageClient
             allCourses={allCourses}
@@ -55,7 +52,7 @@ const coursesPageContent = (
 )
 
 export default async function CoursesPage() {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getZurichToday()
 
   const [user, allCourses] = await Promise.all([
     getCachedUser(),
@@ -70,9 +67,9 @@ export default async function CoursesPage() {
       <div className="min-h-screen flex flex-col">
         <div className="flex-1">
           <div className="w-full text-center pt-8 pb-2 px-4">
-            <h1 className="font-syne font-bold text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+            <h2 className="font-syne font-bold text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple">
               The Rookie Dance Studio
-            </h1>
+            </h2>
           </div>
           {coursesPageContent(allCourses, bookedCourses, bookingsMap, canCancelMap, false, null, false)}
         </div>
@@ -88,18 +85,17 @@ export default async function CoursesPage() {
       .from('subscriptions')
       .select('*')
       .eq('user_id', user.id)
-      .eq('status', 'active')
+      .or(usableSubscriptionFilter(today))
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle(),
     getUserBookings(),
   ])
 
-  const canCancelResults =
+  const canCancelMap =
     userBookingsData.length > 0
-      ? await Promise.all(userBookingsData.map((b) => canCancelBooking(b.id)))
-      : []
-  const canCancelMap = new Map(
-    userBookingsData.map((b, i) => [b.id, canCancelResults[i] ?? false])
-  )
+      ? await canCancelBookings(userBookingsData.map((b) => b.id))
+      : new Map<string, boolean>()
   const bookingsMap = new Map(
     userBookingsData.map((booking) => [booking.course_id, booking])
   )

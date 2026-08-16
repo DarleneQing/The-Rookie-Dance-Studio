@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss"
 
 const config = {
-  darkMode: ["class"],
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
@@ -63,6 +62,15 @@ const config = {
         "rookie-pink": "#BB77A1",
         "rookie-cyan": "#67e8f9",
         "rookie-violet": "#433467",
+        // Semantic status colors (used by badges, status text, destructive actions)
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

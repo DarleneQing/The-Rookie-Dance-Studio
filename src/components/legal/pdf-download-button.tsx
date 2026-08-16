@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
-import { jsPDF } from 'jspdf'
-import html2canvas from 'html2canvas'
 
 interface PDFDownloadButtonProps {
   contentId: string
@@ -17,6 +15,13 @@ export function PDFDownloadButton({ contentId, filename }: PDFDownloadButtonProp
     setIsGenerating(true)
     
     try {
+      // Lazy-load the ~600KB PDF libraries only when the user actually clicks
+      // "Download as PDF" — keeps them out of the legal pages' initial bundle.
+      const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ])
+
       const element = document.getElementById(contentId)
       if (!element) {
         throw new Error('Content element not found')
@@ -32,42 +37,46 @@ export function PDFDownloadButton({ contentId, filename }: PDFDownloadButtonProp
       clone.style.padding = '20mm'
       document.body.appendChild(clone)
 
-      // Convert to canvas
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      })
+      try {
+        // Convert to canvas. scale 1.5 (was 2): legal documents are many
+        // pages tall, and scale 2 produced a 40-60MB canvas that crashed
+        // low-end phones — the app's primary audience.
+        const canvas = await html2canvas(clone, {
+          scale: 1.5,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+        })
 
-      // Remove clone
-      document.body.removeChild(clone)
+        // Calculate PDF dimensions
+        const imgWidth = 210 // A4 width in mm
+        const pageHeight = 297 // A4 height in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width
+        let heightLeft = imgHeight
+        let position = 0
 
-      // Calculate PDF dimensions
-      const imgWidth = 210 // A4 width in mm
-      const pageHeight = 297 // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      let heightLeft = imgHeight
-      let position = 0
+        // Create PDF
+        const pdf = new jsPDF('p', 'mm', 'a4')
+        const imgData = canvas.toDataURL('image/png')
 
-      // Create PDF
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const imgData = canvas.toDataURL('image/png')
-
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
-
-      // Add additional pages if needed
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight
-        pdf.addPage()
+        // Add first page
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
         heightLeft -= pageHeight
-      }
 
-      // Save PDF
-      pdf.save(`${filename}.pdf`)
+        // Add additional pages if needed
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight
+          pdf.addPage()
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+          heightLeft -= pageHeight
+        }
+
+        // Save PDF
+        pdf.save(`${filename}.pdf`)
+      } finally {
+        // Always remove the clone, even if html2canvas throws.
+        document.body.removeChild(clone)
+      }
     } catch (error) {
       console.error('Error generating PDF:', error)
       alert('Failed to generate PDF. Please try again.')

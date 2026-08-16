@@ -19,7 +19,7 @@ import { toast } from 'sonner'
 import {
   getCheckinContext,
   performCourseCheckin,
-  getCourseCheckins,
+  getCourseCheckinCount,
 } from '@/app/admin/scanner/actions'
 import type { CheckinContext } from '@/app/admin/scanner/actions'
 import type { CourseWithBookingCount } from '@/types/courses'
@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -87,8 +88,8 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
 
   const loadAttendanceCount = async () => {
     if (!selectedCourseId) return
-    const data = await getCourseCheckins(selectedCourseId)
-    setAttendanceCount(data.length)
+    const count = await getCourseCheckinCount(selectedCourseId)
+    setAttendanceCount(count)
   }
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -310,11 +311,14 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl bg-black/90 border-white/20 backdrop-blur-xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-2xl bg-popover border-border/60 backdrop-blur-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center font-syne text-white text-xl">
             Course Check-in Scanner
           </DialogTitle>
+          <DialogDescription className="text-center text-foreground/70 font-outfit text-sm">
+            Scan a member QR code to check them into the selected course
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -323,7 +327,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
             {showConfirmation && scannedMember && selectedCourse && bookingInfo ? (
               <div className="w-full flex flex-col items-center space-y-4">
                 {/* User Avatar and Name */}
-                <Avatar className="h-24 w-24 border-4 border-white/20">
+                <Avatar className="h-24 w-24 border-4 border-border/60">
                   <AvatarImage src={scannedMember.avatar_url || undefined} />
                   <AvatarFallback className="text-2xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
                     {scannedMember.full_name.slice(0, 2).toUpperCase()}
@@ -336,7 +340,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                   </h3>
                   <div className="flex items-center justify-center gap-2">
                     {scannedMember.dob && (
-                      <span className="text-sm text-white/70 font-outfit">
+                      <span className="text-sm text-foreground/70 font-outfit">
                         {new Date(scannedMember.dob).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -359,26 +363,26 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                 </div>
 
                 {/* Course Information Card */}
-                <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
-                  <div className="flex items-center gap-2 text-white/80 font-outfit text-sm font-semibold">
+                <div className="w-full bg-white/5 rounded-xl p-4 border border-border/40 space-y-3">
+                  <div className="flex items-center gap-2 text-foreground/80 font-outfit text-sm font-semibold">
                     <Music className="h-4 w-4" />
                     <span>Course Information</span>
                   </div>
 
-                  <div className="border-t border-white/10" />
+                  <div className="border-t border-border/40" />
 
                   <div>
                     <div className="font-syne font-bold text-white text-lg">
                       {selectedCourse.song || getDisplayDanceStyle(selectedCourse.dance_style)}
                     </div>
                     {selectedCourse.singer && (
-                      <div className="text-sm text-white/70 font-outfit mt-0.5">
+                      <div className="text-sm text-foreground/70 font-outfit mt-0.5">
                         {selectedCourse.singer}
                       </div>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-sm text-white/70 font-outfit">
+                  <div className="grid grid-cols-2 gap-3 text-sm text-foreground/70 font-outfit">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
                       <span>{formatCourseDateTime(selectedCourse.scheduled_date, selectedCourse.start_time).dateStr}</span>
@@ -390,9 +394,9 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                   </div>
 
                   {/* Attendance Count */}
-                  <div className="pt-2 border-t border-white/10">
+                  <div className="pt-2 border-t border-border/40">
                     <div className="flex items-center justify-between">
-                      <span className="text-white/70 font-outfit text-sm">Current Attendance:</span>
+                      <span className="text-foreground/70 font-outfit text-sm">Current Attendance:</span>
                       <span className="font-syne font-bold text-white text-lg">
                         {attendanceCount}/{selectedCourse.capacity}
                       </span>
@@ -401,9 +405,9 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                 </div>
 
                 {/* Booking Type Card */}
-                <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+                <div className="w-full bg-white/5 rounded-xl p-4 border border-border/40 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-white/80 font-outfit text-sm font-semibold">
+                    <span className="text-foreground/80 font-outfit text-sm font-semibold">
                       Booking Type
                     </span>
                     <BookingTypeBadge type={bookingInfo.bookingType} />
@@ -412,10 +416,10 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                   {/* Subscription Details */}
                   {bookingInfo.bookingType === 'subscription' && bookingInfo.subscriptionDetails && (
                     <>
-                      <div className="border-t border-white/10" />
+                      <div className="border-t border-border/40" />
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-white/70 font-outfit">Plan:</span>
+                          <span className="text-foreground/70 font-outfit">Plan:</span>
                           <span className="text-white font-outfit font-semibold">
                             {formatSubscriptionType(bookingInfo.subscriptionDetails.type)}
                           </span>
@@ -423,7 +427,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
 
                         {bookingInfo.subscriptionDetails.remainingCredits !== undefined && (
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-white/70 font-outfit">Remaining:</span>
+                            <span className="text-foreground/70 font-outfit">Remaining:</span>
                             <span className="text-white font-syne font-bold text-lg">
                               {bookingInfo.subscriptionDetails.remainingCredits}
                             </span>
@@ -432,7 +436,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
 
                         {bookingInfo.subscriptionDetails.endDate && (
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-white/70 font-outfit">Valid Until:</span>
+                            <span className="text-foreground/70 font-outfit">Valid Until:</span>
                             <span className="text-white font-outfit">
                               {new Date(bookingInfo.subscriptionDetails.endDate).toLocaleDateString('en-US', {
                                 month: 'short',
@@ -449,10 +453,10 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
 
                 {/* Repeat Check-in Warning */}
                 {scanContext?.isRepeatCheckin && (
-                  <div className="w-full bg-orange-500/20 border border-orange-500/50 rounded-xl p-3 flex items-start gap-2">
-                    <AlertTriangle className="h-5 w-5 text-orange-400 shrink-0 mt-0.5" />
+                  <div className="w-full bg-warning/20 border border-warning/50 rounded-xl p-3 flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-orange-300 font-outfit text-sm font-semibold">
+                      <p className="text-warning font-outfit text-sm font-semibold">
                         ⚠️ REPEAT CHECK-IN
                       </p>
                       <p className="text-orange-200 font-outfit text-xs mt-1">
@@ -463,23 +467,24 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                 )}
 
                 {/* Payment Method Selection */}
-                <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+                <div className="w-full bg-white/5 rounded-xl p-4 border border-border/40 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-white/80 font-outfit text-sm font-semibold">
+                    <span className="text-foreground/80 font-outfit text-sm font-semibold">
                       Payment Method
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div role="group" aria-label="Payment method" className="grid grid-cols-3 gap-2">
                     {(['cash', 'twint', 'abo'] as PaymentMethod[]).map((method) => (
                       <button
                         key={method}
                         type="button"
+                        aria-pressed={paymentMethod === method}
                         onClick={() => setPaymentMethod(method)}
                         className={cn(
                           'px-4 py-2 rounded-lg border transition-all font-outfit text-sm font-semibold',
                           paymentMethod === method
                             ? 'bg-primary text-primary-foreground border-transparent'
-                            : 'bg-white/5 text-white/70 border-white/20 hover:bg-white/10 hover:text-white'
+                            : 'bg-white/5 text-foreground/70 border-border/60 hover:bg-white/10 hover:text-white'
                         )}
                       >
                         {method === 'cash' ? 'Cash' : method === 'twint' ? 'TWINT' : 'Abo'}
@@ -518,7 +523,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                 <Loader2 className="h-20 w-20 text-white animate-spin" />
                 <div className="text-center">
                   <h3 className="text-xl font-bold font-syne text-white">Loading...</h3>
-                  <p className="text-white/70 font-outfit mt-2">Please wait</p>
+                  <p className="text-foreground/70 font-outfit mt-2">Please wait</p>
                 </div>
               </div>
             ) : scanning && !cameraError && selectedCourseId ? (
@@ -534,7 +539,7 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
                 />
                 <button
                   onClick={handleFlipCamera}
-                  className="absolute top-4 right-4 z-20 p-3 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full border border-white/20 transition-all"
+                  className="absolute top-4 right-4 z-20 p-3 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full border border-border/60 transition-all"
                   aria-label="Flip camera"
                 >
                   <SwitchCamera className="h-6 w-6 text-white" />
@@ -543,10 +548,10 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
               </div>
             ) : cameraError ? (
               <div className="w-full aspect-square max-w-sm flex flex-col items-center justify-center bg-white/10 rounded-lg space-y-4 p-6 text-center">
-                <Camera className="h-20 w-20 text-red-500" />
+                <Camera className="h-20 w-20 text-destructive" />
                 <div>
-                  <h3 className="text-xl font-bold text-red-500 font-syne">Camera Error</h3>
-                  <p className="text-white/70 font-outfit mt-2">{cameraError}</p>
+                  <h3 className="text-xl font-bold text-destructive font-syne">Camera Error</h3>
+                  <p className="text-foreground/70 font-outfit mt-2">{cameraError}</p>
                 </div>
                 <Button onClick={resetScanner} className="bg-white/10 hover:bg-white/20 text-white">
                   <RefreshCcw className="mr-2 h-4 w-4" /> Retry
@@ -555,16 +560,16 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
             ) : lastResult ? (
               <div className="w-full aspect-square max-w-sm flex flex-col items-center justify-center bg-white/10 rounded-lg space-y-4 p-6 text-center">
                 {lastResult.success ? (
-                  <CheckCircle2 className="h-20 w-20 text-green-500" />
+                  <CheckCircle2 className="h-20 w-20 text-success" />
                 ) : (
-                  <XCircle className="h-20 w-20 text-red-500" />
+                  <XCircle className="h-20 w-20 text-destructive" />
                 )}
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold font-syne text-white">
                     {lastResult.success ? 'Check-in Successful' : 'Check-in Failed'}
                   </h3>
 
-                  <p className="text-white/70 font-outfit mt-2">{lastResult.message}</p>
+                  <p className="text-foreground/70 font-outfit mt-2">{lastResult.message}</p>
 
                   <div className="flex flex-wrap gap-2 justify-center items-center">
                     {lastResult.bookingType && (
@@ -586,8 +591,8 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
               </div>
             ) : !selectedCourseId ? (
               <div className="w-full aspect-square max-w-sm flex flex-col items-center justify-center bg-white/10 rounded-lg space-y-4 p-6 text-center">
-                <Camera className="h-20 w-20 text-white/40" />
-                <p className="text-white/70 font-outfit">
+                <Camera className="h-20 w-20 text-foreground/40" />
+                <p className="text-foreground/70 font-outfit">
                   Select a course to start scanning
                 </p>
               </div>

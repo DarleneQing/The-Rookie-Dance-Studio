@@ -74,7 +74,7 @@ export function RequestReVerificationDialog({
 
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="reason" className="text-white/90 font-outfit font-medium">
+            <Label htmlFor="reason" className="text-foreground/90 font-outfit font-medium">
               Message to User (optional)
             </Label>
             <Textarea
@@ -82,10 +82,10 @@ export function RequestReVerificationDialog({
               placeholder="Your student verification has expired. Please upload a current student card to maintain your student status."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="min-h-[100px] bg-white/5 border-white/20 text-white placeholder:text-white/40"
+              className="min-h-[100px] bg-white/5 border-border/60 text-white placeholder-foreground/40"
               disabled={loading}
             />
-            <p className="text-xs text-white/50 font-outfit">
+            <p className="text-xs text-foreground/50 font-outfit">
               If left empty, a default message will be shown to the user.
             </p>
           </div>
@@ -103,7 +103,7 @@ export function RequestReVerificationDialog({
           <Button
             onClick={handleRequest}
             disabled={loading}
-            className="w-full sm:w-auto flex items-center gap-2 bg-orange-500 hover:bg-orange-600"
+            className="w-full sm:w-auto flex items-center gap-2 bg-warning hover:bg-warning"
           >
             {loading ? (
               <>

@@ -350,14 +350,15 @@ export function FaqContent() {
     <div id="faq-content" className="space-y-6">
       {/* Search Bar */}
       <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-md p-4 -mx-6 md:-mx-8 mb-6">
-        <div className="relative max-w-2xl mx-auto">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40" />
+        <div role="search" className="relative max-w-2xl mx-auto">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground/40" />
           <input
             type="text"
+            aria-label="Search questions"
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/10 border border-white/20 rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-rookie-purple/50 focus:border-rookie-purple/50 transition-all font-outfit"
+            className="w-full bg-white/10 border border-white/20 rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-rookie-purple/50 focus:border-rookie-purple/50 transition-all font-outfit"
           />
         </div>
       </div>
@@ -373,7 +374,7 @@ export function FaqContent() {
                 <h2 className="font-syne font-bold text-xl text-white">
                   {category.category}
                 </h2>
-                <span className="text-white/40 text-sm font-outfit">
+                <span className="text-foreground/40 text-sm font-outfit">
                   ({category.questions.length})
                 </span>
               </div>
@@ -383,10 +384,14 @@ export function FaqContent() {
                 <Accordion type="single" collapsible className="w-full">
                   {category.questions.map((item, qIdx) => (
                     <AccordionItem key={qIdx} value={`${idx}-${qIdx}`}>
-                      <AccordionTrigger className="text-left font-outfit text-white/90 hover:text-white">
+                      <AccordionTrigger className="text-left font-outfit text-foreground/90 hover:text-white">
                         {item.q}
                       </AccordionTrigger>
-                      <AccordionContent className="text-white/70 font-outfit leading-relaxed">
+                      <AccordionContent className="text-foreground/70 font-outfit leading-relaxed">
+                        {/* SAFETY: item.a is static content from the hard-coded
+                            faqData array below. If answers ever become dynamic
+                            (CMS/admin editor), replace dangerouslySetInnerHTML
+                            with a structured renderer — this is an XSS sink. */}
                         <div dangerouslySetInnerHTML={{ __html: item.a }} />
                       </AccordionContent>
                     </AccordionItem>
@@ -398,7 +403,7 @@ export function FaqContent() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-white/60 font-outfit">
+          <p className="text-foreground/60 font-outfit">
             No questions found matching &quot;{searchQuery}&quot;
           </p>
           <button
@@ -415,7 +420,7 @@ export function FaqContent() {
         <h3 className="font-syne font-bold text-xl text-white mb-3">
           Still Have Questions?
         </h3>
-        <p className="text-white/80 font-outfit mb-4">
+        <p className="text-foreground/80 font-outfit mb-4">
           If you couldn&apos;t find the answer to your question, we&apos;re here to help!
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
@@ -443,7 +448,7 @@ export function FaqContent() {
       </div>
 
       {/* Footer Note */}
-      <div className="text-center text-sm text-white/50 font-outfit pt-6 border-t border-white/10">
+      <div className="text-center text-sm text-foreground/50 font-outfit pt-6 border-t border-white/10">
         <p>
           This FAQ is provided for informational purposes. For legally binding terms, please refer to our{' '}
           <a href="/terms" className="text-rookie-cyan hover:text-rookie-cyan/80">

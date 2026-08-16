@@ -18,8 +18,10 @@ import { QRCodeDisplay } from "@/components/profile/qr-code-display"
 import { SubscriptionHistoryDialog, type SubscriptionHistoryItem } from "@/components/profile/subscription-history-dialog"
 import { CheckinHistoryDialog } from "@/components/profile/checkin-history-dialog"
 import { MemberLayout } from "@/components/navigation/member-layout"
-import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Zap, Clock as ClockIcon } from "lucide-react"
+import { QrCode, Monitor, Clock, Heart, Calendar, ArrowRight, Zap } from "lucide-react"
 import { calculateStreakWeeks } from "@/lib/utils/streak-calculator"
+import { getZurichToday } from "@/lib/utils/date-helpers"
+import { usableSubscriptionFilter } from "@/lib/utils/subscription-helpers"
 
 export default async function ProfilePage() {
   const user = await getCachedUser()
@@ -29,6 +31,7 @@ export default async function ProfilePage() {
   }
 
   const supabase = createClient()
+  const today = getZurichToday()
 
   // Parallelize all database queries (profile uses cache - deduped with MemberLayout)
   const [
@@ -44,7 +47,9 @@ export default async function ProfilePage() {
       .from("subscriptions")
       .select("*")
       .eq("user_id", user.id)
-      .eq("status", "active")
+      .or(usableSubscriptionFilter(today))
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle(),
     supabase
       .from("checkins")
@@ -132,9 +137,9 @@ export default async function ProfilePage() {
   return (
     <MemberLayout>
       <PrefetchRoutes routes={['/courses', '/settings']} />
-      <main className="relative min-h-screen overflow-hidden">
+      <main id="main-content" className="relative min-h-screen overflow-hidden">
         {/* Background */}
-        <div className="absolute inset-0 z-0 bg-black" />
+        <div className="absolute inset-0 z-0 bg-background" />
         <FloatingElementsLazy />
 
         {/* Content */}
@@ -144,7 +149,7 @@ export default async function ProfilePage() {
         <div className="flex flex-col items-center pt-4 pb-6">
           <div className="relative">
             {/* Gradient Ring */}
-            <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-rookie-purple via-rookie-pink to-rookie-blue opacity-60 blur-sm" />
+            <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-rookie-purple via-rookie-pink to-rookie-blue opacity-40 blur-sm" />
             <Avatar className="relative h-24 w-24 border-4 border-transparent">
               <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
               <AvatarFallback className="text-2xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
@@ -153,20 +158,23 @@ export default async function ProfilePage() {
             </Avatar>
           </div>
           
-          {/* Name with Gradient */}
-          <h2 className="mt-4 font-syne font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-rookie-blue via-rookie-purple to-rookie-pink">
+          {/* Name */}
+          <h1 className="mt-4 font-syne font-bold text-3xl text-foreground">
             {profile?.full_name || "User"}
-          </h2>
+          </h1>
           
           {/* Membership Info */}
-          <p className="mt-1 text-white/60 font-outfit text-sm">
+          <p className="mt-1 text-foreground/60 font-outfit text-sm">
             {profile?.member_type === "student" ? "Student" : "Adult"} • {profile?.role === "admin" ? "Admin" : "Member"}
           </p>
         </div>
 
         {/* 2. Member QR Code Section - Dark Purple Card */}
         <QRCodeDisplay userId={user.id} userName={profile?.full_name || "User"}>
-          <div className="relative bg-gradient-to-br from-rookie-purple/90 to-rookie-violet/90 rounded-3xl p-6 shadow-2xl border border-white/10 cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]">
+          <button
+            type="button"
+            className="relative w-full bg-gradient-to-br from-rookie-purple/90 to-rookie-violet/90 rounded-3xl p-6 shadow-2xl border border-white/10 cursor-pointer hover:opacity-90 transition-opacity active:scale-[0.98]"
+          >
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="bg-white/20 rounded-full p-4">
                 <QrCode className="h-8 w-8 text-white" />
@@ -174,14 +182,14 @@ export default async function ProfilePage() {
               <div className="w-full font-syne font-bold text-xl text-white uppercase tracking-wide">
                 SHOW MEMBER QR
               </div>
-              <p className="text-white/80 font-outfit text-sm">Tap for class check-in</p>
+              <p className="text-foreground/80 font-outfit text-sm">Tap for class check-in</p>
             </div>
-          </div>
+          </button>
         </QRCodeDisplay>
 
         {/* TWINT payment banner */}
         <div className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-center">
-          <p className="font-outfit text-sm font-medium text-white/90">
+          <p className="font-outfit text-sm font-medium text-foreground/90">
             Pay by TWINT: <span className="font-syne font-semibold text-white">+41 76 722 49 78</span>
           </p>
         </div>
@@ -190,18 +198,18 @@ export default async function ProfilePage() {
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-2">
             <Monitor className="h-5 w-5 text-rookie-pink" />
-            <h3 className="font-syne font-semibold text-white/90">Current Plan</h3>
+            <h3 className="font-syne font-semibold text-foreground/90">Current Plan</h3>
           </div>
           
-          <div className="bg-white/80 rounded-3xl p-5 shadow-lg border border-gray-100">
+          <div className="bg-card rounded-3xl p-5 shadow-lg border border-border/60">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full font-outfit">
+                  <span className="bg-success text-success-foreground text-xs font-bold px-2.5 py-1 rounded-full font-outfit">
                     {subscription ? subscription.status?.toUpperCase() || "ACTIVE" : "INACTIVE"}
                   </span>
                 </div>
-                <h4 className="font-syne font-bold text-xl text-gray-900 mb-1">
+                <h4 className="font-syne font-bold text-xl text-card-foreground mb-1">
                   {subscription
                     ? subscription.type === "monthly"
                       ? "Monthly Card"
@@ -222,7 +230,7 @@ export default async function ProfilePage() {
               {subscription ? (
                 <>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-700 font-outfit text-sm">
+                    <span className="text-card-foreground/80 font-outfit text-sm">
                       {subscription.type === "monthly" ? "Valid Until" : "Sessions Left"}
                     </span>
                     <span className="font-syne font-bold text-rookie-purple">
@@ -242,7 +250,7 @@ export default async function ProfilePage() {
                           })()}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className="w-full bg-card-foreground/15 rounded-full h-3 overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-rookie-blue to-rookie-purple rounded-full transition-all duration-300"
                       style={{
@@ -264,7 +272,7 @@ export default async function ProfilePage() {
                   </div>
                 </>
               ) : (
-                <p className="text-gray-600 font-outfit text-sm">
+                <p className="text-card-foreground/70 font-outfit text-sm">
                   Pay individually for every single class
                 </p>
               )}
@@ -275,25 +283,25 @@ export default async function ProfilePage() {
         {/* 4. Activity Statistics Section */}
         <div className="grid grid-cols-2 gap-4">
           {/* Total Classes Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+          <div className="bg-card backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
             <div className="flex justify-center mb-3">
               <div className="bg-orange-500/80 rounded-full p-3">
                 <Clock className="h-6 w-6 text-orange-100" />
               </div>
             </div>
-            <div className="font-syne font-bold text-3xl text-black mb-1">{totalClasses}</div>
-            <div className="font-outfit text-xs text-black uppercase tracking-wide">Total Classes</div>
+            <div className="font-syne font-bold text-3xl text-card-foreground mb-1">{totalClasses}</div>
+            <div className="font-outfit text-xs text-card-foreground uppercase tracking-wide">Total Classes</div>
           </div>
 
           {/* Streak Weeks Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
+          <div className="bg-card backdrop-blur-sm rounded-3xl p-5 border border-white/20 shadow-lg text-center">
             <div className="flex justify-center mb-3">
               <div className="bg-rookie-pink rounded-full p-3">
                 <Heart className="h-6 w-6 text-rookie-pink-200" />
               </div>
             </div>
-            <div className="font-syne font-bold text-3xl text-black mb-1">{streakWeeks}</div>
-            <div className="font-outfit text-xs text-black uppercase tracking-wide">Streak</div>
+            <div className="font-syne font-bold text-3xl text-card-foreground mb-1">{streakWeeks}</div>
+            <div className="font-outfit text-xs text-card-foreground uppercase tracking-wide">Streak</div>
           </div>
         </div>
 
@@ -301,10 +309,10 @@ export default async function ProfilePage() {
         <CheckinHistoryDialog checkins={checkinHistoryData || []}>
           <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
             <div className="flex items-center gap-3">
-              <ClockIcon className="h-5 w-5 text-white/60" />
-              <span className="font-outfit text-white/90 font-medium">Course History</span>
+              <Clock className="h-5 w-5 text-foreground/60" />
+              <span className="font-outfit text-foreground/90 font-medium">Course History</span>
             </div>
-            <ArrowRight className="h-5 w-5 text-white/60" />
+            <ArrowRight className="h-5 w-5 text-foreground/60" />
           </button>
         </CheckinHistoryDialog>
 
@@ -312,10 +320,10 @@ export default async function ProfilePage() {
         <SubscriptionHistoryDialog subscriptions={subscriptionHistory}>
           <button className="w-full bg-white/10 backdrop-blur-sm rounded-3xl p-4 border border-white/20 shadow-lg flex items-center justify-between hover:bg-white/15 transition-colors">
             <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-white/60" />
-              <span className="font-outfit text-white/90 font-medium">Subscription History</span>
+              <Calendar className="h-5 w-5 text-foreground/60" />
+              <span className="font-outfit text-foreground/90 font-medium">Subscription History</span>
             </div>
-            <ArrowRight className="h-5 w-5 text-white/60" />
+            <ArrowRight className="h-5 w-5 text-foreground/60" />
           </button>
         </SubscriptionHistoryDialog>
       </div>

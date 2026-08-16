@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { deleteCourse } from '@/app/admin/courses/actions'
 import type { CourseWithBookingCount } from '@/types/courses'
 import { getDisplayDanceStyle } from '@/lib/utils'
@@ -36,15 +37,16 @@ interface CoursesTableProps {
 }
 
 export function CoursesTable({ courses, type }: CoursesTableProps) {
+  const router = useRouter()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [courseToDelete, setCourseToDelete] = useState<CourseWithBookingCount | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   const getCapacityColor = (current: number, max: number) => {
     const percentage = (current / max) * 100
-    if (percentage >= 100) return 'text-red-400'
-    if (percentage >= 80) return 'text-orange-400'
-    return 'text-green-400'
+    if (percentage >= 100) return 'text-destructive'
+    if (percentage >= 80) return 'text-warning'
+    return 'text-success'
   }
 
   const getCurrentAttendance = (course: CourseWithBookingCount) => {
@@ -83,8 +85,8 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
       toast.success('Course deleted successfully')
       setDeleteDialogOpen(false)
       setCourseToDelete(null)
-      // Refresh page to update list
-      window.location.reload()
+      // Refresh server components (deleteCourse already revalidates paths)
+      router.refresh()
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message || 'Failed to delete course')
@@ -102,8 +104,8 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
 
   if (courses.length === 0) {
     return (
-      <div className="bg-white/10 rounded-2xl p-8 text-center border border-white/20">
-        <p className="text-white/70 font-outfit">
+      <div className="bg-white/10 rounded-2xl p-8 text-center border border-border/60">
+        <p className="text-foreground/70 font-outfit">
           {type === 'future' 
             ? 'No upcoming courses scheduled. Create your first course!' 
             : 'No past courses yet.'}
@@ -119,7 +121,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
         {courses.map((course) => (
           <div
             key={course.id}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg space-y-3"
+            className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-border/60 shadow-lg space-y-3"
           >
             {/* Header with Date and Status */}
             <div className="flex items-start justify-between gap-2">
@@ -128,11 +130,11 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   {course.song || getDisplayDanceStyle(course.dance_style)}
                 </div>
                 {course.singer && (
-                  <div className="text-sm text-white/70 font-outfit">
+                  <div className="text-sm text-foreground/70 font-outfit">
                     {course.singer}
                   </div>
                 )}
-                <div className="text-sm text-white/60 font-outfit">
+                <div className="text-sm text-foreground/60 font-outfit">
                   {formatDate(course.scheduled_date, { includeYear: true })} • {formatTime(course.start_time)}
                 </div>
               </div>
@@ -154,13 +156,13 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   </span>
                 </>
               ) : (
-                <span className="text-sm text-white/60 font-outfit italic">Unassigned</span>
+                <span className="text-sm text-foreground/60 font-outfit italic">Unassigned</span>
               )}
             </div>
 
             {/* Capacity */}
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-white/60" />
+              <Users className="h-4 w-4 text-foreground/60" />
               <span className={`text-sm font-outfit font-semibold ${getCapacityColor(getCurrentAttendance(course), course.capacity)}`}>
                 {getCurrentAttendance(course)}/{course.capacity}
               </span>
@@ -170,23 +172,23 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 pt-2 border-t border-white/10">
+            <div className="flex gap-2 pt-2 border-t border-border/40">
               <CourseDetailsDialog courseId={course.id} courseName={getCourseName(course)}>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1 bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                  className="flex-1 bg-white/10 hover:bg-white/20 border-border/60 text-white"
                 >
                   <Eye className="mr-2 h-4 w-4" />
                   View
                 </Button>
               </CourseDetailsDialog>
               {type === 'future' && (
-                <EditCourseDialog course={course} onSuccess={() => window.location.reload()}>
+                <EditCourseDialog course={course} onSuccess={() => router.refresh()}>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                    className="flex-1 bg-white/10 hover:bg-white/20 border-border/60 text-white"
                   >
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit
@@ -198,7 +200,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   variant="outline"
                   size="sm"
                   onClick={() => handleDeleteClick(course)}
-                  className="bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400"
+                  className="bg-destructive/10 hover:bg-destructive/20 border-destructive/30 text-destructive"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -209,29 +211,29 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
       </div>
 
       {/* Desktop Table Layout */}
-      <div className="hidden md:block rounded-lg border border-white/20 overflow-hidden bg-white/5 backdrop-blur-sm">
+      <div className="hidden md:block rounded-lg border border-border/60 overflow-hidden bg-white/5 backdrop-blur-sm">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-white/20 hover:bg-white/10 bg-white/5">
-                <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Date</TableHead>
-                <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Time</TableHead>
-                <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Song</TableHead>
-                <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Instructor</TableHead>
-                <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Capacity</TableHead>
-                <TableHead className="text-white/90 font-syne font-bold px-6 py-4">Status</TableHead>
-                <TableHead className="text-right text-white/90 font-syne font-bold px-6 py-4">Actions</TableHead>
+              <TableRow className="border-border/60 hover:bg-white/10 bg-white/5">
+                <TableHead className="text-foreground/90 font-syne font-bold px-6 py-4">Date</TableHead>
+                <TableHead className="text-foreground/90 font-syne font-bold px-6 py-4">Time</TableHead>
+                <TableHead className="text-foreground/90 font-syne font-bold px-6 py-4">Song</TableHead>
+                <TableHead className="text-foreground/90 font-syne font-bold px-6 py-4">Instructor</TableHead>
+                <TableHead className="text-foreground/90 font-syne font-bold px-6 py-4">Capacity</TableHead>
+                <TableHead className="text-foreground/90 font-syne font-bold px-6 py-4">Status</TableHead>
+                <TableHead className="text-right text-foreground/90 font-syne font-bold px-6 py-4">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {courses.map((course) => (
-                <TableRow key={course.id} className="border-white/20 hover:bg-white/10 transition-colors">
+                <TableRow key={course.id} className="border-border/60 hover:bg-white/10 transition-colors">
                   <TableCell className="px-6 py-4">
                     <div className="font-outfit text-white">{formatDate(course.scheduled_date, { includeYear: true })}</div>
                   </TableCell>
                   <TableCell className="px-6 py-4">
                     <div className="flex items-center gap-2 font-outfit text-white">
-                      <Clock className="h-4 w-4 text-white/60" />
+                      <Clock className="h-4 w-4 text-foreground/60" />
                       {formatTime(course.start_time)}
                     </div>
                   </TableCell>
@@ -240,7 +242,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                       {course.song || getDisplayDanceStyle(course.dance_style)}
                     </div>
                     {course.singer && (
-                      <div className="text-xs text-white/60 font-outfit mt-0.5">
+                      <div className="text-xs text-foreground/60 font-outfit mt-0.5">
                         {course.singer}
                       </div>
                     )}
@@ -259,7 +261,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                         </span>
                       </div>
                     ) : (
-                      <span className="text-sm text-white/60 font-outfit italic">Unassigned</span>
+                      <span className="text-sm text-foreground/60 font-outfit italic">Unassigned</span>
                     )}
                   </TableCell>
                   <TableCell className="px-6 py-4">
@@ -288,7 +290,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                         </Button>
                       </CourseDetailsDialog>
                       {type === 'future' && (
-                        <EditCourseDialog course={course} onSuccess={() => window.location.reload()}>
+                        <EditCourseDialog course={course} onSuccess={() => router.refresh()}>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -304,7 +306,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteClick(course)}
-                          className="text-red-400 hover:bg-red-500/20 font-outfit"
+                          className="text-destructive hover:bg-destructive/20 font-outfit"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -330,18 +332,18 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
                   Confirm deletion of this course. This action cannot be undone.
                 </DialogDescription>
               </DialogHeader>
-              <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <div className="bg-white/5 rounded-xl p-4 border border-border/40">
                 <div className="font-syne font-semibold text-white mb-1">
                   {getDisplayDanceStyle(courseToDelete.dance_style)}
                 </div>
-                <div className="text-sm text-white/60 font-outfit">
+                <div className="text-sm text-foreground/60 font-outfit">
                   {formatDate(courseToDelete.scheduled_date, { includeYear: true })} • {formatTime(courseToDelete.start_time)}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
-                  <MapPin className="h-4 w-4 text-white/60" />
-                  <span className="text-xs text-white/60 font-outfit">{courseToDelete.location}</span>
+                  <MapPin className="h-4 w-4 text-foreground/60" />
+                  <span className="text-xs text-foreground/60 font-outfit">{courseToDelete.location}</span>
                 </div>
-                <p className="text-sm text-white/70 font-outfit mt-3">
+                <p className="text-sm text-foreground/70 font-outfit mt-3">
                   Delete this course? This cannot be undone.
                 </p>
               </div>
@@ -357,7 +359,7 @@ export function CoursesTable({ courses, type }: CoursesTableProps) {
             <Button
               onClick={handleDeleteConfirm}
               disabled={deleting}
-              className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white"
+              className="w-full sm:w-auto bg-destructive hover:bg-destructive text-white"
             >
               {deleting ? 'Deleting...' : 'Delete Course'}
             </Button>

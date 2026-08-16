@@ -1,7 +1,7 @@
 export default function SettingsLoading() {
   return (
     <div className="relative min-h-screen overflow-hidden pb-20">
-      <div className="absolute inset-0 z-0 bg-black" />
+      <div className="absolute inset-0 z-0 bg-background" />
       <div className="relative z-10 container max-w-lg mx-auto pt-8 pb-8 px-4 space-y-6">
         <div className="mb-6">
           <div className="h-8 w-40 bg-white/20 rounded-lg animate-pulse mb-2" />

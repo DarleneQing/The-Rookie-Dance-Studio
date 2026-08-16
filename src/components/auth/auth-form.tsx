@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { AuthMode, FormErrors } from '@/types/auth';
 import { login, signup, resetPassword } from '@/app/auth/actions';
 import { createClient } from '@/lib/supabase/client';
-import { usePhoneInputStyles } from '@/hooks/use-phone-input-styles';
 import { Input } from './auth-input';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import PhoneInput from 'react-phone-number-input';
@@ -78,8 +77,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
 
   const currentState = mode === AuthMode.LOGIN ? loginState : mode === AuthMode.REGISTER ? signupState : resetPasswordState;
   const currentAction = mode === AuthMode.LOGIN ? loginAction : mode === AuthMode.REGISTER ? signupAction : resetPasswordAction;
-
-  usePhoneInputStyles();
 
   useEffect(() => {
     if (currentState?.error) {
@@ -201,22 +198,27 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
 
   return (
     <div className="w-full max-w-md relative z-10">
-        {/* Glow behind form */}
-        <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
-        
-        <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-8 shadow-2xl overflow-hidden">
-            {/* Glossy highlight effect on top */}
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
-            
+        <div className="relative bg-card border border-border/60 rounded-3xl p-8 shadow-2xl overflow-hidden">
             <div className="mb-8 text-center">
-                <h2 className="font-syne font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-2">
+                <h2 className="font-syne font-bold text-2xl text-foreground mb-2">
                     {mode === AuthMode.LOGIN ? 'WELCOME BACK' : mode === AuthMode.REGISTER ? 'JOIN AS MEMBER' : 'RESET PASSWORD'}
                 </h2>
-                <p className="text-white/60 font-outfit font-light">
+                <p className="text-foreground/60 font-outfit font-light">
                     {mode === AuthMode.LOGIN ? 'Ready to dance?' : mode === AuthMode.REGISTER ? 'Start your journey with The Rookie Dance Studio' : 'Enter your email to receive a password reset link'}
                 </p>
             </div>
             <form onSubmit={handleSubmit}>
+                {/* Persistent server-action error region (WCAG 4.1.3) — announced
+                    in addition to the toast so SR users get a stable, focusable
+                    message that does not disappear. */}
+                {currentState?.error && (
+                  <div
+                    role="alert"
+                    className="mb-4 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive font-outfit"
+                  >
+                    {currentState.error}
+                  </div>
+                )}
                 {callbackUrl && (
                   <input type="hidden" name="callbackUrl" value={callbackUrl} />
                 )}
@@ -234,17 +236,18 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
 
                 {mode === AuthMode.REGISTER && (
                     <div className="w-full mb-4 min-w-0">
-                        <label className="block text-rookie-pink text-xs font-outfit uppercase tracking-widest mb-1.5 ml-1">
+                        <label htmlFor="dob" className="block text-rookie-pink text-xs font-outfit uppercase tracking-widest mb-1.5 ml-1">
                             Date of Birth
                         </label>
                         <div className="w-full min-w-0">
                             <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                                 <input
+                                    id="dob"
                                     name="dob"
                                     type="date"
                                     value={formData.dob}
                                     onChange={handleChange}
-                                    className="w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-white/30 font-outfit focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                    className="w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/30 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                                 />
                             </div>
                         </div>
@@ -269,20 +272,20 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                             />
                             <label
                               htmlFor="guardian_for_minor"
-                              className="text-xs font-outfit text-white/80"
+                              className="text-xs font-outfit text-foreground/80"
                             >
                               I am a guardian for this user
                             </label>
                           </div>
                         );
                       })()}
-                        {errors.dob && <p className="text-red-400 text-xs mt-1 font-outfit ml-1">{errors.dob}</p>}
+                        {errors.dob && <p className="text-destructive text-xs mt-1 font-outfit ml-1">{errors.dob}</p>}
                     </div>
                 )}
 
                 {mode === AuthMode.REGISTER && (
                     <div className="w-full mb-4 min-w-0">
-                        <label className="block text-rookie-pink text-xs font-outfit uppercase tracking-widest mb-1.5 ml-1">
+                        <label htmlFor="phone" className="block text-rookie-pink text-xs font-outfit uppercase tracking-widest mb-1.5 ml-1">
                             Phone Number (Optional)
                         </label>
                         <div className="w-full min-w-0">
@@ -294,7 +297,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                                     onChange={(value) => setFormData((prev) => ({ ...prev, phone_number: value || '' }))}
                                     className="phone-input-custom"
                                     numberInputProps={{
-                                        className: 'w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-white/30 font-outfit focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0',
+                                        id: 'phone',
+                                        className: 'w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/30 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0',
                                     }}
                                 />
                             </div>
@@ -333,7 +337,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                                         setErrors({});
                                     }}
                                     type="button"
-                                    className="text-rookie-blue hover:text-white transition-colors font-outfit text-sm"
+                                    className="text-rookie-blue hover:text-white transition-colors font-outfit text-sm min-h-11 inline-flex items-center"
                                 >
                                     Forgot Password?
                                 </button>
@@ -356,11 +360,11 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                 )}
 
                 {mode === AuthMode.REGISTER && (
-                    <p className="mt-4 mb-2 text-white/70 font-outfit text-sm text-center">
+                    <p className="mt-4 mb-2 text-foreground/70 font-outfit text-sm text-center">
                         By continuing, you confirm that you are at least 18 years old and agree to our{' '}
-                        <Link href="/terms" className="text-rookie-cyan hover:underline">Terms &amp; Conditions</Link>
+                        <Link href="/terms" className="text-rookie-cyan hover:underline min-h-11 inline-flex items-center">Terms &amp; Conditions</Link>
                         {' '}and{' '}
-                        <Link href="/privacy" className="text-rookie-cyan hover:underline">Privacy Policy</Link>.
+                        <Link href="/privacy" className="text-rookie-cyan hover:underline min-h-11 inline-flex items-center">Privacy Policy</Link>.
                     </p>
                 )}
 
@@ -369,7 +373,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
 
             <div className="mt-6 text-center">
                 {mode === AuthMode.FORGOT_PASSWORD ? (
-                    <p className="text-white/40 font-outfit text-sm">
+                    <p className="text-foreground/40 font-outfit text-sm">
                         Remember your password?
                         <button 
                             onClick={() => {
@@ -377,18 +381,18 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                                 setErrors({});
                             }}
                             type="button"
-                            className="ml-2 text-rookie-blue hover:text-white transition-colors font-semibold border-b border-transparent hover:border-white"
+                            className="ml-2 text-rookie-blue hover:text-white transition-colors font-semibold border-b border-transparent hover:border-white min-h-11 inline-flex items-center"
                         >
                             Log In
                         </button>
                     </p>
                 ) : (
-                    <p className="text-white/40 font-outfit text-sm">
+                    <p className="text-foreground/40 font-outfit text-sm">
                         {mode === AuthMode.LOGIN ? "Don't have an account?" : "Already have an account?"}
                         <button 
                             onClick={toggleMode}
                             type="button"
-                            className="ml-2 text-rookie-blue hover:text-white transition-colors font-semibold border-b border-transparent hover:border-white"
+                            className="ml-2 text-rookie-blue hover:text-white transition-colors font-semibold border-b border-transparent hover:border-white min-h-11 inline-flex items-center"
                         >
                             {mode === AuthMode.LOGIN ? 'Sign Up' : 'Log In'}
                         </button>

@@ -37,6 +37,12 @@
     --destructive: 323 35% 60%;
     --destructive-foreground: 0 0% 0%;
 
+    /* Semantic status colors (soft, dark-theme friendly) */
+    --success: 152 55% 58%;
+    --success-foreground: 0 0% 0%;
+    --warning: 38 90% 62%;
+    --warning-foreground: 0 0% 0%;
+
     /* Cosmic Purple */
     --border: 259 34% 40%;
     --input: 259 34% 40%;
@@ -120,6 +126,18 @@
   animation: pulse-fast 1.5s ease-in-out infinite;
   backface-visibility: hidden;
   will-change: opacity;
+}
+
+/* Respect users who prefer reduced motion (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .animate-float {

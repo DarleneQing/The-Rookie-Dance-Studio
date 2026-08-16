@@ -165,15 +165,15 @@ export function StudentVerificationDialog({
             Upload a photo of your student ID card. The image will be automatically compressed to reduce file size while maintaining quality.
           </DialogDescription>
           {currentStatus === 'rejected' && rejectionReason && (
-            <div className="mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-sm text-red-400 font-medium">Previous rejection reason:</p>
-              <p className="text-sm text-red-300 mt-1">{rejectionReason}</p>
+            <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-sm text-destructive font-medium">Previous rejection reason:</p>
+              <p className="text-sm text-destructive mt-1">{rejectionReason}</p>
             </div>
           )}
           {currentStatus === 'reupload_required' && rejectionReason && (
-            <div className="mt-2 p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-              <p className="text-sm text-orange-400 font-medium">Re-verification required:</p>
-              <p className="text-sm text-orange-300 mt-1">{rejectionReason}</p>
+            <div className="mt-2 p-3 bg-warning/10 border border-warning/20 rounded-lg">
+              <p className="text-sm text-warning font-medium">Re-verification required:</p>
+              <p className="text-sm text-warning mt-1">{rejectionReason}</p>
             </div>
           )}
         </DialogHeader>

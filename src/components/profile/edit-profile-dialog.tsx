@@ -6,7 +6,6 @@ import { Loader2 } from 'lucide-react'
 
 import { updateProfileInfo } from '@/app/profile/actions'
 import { useToggle } from '@/hooks/use-toggle'
-import { usePhoneInputStyles } from '@/hooks/use-phone-input-styles'
 import {
   Dialog,
   DialogContent,
@@ -41,16 +40,16 @@ export function EditProfileDialog({
   const [fullName, setFullName] = useState(currentFullName || '')
   const [dob, setDob] = useState(currentDob || '')
   const [phoneNumber, setPhoneNumber] = useState(currentPhoneNumber || '')
-
-  usePhoneInputStyles()
+  const [nameError, setNameError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!fullName.trim()) {
-      toast.error('Full name is required')
+      setNameError('Full name is required')
       return
     }
+    setNameError(null)
 
     setLoading(true)
 
@@ -88,23 +87,33 @@ export function EditProfileDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="fullName" className="text-sm font-outfit text-white/90">
+            <label htmlFor="fullName" className="text-sm font-outfit text-foreground/90">
               Full Name
             </label>
             <Input
               id="fullName"
               type="text"
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              onChange={(e) => {
+                setFullName(e.target.value)
+                if (nameError) setNameError(null)
+              }}
               placeholder="Enter your full name"
               disabled={loading}
               required
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+              aria-invalid={nameError ? true : undefined}
+              aria-describedby={nameError ? 'fullName-error' : undefined}
+              className="bg-white/5 border-border/40 text-foreground placeholder:text-foreground/30"
             />
+            {nameError && (
+              <p id="fullName-error" className="text-sm text-destructive font-outfit">
+                {nameError}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="dob" className="text-sm font-outfit text-white/90">
+            <label htmlFor="dob" className="text-sm font-outfit text-foreground/90">
               Date of Birth
             </label>
             <Input
@@ -113,15 +122,15 @@ export function EditProfileDialog({
               value={dob}
               onChange={(e) => setDob(e.target.value)}
               disabled={loading}
-              className="bg-white/5 border-white/10 text-white"
+              className="bg-white/5 border-border/40 text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="phoneNumber" className="text-sm font-outfit text-white/90">
+            <label htmlFor="phoneNumber" className="text-sm font-outfit text-foreground/90">
               Phone Number (Optional)
             </label>
-            <div className="rounded-md border border-white/10 bg-white/5">
+            <div className="rounded-md border border-border/40 bg-white/5">
               <PhoneInput
                 international
                 defaultCountry="CH"
@@ -130,7 +139,7 @@ export function EditProfileDialog({
                 className="phone-input-custom"
                 numberInputProps={{
                   id: 'phoneNumber',
-                  className: 'flex h-10 w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                  className: 'flex h-10 w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
                 }}
               />
             </div>

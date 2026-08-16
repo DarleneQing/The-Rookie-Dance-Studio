@@ -2,8 +2,23 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 
+/**
+ * Validate the `next` path before redirecting. Hardened against CWE-601:
+ * browsers normalize backslashes to slashes and strip control characters,
+ * so reject those outright and require a same-origin relative path.
+ */
 function isSafeNext(next: string | null): next is string {
-  return !!next && next.startsWith('/') && !next.startsWith('//')
+  if (!next || typeof next !== 'string') return false
+  if (!next.startsWith('/')) return false
+  if (next.startsWith('//')) return false
+  if (next.includes('\\')) return false
+  if (/[\u0000-\u001f\u007f]/.test(next)) return false
+  try {
+    const resolved = new URL(next, 'https://internal.invalid')
+    return resolved.origin === 'https://internal.invalid'
+  } catch {
+    return false
+  }
 }
 
 export async function GET(request: NextRequest) {

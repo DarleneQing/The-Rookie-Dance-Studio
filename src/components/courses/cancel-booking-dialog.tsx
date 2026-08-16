@@ -79,7 +79,7 @@ export function CancelBookingDialog({
       <DialogContent className="w-[95vw] max-w-md">
         <DialogHeader>
           <DialogTitle className="font-syne text-xl flex items-center gap-2">
-            {!canCancel && <AlertTriangle className="h-5 w-5 text-orange-400" />}
+            {!canCancel && <AlertTriangle className="h-5 w-5 text-warning" />}
             Cancel Booking
           </DialogTitle>
           <DialogDescription>
@@ -97,17 +97,17 @@ export function CancelBookingDialog({
                 {booking.course.song || getDisplayDanceStyle(booking.course.dance_style)}
               </h4>
               {booking.course.singer && (
-                <p className="text-sm text-white/70 font-outfit mb-1">
+                <p className="text-sm text-foreground/70 font-outfit mb-1">
                   {booking.course.singer}
                 </p>
               )}
               {!booking.course.song && (
-                <p className="text-xs text-white/50 font-outfit mb-1">
+                <p className="text-xs text-foreground/50 font-outfit mb-1">
                   {getDisplayDanceStyle(booking.course.dance_style)}
                 </p>
               )}
               {booking.course.instructor && (
-                <p className="text-sm text-white/70 font-outfit">
+                <p className="text-sm text-foreground/70 font-outfit">
                   with {booking.course.instructor.full_name}
                 </p>
               )}
@@ -115,13 +115,13 @@ export function CancelBookingDialog({
             <BookingTypeBadge type={booking.booking_type} />
           </div>
 
-          <div className="space-y-2 text-sm text-white/80 font-outfit">
+          <div className="space-y-2 text-sm text-foreground/80 font-outfit">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-white/60" />
+              <Calendar className="h-4 w-4 text-foreground/60" />
               <span>{formatDate(booking.course.scheduled_date, { includeWeekday: true, includeYear: true, weekdayStyle: 'long', monthStyle: 'long' })}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-white/60" />
+              <Clock className="h-4 w-4 text-foreground/60" />
               <span>{getTimeInterval(booking.course.start_time, booking.course.duration_minutes)}</span>
             </div>
             {booking.course.video_link && (
@@ -142,18 +142,18 @@ export function CancelBookingDialog({
         </div>
 
         {/* Time Until Course */}
-        <div className={`rounded-xl p-3 border ${canCancel ? 'bg-green-500/10 border-green-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
+        <div className={`rounded-xl p-3 border ${canCancel ? 'bg-success/10 border-success/30' : 'bg-warning/10 border-warning/30'}`}>
           <div className="flex items-start gap-2">
             {canCancel ? (
-              <Info className="h-5 w-5 text-green-400 flex-shrink-0 mt-0.5" />
+              <Info className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
             ) : (
-              <AlertTriangle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
             )}
             <div className="flex-1">
-              <p className={`text-sm font-outfit mb-1 ${canCancel ? 'text-green-300' : 'text-orange-300'}`}>
+              <p className={`text-sm font-outfit mb-1 ${canCancel ? 'text-success' : 'text-warning'}`}>
                 Course starts in: <span className="font-semibold">{getTimeUntilCourse()}</span>
               </p>
-              <p className={`text-xs font-outfit ${canCancel ? 'text-green-400/80' : 'text-orange-400/80'}`}>
+              <p className={`text-xs font-outfit ${canCancel ? 'text-success/80' : 'text-warning/80'}`}>
                 {canCancel
                   ? 'You can cancel this booking. The spot will be freed for other members.'
                   : 'Cancellations must be made at least 24 hours before the course start time.'}
@@ -164,8 +164,8 @@ export function CancelBookingDialog({
 
         {/* Cancellation Policy */}
         <div className="bg-white/5 rounded-lg p-3 border border-white/10">
-          <p className="text-xs text-white/60 font-outfit">
-            <span className="font-semibold text-white/80">Cancellation Policy:</span> Bookings can be cancelled up to 24 hours before the course start time. Late cancellations are not permitted.
+          <p className="text-xs text-foreground/60 font-outfit">
+            <span className="font-semibold text-foreground/80">Cancellation Policy:</span> Bookings can be cancelled up to 24 hours before the course start time. Late cancellations are not permitted.
           </p>
         </div>
 
@@ -181,7 +181,7 @@ export function CancelBookingDialog({
           <Button
             onClick={handleConfirm}
             disabled={!canCancel || loading}
-            className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto bg-destructive hover:bg-destructive text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>

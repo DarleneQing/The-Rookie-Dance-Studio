@@ -4,6 +4,7 @@ import React from "react"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -30,15 +31,18 @@ export function ActiveSubscriptionsDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[520px] max-h-[80vh] overflow-y-auto bg-black/90 border-white/20 backdrop-blur-xl" aria-describedby={undefined}>
+      <DialogContent className="w-[95vw] max-w-[520px] max-h-[80vh] overflow-y-auto bg-popover border-border/60 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="font-syne text-white">
             Active Subscriptions
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Active subscription counts by plan type
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="rounded-2xl border border-white/15 bg-white/5 p-6">
+          <div className="rounded-2xl border border-border/50 bg-white/5 p-6">
             <div className="font-syne font-semibold text-white text-lg mb-4">
               {formatSubscriptionType("monthly")}
             </div>
@@ -47,7 +51,7 @@ export function ActiveSubscriptionsDialog({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/15 bg-white/5 p-6">
+          <div className="rounded-2xl border border-border/50 bg-white/5 p-6">
             <div className="font-syne font-semibold text-white text-lg mb-4">
               {formatSubscriptionType("5_times")}
             </div>
@@ -56,7 +60,7 @@ export function ActiveSubscriptionsDialog({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/15 bg-white/5 p-6">
+          <div className="rounded-2xl border border-border/50 bg-white/5 p-6">
             <div className="font-syne font-semibold text-white text-lg mb-4">
               {formatSubscriptionType("10_times")}
             </div>
@@ -65,7 +69,7 @@ export function ActiveSubscriptionsDialog({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/15 bg-white/5 p-6">
+          <div className="rounded-2xl border border-border/50 bg-white/5 p-6">
             <div className="font-syne font-semibold text-white text-lg mb-4">
               Total Active
             </div>

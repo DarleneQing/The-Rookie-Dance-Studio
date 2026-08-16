@@ -100,9 +100,10 @@ export function AddCheckinDialog({
         {!selectedUser ? (
           <div className="space-y-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/50" />
               <Input
                 placeholder="Search by name..."
+                aria-label="Search members by name"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-9"
@@ -113,7 +114,7 @@ export function AddCheckinDialog({
             <div className="max-h-60 overflow-y-auto space-y-1">
               {searching ? (
                 <div className="flex items-center justify-center py-6">
-                  <Loader2 className="h-5 w-5 animate-spin text-white/50" />
+                  <Loader2 className="h-5 w-5 animate-spin text-foreground/50" />
                 </div>
               ) : results.length > 0 ? (
                 results.map((user) => (
@@ -133,16 +134,16 @@ export function AddCheckinDialog({
                   </button>
                 ))
               ) : query.length >= 2 ? (
-                <p className="text-center py-6 text-white/50 font-outfit text-sm">No users found</p>
+                <p className="text-center py-6 text-foreground/50 font-outfit text-sm">No users found</p>
               ) : (
-                <p className="text-center py-6 text-white/50 font-outfit text-sm">Type at least 2 characters to search</p>
+                <p className="text-center py-6 text-foreground/50 font-outfit text-sm">Type at least 2 characters to search</p>
               )}
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             {/* Selected user */}
-            <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10">
+            <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-border/40">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={selectedUser.avatar_url || undefined} />
                 <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
@@ -156,7 +157,7 @@ export function AddCheckinDialog({
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedUser(null)}
-                className="text-white/50 hover:text-white text-xs"
+                className="text-foreground/50 hover:text-white text-xs"
               >
                 Change
               </Button>
@@ -164,18 +165,19 @@ export function AddCheckinDialog({
 
             {/* Payment method */}
             <div className="space-y-2">
-              <span className="text-white/80 font-outfit text-sm font-semibold">Payment Method</span>
-              <div className="grid grid-cols-3 gap-2">
+              <span className="text-foreground/80 font-outfit text-sm font-semibold">Payment Method</span>
+              <div role="group" aria-label="Payment method" className="grid grid-cols-3 gap-2">
                 {(['cash', 'twint', 'abo'] as PaymentMethod[]).map((method) => (
                   <button
                     key={method}
                     type="button"
+                    aria-pressed={paymentMethod === method}
                     onClick={() => setPaymentMethod(method)}
                     className={cn(
                       'px-4 py-2 rounded-lg border transition-all font-outfit text-sm font-semibold',
                       paymentMethod === method
                         ? 'bg-primary text-primary-foreground border-transparent'
-                        : 'bg-white/5 text-white/70 border-white/20 hover:bg-white/10 hover:text-white'
+                        : 'bg-white/5 text-foreground/70 border-border/60 hover:bg-white/10 hover:text-white'
                     )}
                   >
                     {method === 'cash' ? 'Cash' : method === 'twint' ? 'TWINT' : 'Abo'}

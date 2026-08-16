@@ -5,11 +5,30 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
 
+/**
+ * Validate a callback path before redirecting to it.
+ *
+ * Hardened against CWE-601 open redirect: browsers normalize `\` to `/` and
+ * strip tab/CR/LF during URL parsing, so a string check like
+ * `path.startsWith('/') && !path.startsWith('//')` is bypassable via
+ * `/\evil.com` or `/\t/evil.com`. We require the value to be a same-origin
+ * relative path with no backslashes or control characters.
+ */
 function isValidCallbackUrl(path: string | null): path is string {
   if (!path || typeof path !== 'string') return false
   if (!path.startsWith('/')) return false
+  // Reject scheme-relative (//) and protocol-relative (/\ ...) tricks.
   if (path.startsWith('//')) return false
-  return true
+  // Reject backslashes (normalized to / by browsers) and control characters.
+  if (path.includes('\\')) return false
+  if (/[\u0000-\u001f\u007f]/.test(path)) return false
+  // Must resolve to a same-origin path.
+  try {
+    const resolved = new URL(path, 'https://internal.invalid')
+    return resolved.origin === 'https://internal.invalid'
+  } catch {
+    return false
+  }
 }
 
 export async function login(formData: FormData): Promise<{ error?: string; message?: string }> {

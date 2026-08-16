@@ -13,17 +13,17 @@ const badgeVariants = cva(
         scheduled:
           "border-rookie-blue/30 bg-rookie-blue/20 text-rookie-blue",
         completed:
-          "border-green-500/30 bg-green-500/20 text-green-400",
+          "border-success/30 bg-success/20 text-success",
         cancelled:
-          "border-red-500/30 bg-red-500/20 text-red-400",
+          "border-destructive/30 bg-destructive/20 text-destructive",
         full:
-          "border-orange-500/30 bg-orange-500/20 text-orange-400",
+          "border-warning/30 bg-warning/20 text-warning",
         subscription:
-          "border-purple-500/40 bg-purple-500/20 text-purple-300",
+          "border-rookie-purple/40 bg-rookie-purple/20 text-rookie-blue",
         single:
-          "border-pink-500/40 bg-pink-500/20 text-pink-300",
+          "border-rookie-pink/40 bg-rookie-pink/20 text-rookie-pink",
         drop_in:
-          "border-cyan-500/40 bg-cyan-500/20 text-cyan-300",
+          "border-rookie-cyan/40 bg-rookie-cyan/20 text-rookie-cyan",
       },
     },
     defaultVariants: {

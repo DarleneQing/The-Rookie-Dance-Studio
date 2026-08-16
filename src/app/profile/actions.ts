@@ -337,6 +337,7 @@ export async function updateProfileInfo(data: {
     }
     
     revalidatePath('/settings')
+    revalidatePath('/profile')
     
     return {
       success: true,

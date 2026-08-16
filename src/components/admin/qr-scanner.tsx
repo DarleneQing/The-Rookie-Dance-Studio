@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -203,16 +204,19 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-md bg-popover border-border/60 backdrop-blur-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center font-syne text-white">
             {showConfirmation ? 'Confirm Check-in' : 'Check-in Scanner'}
           </DialogTitle>
+          <DialogDescription className="text-center text-foreground/70 font-outfit text-sm">
+            {showConfirmation ? 'Verify the member and payment before confirming' : 'Scan a member QR code to check in'}
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-6 space-y-4">
           {showConfirmation && scannedMember ? (
             <div className="w-full max-w-sm flex flex-col items-center justify-center space-y-4">
-              <Avatar className="h-40 w-40 border-4 border-white/20">
+              <Avatar className="h-40 w-40 border-4 border-border/60">
                 <AvatarImage src={scannedMember.avatar_url || undefined} alt={scannedMember.full_name || 'User'} />
                 <AvatarFallback className="text-4xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
                   {scannedMember.full_name ? scannedMember.full_name.charAt(0).toUpperCase() : '?'}
@@ -224,14 +228,14 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                   {scannedMember.full_name || 'Unknown User'}
                 </h3>
                 {scannedMember.member_type && (
-                  <p className="text-xs font-outfit uppercase tracking-wide text-white/70">
+                  <p className="text-xs font-outfit uppercase tracking-wide text-foreground/70">
                     {scannedMember.member_type === 'student' ? 'Student' : 'Adult'}
                   </p>
                 )}
               </div>
               
               <div className="text-center">
-                <p className="text-white/70 font-outfit text-sm">
+                <p className="text-foreground/70 font-outfit text-sm">
                   Date of Birth: {scannedMember.dob
                     ? new Date(scannedMember.dob).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -251,23 +255,24 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
               )}
 
               {/* Payment Method Selection */}
-              <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+              <div className="w-full bg-white/5 rounded-xl p-4 border border-border/40 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-white/80 font-outfit text-sm font-semibold">
+                  <span className="text-foreground/80 font-outfit text-sm font-semibold">
                     Payment Method
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div role="group" aria-label="Payment method" className="grid grid-cols-3 gap-2">
                   {(['cash', 'twint', 'abo'] as PaymentMethod[]).map((method) => (
                     <button
                       key={method}
                       type="button"
+                      aria-pressed={paymentMethod === method}
                       onClick={() => setPaymentMethod(method)}
                       className={cn(
                         'px-4 py-2 rounded-lg border transition-all font-outfit text-sm font-semibold',
                         paymentMethod === method
                           ? 'bg-primary text-primary-foreground border-transparent'
-                          : 'bg-white/5 text-white/70 border-white/20 hover:bg-white/10 hover:text-white'
+                          : 'bg-white/5 text-foreground/70 border-border/60 hover:bg-white/10 hover:text-white'
                       )}
                     >
                       {method === 'cash' ? 'Cash' : method === 'twint' ? 'TWINT' : 'Abo'}
@@ -280,7 +285,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
                 <Button
                   onClick={handleCancelConfirmation}
                   variant="outline"
-                  className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border-white/20"
+                  className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border-border/60"
                   disabled={loadingProfile}
                 >
                   Cancel
@@ -306,7 +311,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
               <Loader2 className="h-20 w-20 text-white animate-spin" />
               <div>
                 <h3 className="text-xl font-bold font-syne text-white">Loading Member Profile</h3>
-                <p className="text-white/70 font-outfit mt-2">Please wait...</p>
+                <p className="text-foreground/70 font-outfit mt-2">Please wait...</p>
               </div>
             </div>
           ) : scanning && !cameraError ? (
@@ -322,7 +327,7 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
               />
               <button
                 onClick={handleFlipCamera}
-                className="absolute top-4 right-4 z-20 p-3 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full border border-white/20 transition-all duration-200 hover:scale-110 active:scale-95"
+                className="absolute top-4 right-4 z-20 p-3 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full border border-border/60 transition-all duration-200 hover:scale-110 active:scale-95"
                 aria-label="Flip camera"
               >
                 <SwitchCamera className="h-6 w-6 text-white transition-transform duration-300" />
@@ -331,37 +336,37 @@ export function QRScannerComponent({ children }: QRScannerComponentProps) {
             </div>
           ) : cameraError ? (
             <div className="w-full max-w-sm aspect-square flex flex-col items-center justify-center bg-white/10 rounded-lg space-y-4 p-6 text-center">
-              <Camera className="h-20 w-20 text-red-500" />
+              <Camera className="h-20 w-20 text-destructive" />
               <div>
-                <h3 className="text-xl font-bold text-red-500 font-syne">Camera Error</h3>
-                <p className="text-white/70 font-outfit mt-2">{cameraError}</p>
-                <p className="text-sm text-white/50 font-outfit mt-2">
+                <h3 className="text-xl font-bold text-destructive font-syne">Camera Error</h3>
+                <p className="text-foreground/70 font-outfit mt-2">{cameraError}</p>
+                <p className="text-sm text-foreground/50 font-outfit mt-2">
                   Please grant camera permissions and try again.
                 </p>
               </div>
-              <Button onClick={resetScanner} size="lg" className="bg-white/10 hover:bg-white/20 text-white border-white/20">
+              <Button onClick={resetScanner} size="lg" className="bg-white/10 hover:bg-white/20 text-white border-border/60">
                 <RefreshCcw className="mr-2 h-4 w-4" /> Retry Camera
               </Button>
             </div>
           ) : (
             <div className="w-full max-w-sm aspect-square flex flex-col items-center justify-center bg-white/10 rounded-lg space-y-4 p-6 text-center">
               {lastResult?.success ? (
-                <CheckCircle2 className="h-20 w-20 text-green-500" />
+                <CheckCircle2 className="h-20 w-20 text-success" />
               ) : (
-                <XCircle className="h-20 w-20 text-red-500" />
+                <XCircle className="h-20 w-20 text-destructive" />
               )}
               <div>
                 <h3 className="text-xl font-bold font-syne text-white">
                   {lastResult?.success ? 'Check-in Successful' : 'Check-in Failed'}
                 </h3>
-                <p className="text-white/70 font-outfit mt-2">{lastResult?.message}</p>
+                <p className="text-foreground/70 font-outfit mt-2">{lastResult?.message}</p>
                 {lastResult?.remaining !== undefined && (
                   <p className="font-semibold mt-2 font-syne text-white">
                     Remaining: {lastResult.remaining}
                   </p>
                 )}
               </div>
-              <Button onClick={handleScanNext} size="lg" className="bg-white/10 hover:bg-white/20 text-white border-white/20">
+              <Button onClick={handleScanNext} size="lg" className="bg-white/10 hover:bg-white/20 text-white border-border/60">
                 <RefreshCcw className="mr-2 h-4 w-4" /> Scan Next
               </Button>
             </div>

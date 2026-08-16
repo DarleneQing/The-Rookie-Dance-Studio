@@ -1,8 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getZurichToday } from '@/lib/utils/date-helpers';
 import type { 
   CourseWithBookingCount, 
+  Booking,
   BookingWithCourse,
   CourseAttendance,
   CourseStatistics,
@@ -42,48 +44,53 @@ export async function getCourses(filters?: {
   const { data: courses, error } = await query;
   
   if (error) throw error;
-  
-  // Get current user's bookings
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  // Transform data to include booking count, check-in count, and user's booking
-  const coursesWithBookings = await Promise.all(
-    (courses || []).map(async (course) => {
-      // Get booking count (RLS now allows everyone to view bookings for capacity display)
-      const { count: bookingCount } = await supabase
-        .from('bookings')
-        .select('*', { count: 'exact', head: true })
-        .eq('course_id', course.id)
-        .eq('status', 'confirmed');
-      
-      // Get check-in count
-      const { count: checkinCount } = await supabase
-        .from('checkins')
-        .select('*', { count: 'exact', head: true })
-        .eq('course_id', course.id);
-      
-      let userBooking = null;
-      if (user) {
-        const { data } = await supabase
-          .from('bookings')
-          .select('*')
-          .eq('course_id', course.id)
-          .eq('user_id', user.id)
-          .eq('status', 'confirmed')
-          .maybeSingle();
-        userBooking = data;
+
+  const courseIds = (courses || []).map((c) => c.id);
+
+  // Batch 1: booking + check-in counts for ALL courses in one round trip
+  // (replaces the previous ~2 queries per course). checkin_count is only
+  // populated for admins (the RPC gates it).
+  const countMap = new Map<string, { booking_count: number; checkin_count: number }>();
+  if (courseIds.length > 0) {
+    const { data: counts, error: countError } = await supabase.rpc('get_course_counts', {
+      p_course_ids: courseIds,
+    });
+    if (!countError) {
+      for (const row of (counts as Array<{ course_id: string; booking_count: number; checkin_count: number }>) || []) {
+        countMap.set(row.course_id, {
+          booking_count: row.booking_count ?? 0,
+          checkin_count: row.checkin_count ?? 0,
+        });
       }
-      
-      return {
-        ...course,
-        booking_count: bookingCount || 0,
-        checkin_count: checkinCount || 0,
-        user_booking: userBooking
-      };
-    })
-  );
-  
-  return coursesWithBookings;
+    }
+  }
+
+  // Batch 2: current user's confirmed bookings for these courses in one query
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const bookingMap = new Map<string, Booking>();
+  if (user && courseIds.length > 0) {
+    const { data: userBookings } = await supabase
+      .from('bookings')
+      .select('*')
+      .in('course_id', courseIds)
+      .eq('user_id', user.id)
+      .eq('status', 'confirmed');
+    for (const b of (userBookings as Booking[] | null) || []) {
+      bookingMap.set(b.course_id, b);
+    }
+  }
+
+  // Assemble — no per-course round trips remain
+  return (courses || []).map((course) => {
+    const counts = countMap.get(course.id) ?? { booking_count: 0, checkin_count: 0 };
+    return {
+      ...course,
+      booking_count: counts.booking_count,
+      checkin_count: counts.checkin_count,
+      user_booking: bookingMap.get(course.id) ?? null,
+    };
+  });
 }
 
 export async function getUserBookings(): Promise<BookingWithCourse[]> {
@@ -103,7 +110,7 @@ export async function getUserBookings(): Promise<BookingWithCourse[]> {
     `)
     .eq('user_id', user.id)
     .eq('status', 'confirmed')
-    .gte('course.scheduled_date', new Date().toISOString().split('T')[0])
+    .gte('course.scheduled_date', getZurichToday())
     .order('course(scheduled_date)', { ascending: true });
   
   if (error) throw error;
@@ -218,4 +225,43 @@ export async function canCancelBooking(bookingId: string): Promise<boolean> {
   if (error) throw error;
   
   return data || false;
+}
+
+/**
+ * Batch version of canCancelBooking — one RPC for all bookings instead of one
+ * round trip per booking (the courses page previously fired N RPCs per render,
+ * multiplied by the 10s poll).
+ */
+export async function canCancelBookings(
+  bookingIds: string[]
+): Promise<Map<string, boolean>> {
+  const result = new Map<string, boolean>();
+  if (bookingIds.length === 0) return result;
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc('can_cancel_bookings', {
+    p_booking_ids: bookingIds
+  });
+
+  if (error) {
+    // Fall back to per-booking checks so the UI still works if the batch
+    // RPC is missing from the DB (migration not yet applied).
+    const fallback = await Promise.all(
+      bookingIds.map(async (id) => {
+        try {
+          return [id, await canCancelBooking(id)] as const;
+        } catch {
+          return [id, false] as const;
+        }
+      })
+    );
+    for (const [id, can] of fallback) result.set(id, can);
+    return result;
+  }
+
+  for (const row of (data as Array<{ booking_id: string; can_cancel: boolean }>) || []) {
+    result.set(row.booking_id, !!row.can_cancel);
+  }
+  return result;
 }

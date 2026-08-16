@@ -5,6 +5,7 @@ import QRCode from "react-qr-code"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -41,7 +42,7 @@ export function QRCodeDisplay({ userId, userName, children }: QRCodeDisplayProps
           </button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-black/90 border-white/20 backdrop-blur-xl" aria-describedby={undefined}>
+      <DialogContent className="sm:max-w-md bg-popover border-border/60 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="text-center font-syne text-white">{userName}</DialogTitle>
         </DialogHeader>
@@ -54,9 +55,9 @@ export function QRCodeDisplay({ userId, userName, children }: QRCodeDisplayProps
               viewBox={`0 0 256 256`}
             />
           </div>
-          <p className="text-sm text-white/70 font-outfit text-center">
+          <DialogDescription className="text-sm text-foreground/70 font-outfit text-center">
             Show this code to the instructor for check-in
-          </p>
+          </DialogDescription>
         </div>
       </DialogContent>
     </Dialog>

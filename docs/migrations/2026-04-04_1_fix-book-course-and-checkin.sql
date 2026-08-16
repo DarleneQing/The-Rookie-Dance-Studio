@@ -9,7 +9,11 @@
 --    Walk-ins arrive DURING the course. The drop-in path in perform_course_checkin
 --    delegates to book_course(), which blocks any booking after the course start
 --    time. Fix: accept an optional p_is_admin_override flag; when true, allow
---    booking until the course END time (start + duration) and skip capacity check.
+--    booking until the course END TIME (start + duration) and skip capacity check.
+--    NOTE: the implemented time window is the whole course DAY (any time on
+--    scheduled_date), not start+duration — see the in-function comment. The
+--    day-level window is the effective behavior and is kept. Update here if
+--    the stricter end-time window is ever required.
 --
 -- 2. book_course() subscription detection is too weak
 --    It only checks status = 'active', without verifying remaining_credits > 0

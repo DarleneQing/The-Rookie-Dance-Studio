@@ -72,31 +72,31 @@ export function CapacityOverrideDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-syne text-xl flex items-center gap-2 text-red-400">
+          <DialogTitle className="font-syne text-xl flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
             Capacity Exceeded
           </DialogTitle>
-          <DialogDescription className="text-white/70">
+          <DialogDescription className="text-foreground/70">
             This course is at full capacity. Override to allow check-in anyway?
           </DialogDescription>
         </DialogHeader>
 
         {/* Capacity Warning */}
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-white/70 font-outfit text-sm">Current Capacity:</span>
+            <span className="text-foreground/70 font-outfit text-sm">Current Capacity:</span>
             <Badge variant="full" className="font-bold">
               {currentAttendance}/{course.capacity} FULL
             </Badge>
           </div>
-          <p className="text-xs text-red-300 font-outfit">
+          <p className="text-xs text-destructive font-outfit">
             Checking in this user will exceed the course capacity limit.
           </p>
         </div>
 
         {/* User Info (match main scanner confirm layout) */}
         <div className="w-full flex flex-col items-center space-y-4">
-          <Avatar className="h-24 w-24 border-4 border-white/20">
+          <Avatar className="h-24 w-24 border-4 border-border/60">
             <AvatarImage src={user.avatar_url || undefined} />
             <AvatarFallback className="text-2xl bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne">
               {user.full_name.slice(0, 2).toUpperCase()}
@@ -109,7 +109,7 @@ export function CapacityOverrideDialog({
             </h3>
             <div className="flex items-center justify-center gap-2">
               {user.dob && (
-                <span className="text-sm text-white/70 font-outfit">
+                <span className="text-sm text-foreground/70 font-outfit">
                   {new Date(user.dob).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
@@ -133,26 +133,26 @@ export function CapacityOverrideDialog({
         </div>
 
         {/* Course Information Card */}
-        <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
-          <div className="flex items-center gap-2 text-white/80 font-outfit text-sm font-semibold">
+        <div className="w-full bg-white/5 rounded-xl p-4 border border-border/40 space-y-3">
+          <div className="flex items-center gap-2 text-foreground/80 font-outfit text-sm font-semibold">
             <Music className="h-4 w-4" />
             <span>Course Information</span>
           </div>
           
-          <div className="border-t border-white/10" />
+          <div className="border-t border-border/40" />
           
           <div>
             <div className="font-syne font-bold text-white text-lg">
               {course.song || getDisplayDanceStyle(course.dance_style)}
             </div>
             {course.singer && (
-              <div className="text-sm text-white/70 font-outfit mt-0.5">
+              <div className="text-sm text-foreground/70 font-outfit mt-0.5">
                 {course.singer}
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-sm text-white/70 font-outfit">
+          <div className="grid grid-cols-2 gap-3 text-sm text-foreground/70 font-outfit">
             <div className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
               <span>{formatCourseDateTime(course.scheduled_date, course.start_time).dateStr}</span>
@@ -164,9 +164,9 @@ export function CapacityOverrideDialog({
           </div>
 
           {/* Attendance Count */}
-          <div className="pt-2 border-t border-white/10">
+          <div className="pt-2 border-t border-border/40">
             <div className="flex items-center justify-between">
-              <span className="text-white/70 font-outfit text-sm">Current Attendance:</span>
+              <span className="text-foreground/70 font-outfit text-sm">Current Attendance:</span>
               <span className="font-syne font-bold text-white text-lg">
                 {currentAttendance}/{course.capacity}
               </span>
@@ -175,9 +175,9 @@ export function CapacityOverrideDialog({
         </div>
 
         {/* Booking Type Card */}
-        <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+        <div className="w-full bg-white/5 rounded-xl p-4 border border-border/40 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-white/80 font-outfit text-sm font-semibold">
+            <span className="text-foreground/80 font-outfit text-sm font-semibold">
               Booking Type
             </span>
             {subscriptionInfo?.hasSubscription ? (
@@ -190,10 +190,10 @@ export function CapacityOverrideDialog({
           {/* Subscription Details */}
           {subscriptionInfo?.hasSubscription && subscriptionInfo.subscriptionDetails && (
             <>
-              <div className="border-t border-white/10" />
+              <div className="border-t border-border/40" />
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/70 font-outfit">Plan:</span>
+                  <span className="text-foreground/70 font-outfit">Plan:</span>
                   <span className="text-white font-outfit font-semibold">
                     {formatSubscriptionType(subscriptionInfo.subscriptionDetails.type)}
                   </span>
@@ -201,7 +201,7 @@ export function CapacityOverrideDialog({
                 
                 {subscriptionInfo.subscriptionDetails.remainingCredits !== undefined && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/70 font-outfit">Remaining:</span>
+                    <span className="text-foreground/70 font-outfit">Remaining:</span>
                     <span className="text-white font-syne font-bold text-lg">
                       {subscriptionInfo.subscriptionDetails.remainingCredits}
                     </span>
@@ -210,7 +210,7 @@ export function CapacityOverrideDialog({
                 
                 {subscriptionInfo.subscriptionDetails.endDate && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/70 font-outfit">Valid Until:</span>
+                    <span className="text-foreground/70 font-outfit">Valid Until:</span>
                     <span className="text-white font-outfit">
                       {new Date(subscriptionInfo.subscriptionDetails.endDate).toLocaleDateString('en-US', {
                         month: 'short',
@@ -226,23 +226,24 @@ export function CapacityOverrideDialog({
         </div>
 
         {/* Payment Method Selection */}
-        <div className="w-full bg-white/5 rounded-xl p-4 border border-white/10 space-y-3">
+        <div className="w-full bg-white/5 rounded-xl p-4 border border-border/40 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-white/80 font-outfit text-sm font-semibold">
+            <span className="text-foreground/80 font-outfit text-sm font-semibold">
               Payment Method
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div role="group" aria-label="Payment method" className="grid grid-cols-3 gap-2">
             {(['cash', 'twint', 'abo'] as PaymentMethod[]).map((method) => (
               <button
                 key={method}
                 type="button"
+                aria-pressed={paymentMethod === method}
                 onClick={() => onPaymentMethodChange(method)}
                 className={cn(
                   'px-4 py-2 rounded-lg border transition-all font-outfit text-sm font-semibold',
                   paymentMethod === method
-                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white border-transparent'
-                    : 'bg-white/5 text-white/70 border-white/20 hover:bg-white/10 hover:text-white'
+                    ? 'bg-destructive text-white border-transparent'
+                    : 'bg-white/5 text-foreground/70 border-border/60 hover:bg-white/10 hover:text-white'
                 )}
               >
                 {method === 'cash' ? 'Cash' : method === 'twint' ? 'TWINT' : 'Abo'}
@@ -265,7 +266,7 @@ export function CapacityOverrideDialog({
             type="button"
             onClick={handleConfirm}
             disabled={loading || !paymentMethod}
-            className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-600 hover:opacity-90 text-white"
+            className="w-full sm:w-auto bg-destructive hover:bg-destructive/90 text-white"
           >
             {loading ? (
               <>

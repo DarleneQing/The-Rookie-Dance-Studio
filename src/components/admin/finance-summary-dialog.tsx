@@ -7,7 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { ClipboardCheck } from "lucide-react"
 import type { CheckinFinanceItem } from "@/components/admin/checkins-finance-card"
+import { financeWorkbookLinks } from "@/lib/finance-workbook"
 
 interface FinanceSummaryDialogProps {
   checkins: CheckinFinanceItem[]
@@ -124,6 +126,16 @@ export function FinanceSummaryDialog({
               Cash + TWINT: {finance.totalRevenue} CHF
             </div>
           </section>
+
+          <a
+            href={financeWorkbookLinks.backupCloseout}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-outfit font-semibold py-3 px-4 transition-colors flex items-center justify-center gap-2"
+          >
+            <ClipboardCheck className="h-4 w-4" />
+            Confirm Class Finance
+          </a>
         </div>
       </DialogContent>
     </Dialog>

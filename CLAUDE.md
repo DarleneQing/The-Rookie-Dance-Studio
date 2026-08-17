@@ -104,6 +104,7 @@ After mutations, call `revalidatePath(...)` to refresh server-rendered pages.
 - **PowerShell on Windows**: native exes mangle embedded double quotes — use a HEREDOC variable or the `--%` stop-parsing token when passing complex args to `git`.
 - The `optimizePackageImports: ['lucide-react']` setting in `next.config.mjs` enables tree-shaking for icons; import named icons rather than the full module.
 - Storage policies for student-card uploads are in `docs/storage-policies-student-cards.sql` — not auto-applied by the schema.
+- **Time comparisons must be absolute**: never assign `NOW() AT TIME ZONE 'Europe/Zurich'` to a `TIMESTAMPTZ` variable or compare it against a `timestamptz` expression — Postgres re-interprets the wall-clock value in the session timezone (UTC by default), skewing deadlines/cutoffs by the UTC↔Zurich offset (1h CET / 2h CEST). Use `NOW()` directly; convert course times with `(scheduled_date + start_time) AT TIME ZONE 'Europe/Zurich'`. Reference fix: `docs/migrations/2026-08-16_6_fix-cancellation-batch-timezone-skew.sql`.
 
 ## Specify/SpecKit
 

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { Calendar, Loader2, Calculator, FileSpreadsheet } from "lucide-react"
+import { Calendar, Loader2, Calculator, FileSpreadsheet, Landmark } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -15,6 +15,7 @@ import {
 import { FinanceSummaryDialog } from "@/components/admin/finance-summary-dialog"
 import { formatTimestampTime } from "@/lib/utils/date-formatters"
 import { getFinanceCheckins, type FinanceCheckinItem } from "@/app/admin/actions"
+import { financeWorkbookLinks } from "@/lib/finance-workbook"
 
 export type CheckinFinanceItem = FinanceCheckinItem
 
@@ -79,15 +80,26 @@ export function CheckinsFinanceCard() {
               Check-ins & Finance
             </div>
 
-            <a
-              href="https://docs.google.com/spreadsheets/d/1YpN-v_DlKRBf1JOzGkvt2QeXXCzY52I2/edit?usp=sharing"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-outfit font-medium py-3 px-4 transition-opacity flex items-center justify-center gap-2"
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              To Finance Excel
-            </a>
+            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
+              <a
+                href={financeWorkbookLinks.accountReview}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-outfit font-medium py-3 px-4 transition-colors flex items-center justify-center gap-2"
+              >
+                <Landmark className="h-4 w-4" />
+                TWINT Review
+              </a>
+              <a
+                href={financeWorkbookLinks.auditSummary}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl bg-teal-700 hover:bg-teal-600 text-white font-outfit font-medium py-3 px-4 transition-colors flex items-center justify-center gap-2"
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Audit Summary
+              </a>
+            </div>
           </div>
 
           <div className="space-y-4 pt-2">

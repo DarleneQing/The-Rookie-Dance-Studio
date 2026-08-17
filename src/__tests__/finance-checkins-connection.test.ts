@@ -24,13 +24,15 @@ describe('finance check-in connection', () => {
     expect(workbookLinks).toContain('backupCloseout')
   })
 
-  it('uses a compact, scroll-safe table at every screen size', () => {
+  it('shows the saved mobile number in a scroll-safe table at every screen size', () => {
     const financeCard = readWorkspaceFile('src/components/admin/checkins-finance-card.tsx')
     const dashboard = readWorkspaceFile('src/components/admin/admin-dashboard.tsx')
 
-    expect(financeCard).toContain('<table className="w-full table-fixed')
-    expect(financeCard).toContain('overflow-y-auto overflow-x-hidden')
-    expect(financeCard).toContain('hidden w-[24%]')
+    expect(financeCard).toContain('<table className="w-full min-w-[540px] table-fixed')
+    expect(financeCard).toContain('overflow-y-auto overflow-x-auto')
+    expect(financeCard).toContain('>Phone</th>')
+    expect(financeCard).toContain('checkin.phone_number')
+    expect(financeCard).not.toContain('hidden sm:table-cell')
     expect(financeCard).toContain('className="h-11')
     expect(financeCard).not.toContain('min-w-[600px]')
     expect(dashboard).toContain('group/details min-w-0 w-full max-w-full')

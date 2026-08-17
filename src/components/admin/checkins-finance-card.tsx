@@ -140,15 +140,15 @@ export function CheckinsFinanceCard() {
 
                 {checkins.length > 0 && (
                   <>
-                    <div className="relative max-h-[300px] min-w-0 w-full max-w-full overflow-y-auto overflow-x-hidden overscroll-contain rounded-xl border border-border/60 bg-white/[0.03]">
-                      <table className="w-full table-fixed border-collapse text-left text-xs">
+                    <div className="relative max-h-[300px] min-w-0 w-full max-w-full overflow-y-auto overflow-x-auto overscroll-contain rounded-xl border border-border/60 bg-white/[0.03]">
+                      <table className="w-full min-w-[540px] table-fixed border-collapse text-left text-xs">
                         <thead className="sticky top-0 z-20 bg-card shadow-[0_1px_0_hsl(var(--border))]">
                           <tr>
-                            <th className="w-[28%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[22%] sm:px-3 sm:text-xs">Name</th>
-                            <th className="w-[20%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[18%] sm:px-3 sm:text-xs">Time</th>
-                            <th className="w-[26%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[18%] sm:px-3 sm:text-xs">Member</th>
-                            <th className="w-[26%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[18%] sm:px-3 sm:text-xs">Payment</th>
-                            <th className="hidden w-[24%] px-3 py-2 font-syne text-xs font-bold text-foreground/90 sm:table-cell">Phone</th>
+                            <th className="w-[24%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[22%] sm:px-3 sm:text-xs">Name</th>
+                            <th className="w-[17%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[16%] sm:px-3 sm:text-xs">Time</th>
+                            <th className="w-[17%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[15%] sm:px-3 sm:text-xs">Member</th>
+                            <th className="w-[18%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[15%] sm:px-3 sm:text-xs">Payment</th>
+                            <th className="w-[24%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[32%] sm:px-3 sm:text-xs">Phone</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -166,7 +166,7 @@ export function CheckinsFinanceCard() {
                               <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3" title={formatPaymentMethod(checkin.payment_method)}>
                                 {formatPaymentMethod(checkin.payment_method)}
                               </td>
-                              <td className="hidden truncate px-3 py-2 font-outfit text-foreground/80 sm:table-cell" title={checkin.phone_number || "—"}>
+                              <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3" title={checkin.phone_number || "—"}>
                                 {checkin.phone_number || "—"}
                               </td>
                             </tr>

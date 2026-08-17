@@ -9,11 +9,11 @@
     /* Soft Blush #EFD5E0 */
     --foreground: 335 45% 89%;
 
-    /* Deep Violet #433467 */
-    --card: 258 33% 30%;
+    /* Near-black surfaces keep large panels calm and reserve purple for accents. */
+    --card: 0 0% 7%;
     --card-foreground: 335 45% 89%;
  
-    --popover: 258 33% 30%;
+    --popover: 0 0% 4%;
     --popover-foreground: 335 45% 89%;
 
     /* Cosmic Purple #5A448A */
@@ -160,7 +160,7 @@
 }
 
 .phone-input-custom .PhoneInputInput::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .phone-input-custom .PhoneInputCountry {

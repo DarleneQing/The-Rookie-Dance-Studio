@@ -11,7 +11,7 @@ import {
 import { MapPin, Mail, Instagram, ExternalLink } from 'lucide-react'
 import { RednoteIcon } from '@/components/icons/social-icons'
 
-const LOCATION = 'Quartierzentrum SchÃ¼tze Flex 4, Heinrichstrasse 238, 8005 Zurich'
+const LOCATION = 'Quartierzentrum Sch\u00fctze Flex 4, Heinrichstrasse 238, 8005 Zurich'
 const LOCATION_QUERY = encodeURIComponent('Heinrichstrasse 238, 8005 Zurich, Switzerland')
 const GOOGLE_MAPS_EMBED = `https://www.google.com/maps?q=${LOCATION_QUERY}&output=embed`
 const GOOGLE_MAPS_LINK = `https://www.google.com/maps/search/?api=1&query=${LOCATION_QUERY}`
@@ -117,7 +117,7 @@ export function FindUsDialog({ children }: FindUsDialogProps) {
                   className="flex items-center gap-2 font-outfit text-sm text-rookie-cyan hover:text-rookie-cyan/80"
                 >
                   <RednoteIcon className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-base">å°çº¢ä¹¦/rednote</span>
+                  <span className="text-base">{'\u5c0f\u7ea2\u4e66/rednote'}</span>
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>

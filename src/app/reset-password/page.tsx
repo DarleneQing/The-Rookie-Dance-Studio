@@ -96,7 +96,7 @@ export default function ResetPasswordPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/30 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+                    className="w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/60 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                   />
                 </div>
               </div>
@@ -117,7 +117,7 @@ export default function ResetPasswordPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/30 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+                    className="w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/60 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                   />
                 </div>
               </div>

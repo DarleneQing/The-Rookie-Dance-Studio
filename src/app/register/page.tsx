@@ -20,7 +20,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
 
       {/* Studio Name Header */}
       <div className="relative z-10 w-full text-center pt-12 pb-8 px-4">
-        <h1 className="font-syne font-bold text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-2">
+        <h1 className="font-syne font-bold text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-blue mb-2">
           The Rookie Dance Studio
         </h1>
       </div>

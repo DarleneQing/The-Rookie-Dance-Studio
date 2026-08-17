@@ -34,7 +34,7 @@ export function Footer() {
               <span className="hidden sm:inline">Instagram</span>
             </a>
 
-            {/* å°çº¢ä¹¦ (Xiaohongshu/RED) */}
+            {/* Xiaohongshu / Rednote */}
             <a
               href="https://xhslink.com/m/6AztLTO4Ffo"
               target="_blank"
@@ -53,7 +53,7 @@ export function Footer() {
 
           {/* Copyright */}
           <p className="font-outfit text-sm text-foreground/60">
-            Â© 2025 The Rookie Dance Studio. All rights reserved.
+            &copy; 2025 The Rookie Dance Studio. All rights reserved.
           </p>
         </div>
 
@@ -65,14 +65,14 @@ export function Footer() {
           >
             FAQ
           </a>
-          <span className="text-foreground/30">â€¢</span>
+          <span className="text-foreground/30">&bull;</span>
           <a
             href="/terms"
             className="font-outfit text-xs text-foreground/50 hover:text-white/80 transition-colors duration-300"
           >
             Terms & Conditions
           </a>
-          <span className="text-foreground/30">â€¢</span>
+          <span className="text-foreground/30">&bull;</span>
           <a
             href="/privacy"
             className="font-outfit text-xs text-foreground/50 hover:text-white/80 transition-colors duration-300"

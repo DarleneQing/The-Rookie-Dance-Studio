@@ -67,7 +67,7 @@ export default async function CoursesPage() {
       <div className="min-h-screen flex flex-col">
         <div className="flex-1">
           <div className="w-full text-center pt-8 pb-2 px-4">
-            <h2 className="font-syne font-bold text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple">
+            <h2 className="font-syne font-bold text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-blue">
               The Rookie Dance Studio
             </h2>
           </div>

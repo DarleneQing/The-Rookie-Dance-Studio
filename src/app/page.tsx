@@ -21,7 +21,7 @@ export default function Home() {
       {/* Critical content: static HTML, no client JS required (progressive enhancement) */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-8">
         <div className="w-full text-center pt-8 pb-4 px-4">
-          <h1 className="font-syne font-bold text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-1">
+          <h1 className="font-syne font-bold text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-blue mb-1">
             The Rookie Dance Studio
           </h1>
           <p className="text-foreground/70 font-outfit font-light text-base md:text-lg mt-1">

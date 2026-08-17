@@ -247,7 +247,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                                     type="date"
                                     value={formData.dob}
                                     onChange={handleChange}
-                                    className="w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/30 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+                                    className="w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/60 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                                 />
                             </div>
                         </div>
@@ -298,7 +298,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                                     className="phone-input-custom"
                                     numberInputProps={{
                                         id: 'phone',
-                                        className: 'w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/30 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0',
+                                        className: 'w-full min-w-0 border-0 bg-transparent p-0 text-white placeholder-foreground/60 font-outfit focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0',
                                     }}
                                 />
                             </div>
@@ -403,4 +403,3 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
     </div>
   );
 };
-

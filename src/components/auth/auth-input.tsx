@@ -34,7 +34,7 @@ export const Input: React.FC<InputProps> = ({ label, icon: Icon, error, classNam
           className={`
             w-full min-w-0 bg-white/5 border border-white/10 rounded-xl py-3 
             ${Icon ? 'pl-10' : 'pl-4'} pr-4 
-            text-foreground placeholder-foreground/30 font-outfit
+            text-foreground placeholder-foreground/60 font-outfit
             focus:outline-none focus:border-rookie-purple/60 focus:bg-white/10 focus:ring-2 focus:ring-ring
             transition-colors duration-200
           `}
@@ -48,5 +48,4 @@ export const Input: React.FC<InputProps> = ({ label, icon: Icon, error, classNam
     </div>
   );
 };
-
 

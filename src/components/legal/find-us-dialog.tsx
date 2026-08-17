@@ -8,8 +8,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { MapPin, Mail, Instagram, ExternalLink } from 'lucide-react'
+import { ChevronRight, ExternalLink, Instagram, Mail, MapPin, MessageCircle } from 'lucide-react'
 import { RednoteIcon } from '@/components/icons/social-icons'
+import { WhatsAppQrDialog } from '@/components/legal/whatsapp-qr-dialog'
 
 const LOCATION = 'Quartierzentrum Sch\u00fctze Flex 4, Heinrichstrasse 238, 8005 Zurich'
 const LOCATION_QUERY = encodeURIComponent('Heinrichstrasse 238, 8005 Zurich, Switzerland')
@@ -123,6 +124,31 @@ export function FindUsDialog({ children }: FindUsDialogProps) {
               </div>
             </div>
           </div>
+
+          {/* WhatsApp group */}
+          <WhatsAppQrDialog>
+            <button
+              type="button"
+              className="group flex min-h-16 w-full items-center gap-3 rounded-xl border border-border/40 bg-white/5 p-4 text-left transition-colors hover:border-[#25D366]/40 hover:bg-[#25D366]/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover"
+              aria-label="Show WhatsApp group QR code"
+            >
+              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#25D366]/15 text-[#49dc7f]">
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-syne text-sm font-semibold text-foreground">
+                  WhatsApp Group
+                </span>
+                <span className="mt-0.5 block font-outfit text-xs text-foreground/60">
+                  Tap to view the group QR code
+                </span>
+              </span>
+              <ChevronRight
+                className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
+            </button>
+          </WhatsAppQrDialog>
         </div>
       </DialogContent>
     </Dialog>

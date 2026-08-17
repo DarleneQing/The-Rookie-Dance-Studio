@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { assignUserSubscription } from '@/app/admin/actions'
 import { toast } from 'sonner'
 import {
@@ -34,6 +35,7 @@ export function AssignSubscriptionDialog({
   userName,
   children,
 }: AssignSubscriptionDialogProps) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [type, setType] = useState<'monthly' | '5_times' | '10_times'>('monthly')
@@ -46,6 +48,7 @@ export function AssignSubscriptionDialog({
       if (result.success) {
         toast.success(result.message)
         setOpen(false)
+        router.refresh()
       } else {
         toast.error(result.message)
       }
@@ -123,4 +126,3 @@ export function AssignSubscriptionDialog({
     </Dialog>
   )
 }
-

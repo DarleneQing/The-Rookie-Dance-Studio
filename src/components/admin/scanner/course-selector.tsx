@@ -38,11 +38,6 @@ export function CourseSelector({
     )
   }
 
-  if (courses.length === 1 && !selectedCourseId) {
-    // Auto-select the only course
-    onSelectCourse(courses[0].id)
-  }
-
   const selectedCourse = courses.find(c => c.id === selectedCourseId)
 
   return (
@@ -113,6 +108,7 @@ export function CourseSelector({
             {courses.map((course) => (
               <button
                 key={course.id}
+                type="button"
                 onClick={() => onSelectCourse(course.id)}
                 className={cn(
                   'w-full text-left bg-white/5 hover:bg-white/10 rounded-xl p-3 border transition-all',

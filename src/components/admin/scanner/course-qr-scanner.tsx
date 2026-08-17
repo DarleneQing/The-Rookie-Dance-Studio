@@ -38,6 +38,7 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, XCircle, RefreshCcw, Camera, Loader2, SwitchCamera, Calendar, Clock, Music, AlertTriangle } from 'lucide-react'
 import { DropInDialog } from './drop-in-dialog'
 import { CapacityOverrideDialog } from './capacity-override-dialog'
+import { CourseSelector } from './course-selector'
 import { cn, getDisplayDanceStyle } from '@/lib/utils'
 import { formatCourseDateTime } from '@/lib/utils/date-formatters'
 import { formatSubscriptionType } from '@/lib/utils/subscription-helpers'
@@ -277,6 +278,13 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
     setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'))
   }
 
+  const handleCourseSelect = (courseId: string) => {
+    setSelectedCourseId(courseId)
+    resetState()
+    setCameraError(null)
+    setScanning(true)
+  }
+
   const handleScanNext = () => {
     resetScanner()
   }
@@ -322,6 +330,13 @@ export function CourseQRScanner({ todaysCourses, children }: CourseQRScannerProp
         </DialogHeader>
 
         <div className="space-y-4">
+          <CourseSelector
+            courses={todaysCourses}
+            selectedCourseId={selectedCourseId}
+            onSelectCourse={handleCourseSelect}
+            attendanceCount={attendanceCount}
+          />
+
           {/* Scanner or Results */}
           <div className="flex flex-col items-center justify-center space-y-4">
             {showConfirmation && scannedMember && selectedCourse && bookingInfo ? (

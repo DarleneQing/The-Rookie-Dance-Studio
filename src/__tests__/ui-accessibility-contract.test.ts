@@ -46,6 +46,15 @@ describe("UI accessibility contracts", () => {
     expect(dialog).toContain("px-12 sm:pl-0 sm:pr-12")
   })
 
+  it("constrains phone country flags without broad dropdown overrides", () => {
+    const globals = readWorkspaceFile("src/app/globals.css")
+
+    expect(globals).toMatch(
+      /\.phone-input-custom \.PhoneInputCountryIcon\s*\{[^}]*width:\s*1\.5rem[^}]*height:\s*1rem/s,
+    )
+    expect(globals).not.toContain('[class*="PhoneInput"][class*="Select"]')
+  })
+
   it("keeps footer copy free of mojibake", () => {
     const footer = readWorkspaceFile("src/components/footer.tsx")
 

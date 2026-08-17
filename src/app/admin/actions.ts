@@ -401,12 +401,78 @@ export interface AdminUserRow {
   role: string
   member_type: string | null
   verification_status: string | null
+  dob: string | null
   subscription: {
     type: string
     status: string
+    start_date?: string | null
+    total_credits?: number | null
     remaining_credits?: number | null
     end_date?: string | null
   } | null
+}
+
+export interface AdminSubscriptionMember {
+  id: string
+  user_id: string
+  type: 'monthly' | '5_times' | '10_times'
+  status: 'active' | 'expired' | 'depleted' | 'archived'
+  start_date: string | null
+  end_date: string | null
+  total_credits: number | null
+  remaining_credits: number | null
+  profile: {
+    id: string
+    full_name: string | null
+    avatar_url: string | null
+    member_type: 'adult' | 'student' | null
+  } | null
+}
+
+/** Admin-only detail for the Active Plans dashboard drill-down. */
+export async function getAdminSubscriptionMembers(): Promise<{
+  success: boolean
+  message?: string
+  items?: AdminSubscriptionMember[]
+}> {
+  const admin = await requireAdmin()
+  if (!admin) return { success: false, message: 'Unauthorized' }
+
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select(`
+      id, user_id, type, status, start_date, end_date,
+      total_credits, remaining_credits,
+      profile:profiles!subscriptions_user_id_fkey(id, full_name, avatar_url, member_type)
+    `)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(300)
+
+  if (error) {
+    console.error('getAdminSubscriptionMembers error:', error)
+    return { success: false, message: 'Failed to load subscription members' }
+  }
+
+  const items = ((data ?? []) as Array<{
+    id: string
+    user_id: string
+    type: 'monthly' | '5_times' | '10_times'
+    status: 'active' | 'expired' | 'depleted' | 'archived'
+    start_date: string | null
+    end_date: string | null
+    total_credits: number | null
+    remaining_credits: number | null
+    profile: AdminSubscriptionMember['profile'] | AdminSubscriptionMember['profile'][]
+  }>).map((subscription) => ({
+    ...subscription,
+    profile: Array.isArray(subscription.profile)
+      ? subscription.profile[0] ?? null
+      : subscription.profile,
+  }))
+
+  return { success: true, items }
 }
 
 /**
@@ -424,7 +490,7 @@ export async function searchAdminUsers(query: string): Promise<AdminUserRow[]> {
 
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, full_name, avatar_url, role, member_type, verification_status')
+    .select('id, full_name, avatar_url, role, member_type, verification_status, dob')
     .ilike('full_name', `%${q}%`)
     .order('created_at', { ascending: false })
     .limit(25)
@@ -438,7 +504,7 @@ export async function searchAdminUsers(query: string): Promise<AdminUserRow[]> {
 
   const { data: subscriptions } = await supabase
     .from('subscriptions')
-    .select('type, status, remaining_credits, end_date, user_id')
+    .select('type, status, start_date, end_date, total_credits, remaining_credits, user_id')
     .eq('status', 'active')
     .in('user_id', ids)
 
@@ -453,6 +519,7 @@ export async function searchAdminUsers(query: string): Promise<AdminUserRow[]> {
     role: p.role,
     member_type: p.member_type,
     verification_status: p.verification_status,
+    dob: p.dob,
     subscription: subMap.get(p.id) || null,
   }))
 }

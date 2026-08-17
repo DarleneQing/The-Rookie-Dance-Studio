@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -9,13 +9,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Calendar, Clock, User, Music } from "lucide-react"
-import { formatDateTime } from "@/lib/utils/date-formatters"
+import { Music } from "lucide-react"
+import { formatDate, formatDateTime } from "@/lib/utils/date-formatters"
 import { BookingTypeBadge } from "@/components/ui/booking-type-badge"
 import type { BookingType } from "@/types/courses"
 import { unwrapSupabaseRelation } from "@/lib/utils/supabase-helpers"
 import { getDisplayDanceStyle } from "@/lib/utils"
+import { groupHistoryByMonth } from "@/lib/history-grouping"
 
 // Supabase returns arrays for relations, so we need to handle that
 export interface CheckinHistoryItem {
@@ -48,11 +48,18 @@ export function CheckinHistoryDialog({
   checkins,
 }: CheckinHistoryDialogProps) {
   const [open, setOpen] = useState(false)
+  const groupedCheckins = useMemo(
+    () => groupHistoryByMonth(checkins, checkin => {
+      const course = unwrapSupabaseRelation(checkin.course)
+      return course?.scheduled_date || checkin.created_at
+    }),
+    [checkins]
+  )
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[520px] max-h-[80vh] overflow-y-auto bg-popover border-border/60 backdrop-blur-xl">
+      <DialogContent className="w-[95vw] max-w-[520px] max-h-[80vh] overflow-x-hidden overflow-y-auto bg-popover border-border/60 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="font-syne text-white">
             Course History
@@ -73,76 +80,74 @@ export function CheckinHistoryDialog({
             <p className="text-foreground/50 font-outfit text-sm">Book your first course to get started!</p>
           </div>
         ) : (
-          <div className="space-y-3 py-2">
-            {checkins.map((c) => {
-              const course = unwrapSupabaseRelation(c.course)
-              const instructor = course?.instructor 
-                ? unwrapSupabaseRelation(course.instructor)
-                : null
+          <div className="min-w-0 space-y-6 py-1">
+            {groupedCheckins.map(group => {
+              const headingId = `course-history-${group.label.toLowerCase().replace(/\s+/g, '-')}`
 
               return (
-                <div
-                  key={c.id}
-                  className="rounded-2xl border border-border/50 bg-white/5 p-4 space-y-3"
-                >
-                  {/* Course Title and Singer */}
-                  <div>
-                    <div className="font-syne font-bold text-white text-lg">
-                      {course?.song || (course?.dance_style ? getDisplayDanceStyle(course.dance_style) : 'Class')}
-                    </div>
-                    {course?.singer && (
-                      <div className="text-sm text-foreground/70 font-outfit mt-0.5">
-                        {course.singer}
-                      </div>
-                    )}
-                  </div>
+                <section key={group.label} aria-labelledby={headingId} className="min-w-0">
+                  <h3
+                    id={headingId}
+                    className="px-1 pb-2 font-outfit text-xs font-semibold uppercase tracking-widest text-rookie-blue"
+                  >
+                    {group.label}
+                  </h3>
 
-                  {/* Divider */}
-                  <div className="border-t border-border/40" />
+                  <ol className="min-w-0 divide-y divide-border/40 border-y border-border/40">
+                    {group.items.map(c => {
+                      const course = unwrapSupabaseRelation(c.course)
+                      const instructor = course?.instructor
+                        ? unwrapSupabaseRelation(course.instructor)
+                        : null
+                      const title = course?.song || (
+                        course?.dance_style
+                          ? getDisplayDanceStyle(course.dance_style)
+                          : "Class"
+                      )
 
-                  {/* Date and Time */}
-                  {course && (
-                    <div className="flex items-center gap-2 text-sm text-foreground/60 font-outfit">
-                      <Calendar className="h-4 w-4" />
-                      <span>{formatDateTime(course.scheduled_date, course.start_time)}</span>
-                    </div>
-                  )}
+                      return (
+                        <li key={c.id} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3 px-1 py-4">
+                          <div className="min-w-0 overflow-hidden space-y-1">
+                            <h4 className="truncate font-syne text-base font-bold text-foreground">
+                              {title}
+                            </h4>
 
-                  {/* Instructor */}
-                  {instructor && (
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-foreground/60" />
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={instructor.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white text-xs">
-                          {instructor.full_name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm text-foreground/70 font-outfit">
-                        {instructor.full_name}
-                      </span>
-                    </div>
-                  )}
+                            {course?.singer && (
+                              <p className="truncate font-outfit text-sm text-foreground/70">
+                                {course.singer}
+                              </p>
+                            )}
 
-                  {/* Booking Type Badge */}
-                  <div className="flex items-center justify-between pt-2">
-                    <BookingTypeBadge type={c.booking_type} size="small" />
-                    <div className="flex items-center gap-1 text-xs text-foreground/50 font-outfit">
-                      <Clock className="h-3 w-3" />
-                      {new Date(c.created_at).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })}
-                    </div>
-                  </div>
+                            <p className="font-outfit text-sm text-foreground/60">
+                              {course
+                                ? formatDateTime(course.scheduled_date, course.start_time)
+                                : formatDate(c.created_at)}
+                              {instructor && (
+                                <>
+                                  <span className="sr-only">, </span>
+                                  <span className="px-1.5" aria-hidden="true">·</span>
+                                  {instructor.full_name}
+                                </>
+                              )}
+                            </p>
 
-                  {/* Legacy check-in notice */}
-                  {!course && (
-                    <div className="text-xs text-foreground/50 font-outfit italic">
-                      Legacy check-in (before course system)
-                    </div>
-                  )}
-                </div>
+                            {!course && (
+                              <p className="font-outfit text-xs italic text-foreground/50">
+                                Legacy check-in
+                              </p>
+                            )}
+                          </div>
+
+                          <BookingTypeBadge
+                            type={c.booking_type}
+                            size="small"
+                            className="shrink-0"
+                          />
+                        </li>
+                      )
+                    })}
+                  </ol>
+                </section>
               )
             })}
           </div>

@@ -70,7 +70,7 @@ export function CheckinsFinanceCard() {
 
   return (
     <div className="relative">
-      <div className="relative bg-card border border-border/60 rounded-3xl p-6 shadow-2xl overflow-hidden">
+      <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-4 shadow-2xl sm:p-6">
         <div className="flex flex-col space-y-4">
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="bg-gradient-to-br from-green-500 to-blue-500 rounded-full p-4">
@@ -119,6 +119,7 @@ export function CheckinsFinanceCard() {
             </div>
 
             <button
+              type="button"
               onClick={fetchCheckins}
               disabled={loading || !selectedDate}
               className="w-full rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-outfit font-medium py-3 px-4 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -147,33 +148,33 @@ export function CheckinsFinanceCard() {
 
                 {checkins.length > 0 && (
                   <>
-                    <div className="rounded-lg border border-white/20 overflow-hidden bg-white/5 backdrop-blur-sm max-h-[280px] overflow-y-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="border-white/20 hover:bg-white/10 bg-white/5">
-                            <TableHead className="text-foreground/90 font-syne font-bold px-4 py-3">Name</TableHead>
-                            <TableHead className="text-foreground/90 font-syne font-bold px-4 py-3">Time</TableHead>
-                            <TableHead className="text-foreground/90 font-syne font-bold px-4 py-3">Member Type</TableHead>
-                            <TableHead className="text-foreground/90 font-syne font-bold px-4 py-3">Payment</TableHead>
-                            <TableHead className="text-foreground/90 font-syne font-bold px-4 py-3">Phone</TableHead>
+                    <div className="relative max-h-[300px] overflow-auto overscroll-contain rounded-xl border border-border/60 bg-white/[0.03]">
+                      <Table className="min-w-[600px] text-xs">
+                        <TableHeader className="sticky top-0 z-20 bg-card shadow-[0_1px_0_hsl(var(--border))]">
+                          <TableRow className="border-0 bg-card hover:bg-card">
+                            <TableHead className="sticky left-0 z-30 min-w-28 bg-card px-3 py-2 font-syne text-xs font-bold text-foreground/90">Name</TableHead>
+                            <TableHead className="w-24 px-3 py-2 font-syne text-xs font-bold text-foreground/90">Time</TableHead>
+                            <TableHead className="w-24 px-3 py-2 font-syne text-xs font-bold text-foreground/90">Member</TableHead>
+                            <TableHead className="w-24 px-3 py-2 font-syne text-xs font-bold text-foreground/90">Payment</TableHead>
+                            <TableHead className="w-36 px-3 py-2 font-syne text-xs font-bold text-foreground/90">Phone</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {checkins.map((checkin) => (
-                            <TableRow key={checkin.id} className="border-white/20 hover:bg-white/10">
-                              <TableCell className="px-4 py-3 font-outfit text-white">
+                            <TableRow key={checkin.id} className="group h-11 border-border/50 hover:bg-white/5">
+                              <TableCell className="sticky left-0 z-10 max-w-36 whitespace-normal break-words bg-card px-3 py-2 font-outfit font-medium text-foreground group-hover:bg-[#181818]">
                                 {checkin.full_name || "Unknown"}
                               </TableCell>
-                              <TableCell className="px-4 py-3 font-outfit text-white">
+                              <TableCell className="whitespace-nowrap px-3 py-2 font-outfit text-foreground/80">
                                 {formatTimestampTime(checkin.created_at)}
                               </TableCell>
-                              <TableCell className="px-4 py-3 font-outfit text-white capitalize">
+                              <TableCell className="whitespace-nowrap px-3 py-2 font-outfit capitalize text-foreground/80">
                                 {checkin.member_type ?? "—"}
                               </TableCell>
-                              <TableCell className="px-4 py-3 font-outfit text-white">
+                              <TableCell className="whitespace-nowrap px-3 py-2 font-outfit text-foreground/80">
                                 {formatPaymentMethod(checkin.payment_method)}
                               </TableCell>
-                              <TableCell className="px-4 py-3 font-outfit text-white">
+                              <TableCell className="whitespace-nowrap px-3 py-2 font-outfit text-foreground/80">
                                 {checkin.phone_number || "—"}
                               </TableCell>
                             </TableRow>
@@ -183,6 +184,7 @@ export function CheckinsFinanceCard() {
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => setFinanceDialogOpen(true)}
                       className="w-full rounded-2xl bg-secondary hover:bg-secondary/90 text-secondary-foreground font-outfit font-medium py-3 px-4 transition-opacity flex items-center justify-center gap-2"
                     >

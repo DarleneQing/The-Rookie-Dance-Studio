@@ -4,6 +4,7 @@ import { getCachedUser } from '@/lib/supabase/cached'
 import { getCourses, getUserBookings, canCancelBookings } from '@/app/courses/actions'
 import { MemberLayout } from '@/components/navigation/member-layout'
 import { CoursesPageClient } from '@/components/courses/courses-page-client'
+import { WhatsAppGroupCard } from '@/components/courses/whatsapp-group-card'
 import { getZurichToday } from '@/lib/utils/date-helpers'
 import { Footer } from '@/components/footer'
 import { usableSubscriptionFilter } from '@/lib/utils/subscription-helpers'
@@ -31,10 +32,11 @@ const coursesPageContent = (
     <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">
       <div className="relative">
         <div className="relative bg-card border border-border/60 rounded-3xl p-4 md:p-6 shadow-2xl overflow-hidden">
-          <div className="mb-6">
-            <h1 className="font-syne font-bold text-2xl md:text-3xl text-foreground px-2">
+          <div className="mb-6 space-y-4">
+            <h1 className="bg-gradient-to-r from-white via-rookie-pink to-rookie-blue bg-clip-text px-2 font-syne text-2xl font-bold text-transparent md:text-3xl">
               Upcoming Courses
             </h1>
+            <WhatsAppGroupCard />
           </div>
           <CoursesPageClient
             allCourses={allCourses}

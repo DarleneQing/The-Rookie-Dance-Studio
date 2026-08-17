@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, startTransition } from 'react'
+import { startTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, UserRound } from 'lucide-react'
 
 import { updateProfileInfo } from '@/app/profile/actions'
 import { useToggle } from '@/hooks/use-toggle'
@@ -10,7 +10,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -42,6 +41,17 @@ export function EditProfileDialog({
   const [phoneNumber, setPhoneNumber] = useState(currentPhoneNumber || '')
   const [nameError, setNameError] = useState<string | null>(null)
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setFullName(currentFullName || '')
+      setDob(currentDob || '')
+      setPhoneNumber(currentPhoneNumber || '')
+      setNameError(null)
+    }
+
+    setOpen(nextOpen)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -55,7 +65,7 @@ export function EditProfileDialog({
 
     try {
       const result = await updateProfileInfo({
-        full_name: fullName,
+        full_name: fullName.trim(),
         dob: dob || undefined,
         phone_number: phoneNumber || undefined,
       })
@@ -75,19 +85,24 @@ export function EditProfileDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-syne text-xl">Edit Profile</DialogTitle>
-          <DialogDescription>
-            Update your profile information
+      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-y-auto rounded-2xl border-border/60 bg-popover p-0 shadow-2xl">
+        <DialogHeader className="border-b border-border/40 px-5 pb-4 pt-5 text-left">
+          <DialogTitle className="flex items-center gap-2 px-0 pr-12 font-syne text-xl leading-tight">
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rookie-purple/15 text-rookie-blue">
+              <UserRound className="h-4 w-4" aria-hidden="true" />
+            </span>
+            Edit Profile
+          </DialogTitle>
+          <DialogDescription className="pl-10 font-outfit">
+            Keep your personal details up to date.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 p-5">
           <div className="space-y-2">
-            <label htmlFor="fullName" className="text-sm font-outfit text-foreground/90">
+            <label htmlFor="fullName" className="font-outfit text-sm font-medium text-foreground">
               Full Name
             </label>
             <Input
@@ -101,19 +116,20 @@ export function EditProfileDialog({
               placeholder="Enter your full name"
               disabled={loading}
               required
+              maxLength={100}
               aria-invalid={nameError ? true : undefined}
               aria-describedby={nameError ? 'fullName-error' : undefined}
-              className="bg-white/5 border-border/40 text-foreground placeholder:text-foreground/30"
+              className="h-11 rounded-xl border-border/60 bg-white/5 px-3 font-outfit text-foreground placeholder:text-foreground/60 focus-visible:ring-ring focus-visible:ring-offset-0"
             />
             {nameError && (
-              <p id="fullName-error" className="text-sm text-destructive font-outfit">
+              <p id="fullName-error" role="alert" className="font-outfit text-sm text-destructive">
                 {nameError}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="dob" className="text-sm font-outfit text-foreground/90">
+            <label htmlFor="dob" className="font-outfit text-sm font-medium text-foreground">
               Date of Birth
             </label>
             <Input
@@ -122,54 +138,57 @@ export function EditProfileDialog({
               value={dob}
               onChange={(e) => setDob(e.target.value)}
               disabled={loading}
-              className="bg-white/5 border-border/40 text-white"
+              className="h-11 rounded-xl border-border/60 bg-white/5 px-3 font-outfit text-foreground focus-visible:ring-ring focus-visible:ring-offset-0"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="phoneNumber" className="text-sm font-outfit text-foreground/90">
-              Phone Number (Optional)
+            <label htmlFor="phoneNumber" className="flex items-baseline justify-between gap-3 font-outfit text-sm font-medium text-foreground">
+              <span>Phone Number</span>
+              <span className="text-xs font-normal text-muted-foreground">Optional</span>
             </label>
-            <div className="rounded-md border border-border/40 bg-white/5">
+            <div className="flex min-h-11 items-center rounded-xl border border-border/60 bg-white/5 px-3 transition-colors focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40">
               <PhoneInput
                 international
                 defaultCountry="CH"
                 value={phoneNumber}
                 onChange={(value) => setPhoneNumber(value || '')}
+                disabled={loading}
                 className="phone-input-custom"
                 numberInputProps={{
                   id: 'phoneNumber',
-                  className: 'flex h-10 w-full rounded-md border-0 bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                  'aria-label': 'Phone number',
+                  className: 'h-11 w-full min-w-0 border-0 bg-transparent p-0 font-outfit text-sm text-foreground placeholder:text-foreground/60 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
                 }}
               />
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 gap-3 border-t border-border/40 pt-4">
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={loading}
-              className="w-full sm:w-auto"
+              className="h-11 rounded-xl border-border/70 bg-transparent font-outfit hover:bg-white/5"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto"
+              className="h-11 rounded-xl bg-rookie-purple font-outfit text-white shadow-[0_8px_24px_rgba(83,49,135,0.2)] hover:bg-rookie-purple/90"
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 motion-safe:animate-spin" aria-hidden="true" />
                   Saving...
                 </>
               ) : (
                 'Save Changes'
               )}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

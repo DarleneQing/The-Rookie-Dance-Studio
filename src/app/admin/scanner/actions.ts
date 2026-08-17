@@ -233,7 +233,7 @@ export async function getTodaysCourses(): Promise<CourseWithBookingCount[]> {
   return (data || []).map((course) => ({
     ...course,
     booking_count: Array.isArray(course.booking_count)
-      ? course.booking_count.length
+      ? Number(course.booking_count[0]?.count ?? 0)
       : 0,
     instructor: unwrapSupabaseRelation(course.instructor),
   })) as CourseWithBookingCount[];

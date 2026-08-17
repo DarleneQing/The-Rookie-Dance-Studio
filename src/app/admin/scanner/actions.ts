@@ -4,6 +4,9 @@ import { createClient } from '@/lib/supabase/server';
 import type { CourseWithBookingCount } from '@/types/courses';
 import { getErrorMessage } from '@/lib/utils/error-helpers';
 import { unwrapSupabaseRelation } from '@/lib/utils/supabase-helpers';
+import { usableSubscriptionFilter, isUsableSubscription } from '@/lib/utils/subscription-helpers';
+import { requireAdmin } from '@/lib/utils/admin-guard';
+import { getZurichToday } from '@/lib/utils/date-helpers';
 
 export interface CheckinWithUser {
   id: string;
@@ -54,11 +57,7 @@ export interface CheckinContext {
 
 // Shared Supabase filter for "find usable subscription" — mirrors the SQL
 // find_usable_subscription() helper so client and server stay in sync.
-function usableSubscriptionFilter(today: string): string {
-  // For times cards: remaining_credits > 0 is sufficient (depleted cards have 0).
-  // For monthly: must be active and within validity period.
-  return `and(type.in.(5_times,10_times),remaining_credits.gt.0),and(type.eq.monthly,status.eq.active,end_date.gte.${today})`;
-}
+// Moved to src/lib/utils/subscription-helpers.ts (usableSubscriptionFilter).
 
 function formatSubDetails(sub: {
   type: string;
@@ -85,7 +84,13 @@ export async function getCheckinContext(
   courseId: string
 ): Promise<CheckinContext> {
   const supabase = await createClient();
-  const today = new Date().toISOString().split('T')[0];
+
+  const admin = await requireAdmin();
+  if (!admin) {
+    return { success: false, message: 'Unauthorized', isRepeatCheckin: false, hasBooking: false };
+  }
+
+  const today = getZurichToday();
 
   // Run all independent queries in parallel
   const [profileResult, checkinResult, bookingResult, subscriptionResult] =
@@ -165,17 +170,10 @@ export async function getCheckinContext(
   let subDetails: SubscriptionDetails | undefined;
 
   if (booking.booking_type === 'subscription' && booking.subscription_id) {
-    // Check if the linked subscription is still usable
+    // Check if the linked subscription is still usable (mirrors SQL usability rule)
     const linkedSub = unwrapSupabaseRelation(booking.subscription);
-    if (linkedSub) {
-      const linkedUsable =
-        ((linkedSub.type === '5_times' || linkedSub.type === '10_times') &&
-          linkedSub.remaining_credits > 0) ||
-        (linkedSub.type === 'monthly' && linkedSub.end_date >= today);
-
-      if (linkedUsable) {
-        subDetails = formatSubDetails(linkedSub);
-      }
+    if (linkedSub && isUsableSubscription(linkedSub, today)) {
+      subDetails = formatSubDetails(linkedSub);
     }
     // Linked sub is depleted/expired/missing — fall through to check usableSub
     if (!subDetails && usableSub) {
@@ -212,7 +210,10 @@ export async function getCheckinContext(
 export async function getTodaysCourses(): Promise<CourseWithBookingCount[]> {
   const supabase = await createClient();
 
-  const today = new Date().toISOString().split('T')[0];
+  const admin = await requireAdmin();
+  if (!admin) return [];
+
+  const today = getZurichToday();
 
   const { data, error } = await supabase
     .from('courses')
@@ -232,7 +233,7 @@ export async function getTodaysCourses(): Promise<CourseWithBookingCount[]> {
   return (data || []).map((course) => ({
     ...course,
     booking_count: Array.isArray(course.booking_count)
-      ? course.booking_count.length
+      ? Number(course.booking_count[0]?.count ?? 0)
       : 0,
     instructor: unwrapSupabaseRelation(course.instructor),
   })) as CourseWithBookingCount[];
@@ -240,6 +241,9 @@ export async function getTodaysCourses(): Promise<CourseWithBookingCount[]> {
 
 export async function getCourseCheckins(courseId: string): Promise<CheckinWithUser[]> {
   const supabase = await createClient();
+
+  const admin = await requireAdmin();
+  if (!admin) return [];
 
   const { data, error } = await supabase
     .from('checkins')
@@ -265,6 +269,29 @@ export async function getCourseCheckins(courseId: string): Promise<CheckinWithUs
 }
 
 /**
+ * Head-count version of getCourseCheckins — fetches no rows, just the count.
+ * Used for attendance display in the scanner (previously the client fetched
+ * every check-in with user joins merely to read .length).
+ */
+export async function getCourseCheckinCount(courseId: string): Promise<number> {
+  const supabase = await createClient();
+
+  const admin = await requireAdmin();
+  if (!admin) return 0;
+
+  const { count, error } = await supabase
+    .from('checkins')
+    .select('id', { count: 'exact', head: true })
+    .eq('course_id', courseId);
+
+  if (error) {
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
+/**
  * Checks if a user has any usable subscription.
  * Used by the legacy (non-course) QR scanner to auto-select the 'abo' payment method.
  */
@@ -275,7 +302,13 @@ export async function getUserActiveSubscription(
   subscriptionDetails?: SubscriptionDetails;
 }> {
   const supabase = await createClient();
-  const today = new Date().toISOString().split('T')[0];
+
+  const admin = await requireAdmin();
+  if (!admin) {
+    return { hasSubscription: false };
+  }
+
+  const today = getZurichToday();
 
   const { data, error } = await supabase
     .from('subscriptions')
@@ -305,17 +338,17 @@ export async function performCourseCheckin(
   paymentMethod: PaymentMethod
 ): Promise<CourseCheckinResponse> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const admin = await requireAdmin();
 
-  if (!user) {
-    return { success: false, message: 'Not authenticated' };
+  if (!admin) {
+    return { success: false, message: 'Unauthorized' };
   }
 
   try {
     const { data, error } = await supabase.rpc('perform_course_checkin', {
       p_user_id: userId,
       p_course_id: courseId,
-      p_admin_id: user.id,
+      p_admin_id: admin.id,
       p_is_drop_in: isDropIn,
       p_payment_method: paymentMethod,
     });

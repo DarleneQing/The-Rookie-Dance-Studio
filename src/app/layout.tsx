@@ -60,6 +60,13 @@ export default function RootLayout({
       <body
         className={`${syne.variable} ${outfit.variable} antialiased flex flex-col min-h-screen`}
       >
+        {/* Skip to content — WCAG 2.4.1 (visible on keyboard focus) */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-lg font-syne font-semibold"
+        >
+          Skip to content
+        </a>
         {children}
         <Toaster position="top-center" />
         <Analytics />

@@ -50,3 +50,43 @@ export function isTimesBasedSubscription(type: string): boolean {
 export function isMonthlySubscription(type: string): boolean {
   return type === 'monthly'
 }
+
+/**
+ * PostgREST `.or()` filter that mirrors the SQL find_usable_subscription()
+ * rule exactly. KEEP IN SYNC with:
+ *   docs/migrations/2026-04-04_1_fix-book-course-and-checkin.sql
+ *   docs/migrations/2026-08-16_1_fix-times-card-deduction-and-subscription-detection.sql
+ *
+ * SQL rule:
+ *   (type IN ('5_times','10_times') AND remaining_credits > 0 AND status <> 'depleted')
+ *   OR (type = 'monthly' AND status = 'active' AND end_date >= CURRENT_DATE)
+ */
+export function usableSubscriptionFilter(today: string): string {
+  return `and(type.in.(5_times,10_times),remaining_credits.gt.0,status.neq.depleted),and(type.eq.monthly,status.eq.active,end_date.gte.${today})`
+}
+
+export interface UsableSubscriptionShape {
+  type: string
+  status: string
+  remaining_credits: number | null
+  end_date: string | null
+}
+
+/**
+ * Mirrors the SQL usability predicate (see usableSubscriptionFilter).
+ * Times cards: usable when remaining_credits > 0 AND status <> 'depleted'
+ * (archived cards with credits are usable).
+ * Monthly: usable when status = 'active' AND end_date >= today.
+ */
+export function isUsableSubscription(
+  sub: UsableSubscriptionShape,
+  today: string
+): boolean {
+  if (sub.type === '5_times' || sub.type === '10_times') {
+    return sub.status !== 'depleted' && (sub.remaining_credits ?? 0) > 0
+  }
+  if (sub.type === 'monthly') {
+    return sub.status === 'active' && !!sub.end_date && sub.end_date >= today
+  }
+  return false
+}

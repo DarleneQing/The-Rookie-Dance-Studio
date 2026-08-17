@@ -1,17 +1,15 @@
 export default function CoursesLoading() {
   return (
     <div className="relative min-h-screen overflow-hidden pb-20">
-      <div className="absolute inset-0 z-0 bg-black" />
+      <div className="absolute inset-0 z-0 bg-background" />
       <div className="w-full text-center pt-8 pb-2 px-4">
-        <h1 className="font-syne font-bold text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+        <h1 className="font-syne font-bold text-3xl md:text-4xl text-foreground">
           The Rookie Dance Studio
         </h1>
       </div>
       <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-4 pb-8 px-4">
         <div className="relative">
-          <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
-          <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-4 md:p-6 shadow-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
+          <div className="relative bg-card border border-border/60 rounded-3xl p-4 md:p-6 shadow-2xl overflow-hidden">
             <div className="mb-6">
               <div className="h-8 w-48 bg-white/20 rounded-lg animate-pulse mb-2" />
               <div className="h-4 w-64 bg-white/10 rounded animate-pulse" />

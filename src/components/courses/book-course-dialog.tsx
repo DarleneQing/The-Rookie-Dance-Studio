@@ -79,33 +79,33 @@ export function BookCourseDialog({
               {course.song || getDisplayDanceStyle(course.dance_style)}
             </h4>
             {course.singer && (
-              <p className="text-sm text-white/70 font-outfit mb-1">
+              <p className="text-sm text-foreground/70 font-outfit mb-1">
                 {course.singer}
               </p>
             )}
             {!course.song && (
-              <p className="text-xs text-white/50 font-outfit mb-1">
+              <p className="text-xs text-foreground/50 font-outfit mb-1">
                 {getDisplayDanceStyle(course.dance_style)}
               </p>
             )}
             {course.instructor && (
-              <p className="text-sm text-white/70 font-outfit">
+              <p className="text-sm text-foreground/70 font-outfit">
                 with {course.instructor.full_name}
               </p>
             )}
           </div>
 
-          <div className="space-y-2 text-sm text-white/80 font-outfit">
+          <div className="space-y-2 text-sm text-foreground/80 font-outfit">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-white/60" />
+              <Calendar className="h-4 w-4 text-foreground/60" />
               <span>{formatDate(course.scheduled_date, { includeWeekday: true, includeYear: true, weekdayStyle: 'long', monthStyle: 'long' })}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-white/60" />
+              <Clock className="h-4 w-4 text-foreground/60" />
               <span>{getTimeInterval(course.start_time, course.duration_minutes)}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-white/60" />
+              <Users className="h-4 w-4 text-foreground/60" />
               <span>{course.booking_count}/{course.capacity} spots booked</span>
             </div>
             {course.video_link && (
@@ -131,7 +131,7 @@ export function BookCourseDialog({
             <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
             <h4 className="font-syne font-semibold text-white">Important Information</h4>
           </div>
-          <ol className="space-y-2 text-sm text-white/90 font-outfit list-decimal list-inside">
+          <ol className="space-y-2 text-sm text-foreground/90 font-outfit list-decimal list-inside">
             <li>Please bring a pair of clean training shoes (make sure that the sole is also clean) as required by the venue.</li>
             <li>No eating is allowed inside the venue.</li>
             <li>Cancellation is only free 24 hours before the class scheduled time. Late cancellation results in full contribution fees.</li>
@@ -140,7 +140,7 @@ export function BookCourseDialog({
 
         {/* Booking Type */}
         <div className="bg-rookie-purple/10 rounded-xl p-3 border border-rookie-purple/30">
-          <p className="text-sm text-white/90 font-outfit mb-2">
+          <p className="text-sm text-foreground/90 font-outfit mb-2">
             {hasActiveSubscription ? (
               <>You will book with your <span className="font-semibold capitalize">{bookingTypeLabel}</span> subscription.</>
             ) : (
@@ -156,10 +156,10 @@ export function BookCourseDialog({
 
         {/* Agreement Section */}
         <div className="bg-rookie-cyan/10 rounded-xl p-4 border border-rookie-cyan/30">
-          <p className="text-sm text-white/90 font-outfit leading-relaxed mb-2">
+          <p className="text-sm text-foreground/90 font-outfit leading-relaxed mb-2">
             By clicking &quot;Confirm Booking&quot;, I agree to the following:
           </p>
-          <ul className="space-y-1 text-sm text-white/80 font-outfit list-disc list-inside ml-1">
+          <ul className="space-y-1 text-sm text-foreground/80 font-outfit list-disc list-inside ml-1">
             <li>I have read and understood the rules above.</li>
             <li>I agree to contribute fees so as to cover the cost of running (CHF 10.- for students and CHF 15.- for general public).</li>
           </ul>

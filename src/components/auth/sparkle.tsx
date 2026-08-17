@@ -22,7 +22,7 @@ export const Sparkle: React.FC<SparkleProps> = ({
         animationDelay: delay
       }}
     >
-      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
         {/* The 4-pointed star shape similar to the poster */}
         <path 
           d="M50 0C50 0 60 40 100 50C60 50 50 100 50 100C50 100 40 60 0 50C40 50 50 0 50 0Z" 

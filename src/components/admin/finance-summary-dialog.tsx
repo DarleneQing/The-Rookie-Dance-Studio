@@ -4,6 +4,7 @@ import React from "react"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -61,22 +62,22 @@ export function FinanceSummaryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="w-[95vw] max-w-[480px] max-h-[85vh] overflow-y-auto bg-black/90 border-white/20 backdrop-blur-xl"
-        aria-describedby={undefined}
-      >
+      <DialogContent className="w-[95vw] max-w-[480px] max-h-[85vh] overflow-y-auto bg-popover border-border/60 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="font-syne text-white">
             Finance Summary
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Revenue breakdown by member type and payment method for the selected date
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-2">
           <section>
-            <h3 className="font-syne font-semibold text-white/90 mb-3 text-sm uppercase tracking-wide">
+            <h3 className="font-syne font-semibold text-foreground/90 mb-3 text-sm uppercase tracking-wide">
               By Member Type
             </h3>
-            <div className="space-y-2 font-outfit text-white/90 text-sm">
+            <div className="space-y-2 font-outfit text-foreground/90 text-sm">
               <div className="flex justify-between">
                 <span>Adult</span>
                 <span>
@@ -93,10 +94,10 @@ export function FinanceSummaryDialog({
           </section>
 
           <section>
-            <h3 className="font-syne font-semibold text-white/90 mb-3 text-sm uppercase tracking-wide">
+            <h3 className="font-syne font-semibold text-foreground/90 mb-3 text-sm uppercase tracking-wide">
               By Payment Method
             </h3>
-            <div className="space-y-2 font-outfit text-white/90 text-sm">
+            <div className="space-y-2 font-outfit text-foreground/90 text-sm">
               <div className="flex justify-between">
                 <span>Cash</span>
                 <span>{finance.cashTotal} CHF</span>
@@ -109,16 +110,16 @@ export function FinanceSummaryDialog({
           </section>
 
           <section>
-            <h3 className="font-syne font-semibold text-white/90 mb-3 text-sm uppercase tracking-wide">
+            <h3 className="font-syne font-semibold text-foreground/90 mb-3 text-sm uppercase tracking-wide">
               Subscription Check-ins
             </h3>
-            <div className="font-outfit text-white/90 text-sm">
+            <div className="font-outfit text-foreground/90 text-sm">
               <span>Abo: </span>
               <span>{finance.aboCount} check-in{finance.aboCount !== 1 ? "s" : ""}</span>
             </div>
           </section>
 
-          <section className="pt-3 border-t border-white/20">
+          <section className="pt-3 border-t border-border/60">
             <h3 className="font-syne font-semibold text-white mb-2 text-sm uppercase tracking-wide">
               Total Revenue
             </h3>

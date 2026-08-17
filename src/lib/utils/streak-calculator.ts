@@ -9,6 +9,13 @@ import {
 /**
  * Calculate consecutive weeks with check-ins
  * Uses Monday as week start and Europe/Zurich timezone
+ *
+ * SEMANTICS (intentional): the streak counts consecutive weeks ending with the
+ * CURRENT week, and requires a check-in in the current week — so on Monday
+ * morning a member with 10 consecutive weekly check-ins sees 0 until they
+ * attend again. This is "current streak ending this week", not "weeks since
+ * last check-in". If that reads as a bug to users, switch the loop to start
+ * from the most recent check-in week instead.
  */
 export function calculateStreakWeeks(
   checkins: Array<{ created_at: string }>

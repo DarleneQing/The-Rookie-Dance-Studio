@@ -157,7 +157,7 @@ export function CreateCourseDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unassigned">
-                  <span className="text-white/60">Unassigned</span>
+                  <span className="text-foreground/60">Unassigned</span>
                 </SelectItem>
                 {instructors.map((instructor) => (
                   <SelectItem key={instructor.id} value={instructor.id}>
@@ -188,7 +188,7 @@ export function CreateCourseDialog({
                 min={getTodayDate()}
                 value={formData.scheduled_date}
                 onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
-                className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0 [color-scheme:dark]"
+                className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 [color-scheme:dark]"
                 required
               />
             </div>
@@ -205,7 +205,7 @@ export function CreateCourseDialog({
                 type="time"
                 value={formData.start_time}
                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                 required
               />
             </div>
@@ -224,7 +224,7 @@ export function CreateCourseDialog({
               step="15"
               value={formData.duration_minutes}
               onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-white/10 border-border/60 text-white"
               required
             />
           </div>
@@ -241,7 +241,7 @@ export function CreateCourseDialog({
               max="100"
               value={formData.capacity}
               onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-white/10 border-border/60 text-white"
               required
             />
           </div>
@@ -256,7 +256,7 @@ export function CreateCourseDialog({
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-white/10 border-border/60 text-white"
               required
             />
           </div>
@@ -273,7 +273,7 @@ export function CreateCourseDialog({
                 placeholder="e.g., Magnetic"
                 value={formData.song || ''}
                 onChange={(e) => setFormData({ ...formData, song: e.target.value || null })}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
               />
             </div>
 
@@ -287,7 +287,7 @@ export function CreateCourseDialog({
                 placeholder="e.g., ILLIT"
                 value={formData.singer || ''}
                 onChange={(e) => setFormData({ ...formData, singer: e.target.value || null })}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
               />
             </div>
           </div>
@@ -303,7 +303,7 @@ export function CreateCourseDialog({
               placeholder="https://youtube.com/..."
               value={formData.video_link || ''}
               onChange={(e) => setFormData({ ...formData, video_link: e.target.value || null })}
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+              className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
             />
           </div>
 

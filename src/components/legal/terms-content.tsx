@@ -1,6 +1,6 @@
 export function TermsContent() {
   return (
-    <div id="terms-content" className="space-y-8 text-white/90">
+    <div id="terms-content" className="space-y-8 text-foreground/90">
       {/* Section 1 */}
       <section id="scope">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">1. SCOPE OF AGREEMENT</h2>
@@ -21,20 +21,20 @@ export function TermsContent() {
       <section id="accounts">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">2. USER ACCOUNTS AND REGISTRATION</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">2.1 Account Creation</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">2.1 Account Creation</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Users must provide accurate, current, and complete information during registration</li>
           <li>Users are responsible for maintaining the confidentiality of their account credentials</li>
           <li>Users must be at least 16 years of age to create an account independently. Users under 16 require parental or guardian consent</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">2.2 Member Types</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">2.2 Member Types</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li><strong>Adult Members:</strong> Standard membership for individuals 18 years and older</li>
           <li><strong>Student Members:</strong> Discounted membership for verified students enrolled in educational institutions. Student status requires verification through upload of a valid student card and admin approval</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">2.3 Account Security</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">2.3 Account Security</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Users are responsible for all activities conducted through their account</li>
           <li>Users must notify The Rookie Dance Studio immediately of any unauthorized use of their account</li>
@@ -46,27 +46,27 @@ export function TermsContent() {
       <section id="booking">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">3. BOOKING AND ATTENDANCE</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">3.1 Class Bookings</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">3.1 Class Bookings</h3>
         <p className="mb-2">Classes may be booked through the Platform subject to availability. Bookings can be made as:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li><strong>Single Class Booking:</strong> Pay-per-class attendance</li>
           <li><strong>Subscription Booking:</strong> Using an active subscription (Monthly, 5-Times, or 10-Times card)</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">3.2 Booking Confirmation</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">3.2 Booking Confirmation</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Upon successful booking, users will receive confirmation through the Platform</li>
           <li>Users are expected to arrive on time and prepared for the scheduled class</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">3.3 Venue Requirements</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">3.3 Venue Requirements</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Participants must bring clean training shoes with clean soles as required by the venue</li>
           <li>No eating is allowed inside the venue</li>
           <li>Participants must follow all venue rules and instructor guidance</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">3.4 QR Code Check-in</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">3.4 QR Code Check-in</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Users must present their QR code (accessible via their profile) for check-in at each class</li>
           <li>Check-in validates attendance and deducts from subscription balance if applicable</li>
@@ -77,14 +77,14 @@ export function TermsContent() {
       <section id="fees">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">4. FEES, PAYMENTS, AND SUBSCRIPTIONS</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">4.1 Class Fees</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">4.1 Class Fees</h3>
         <p className="mb-2">Contribution fees are set as follows:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li><strong>CHF 10</strong> for verified student members</li>
           <li><strong>CHF 15</strong> for adult members and general public</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">4.2 Subscription Types</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">4.2 Subscription Types</h3>
         <p className="mb-2">The Rookie Dance Studio offers the following subscription options:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li><strong>Monthly Card:</strong> Unlimited classes for 30 days from the selected start date</li>
@@ -92,14 +92,14 @@ export function TermsContent() {
           <li><strong>10-Times Card:</strong> Valid for 10 class check-ins with no expiration date</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">4.3 Payment Terms</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">4.3 Payment Terms</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>All fees and subscriptions are payable at the time of registration or booking</li>
           <li>Payments are processed securely through the Platform</li>
           <li>All payments are non-refundable except as required by law or at The Rookie Dance Studio&apos;s sole discretion</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">4.4 Subscription Management</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">4.4 Subscription Management</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Only one active subscription is permitted per user at any time</li>
           <li>Subscription assignment and management are handled by authorized administrators</li>
@@ -111,14 +111,14 @@ export function TermsContent() {
       <section id="cancellation">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">5. CANCELLATION AND REFUND POLICY</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">5.1 User-Initiated Cancellations</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">5.1 User-Initiated Cancellations</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Bookings may be cancelled free of charge up to <strong>24 hours</strong> before the scheduled class start time</li>
           <li>Cancellations made within 24 hours of the class start time will result in forfeiture of the full contribution fee or subscription credit</li>
           <li>Cancellations are not permitted within <strong>24 hours</strong> of the class start time</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">5.2 Studio-Initiated Cancellations</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">5.2 Studio-Initiated Cancellations</h3>
         <p className="mb-2">The Rookie Dance Studio reserves the right to cancel or reschedule classes due to:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Instructor unavailability</li>
@@ -127,7 +127,7 @@ export function TermsContent() {
           <li>Force majeure events (natural disasters, pandemics, government orders, etc.)</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">5.3 Refunds and Credits</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">5.3 Refunds and Credits</h3>
         <p className="mb-2">In the event of a studio-initiated cancellation, participants may choose between:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Credit toward future classes</li>
@@ -140,7 +140,7 @@ export function TermsContent() {
       <section id="liability">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">6. ASSUMPTION OF RISK AND WAIVER OF LIABILITY</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">6.1 Acknowledgment of Risk</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">6.1 Acknowledgment of Risk</h3>
         <p className="mb-2">Participant acknowledges and understands that:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Dance classes involve physical movement, exertion, and coordination</li>
@@ -148,7 +148,7 @@ export function TermsContent() {
           <li>Participant voluntarily assumes all such risks, whether known or unknown, foreseen or unforeseen</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">6.2 Waiver and Release</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">6.2 Waiver and Release</h3>
         <p className="mb-2">To the fullest extent permitted by Swiss law, Participant hereby:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Waives any and all claims against The Rookie Dance Studio, its officers, board members, instructors, volunteers, agents, and representatives (&quot;Released Parties&quot;)</li>
@@ -156,7 +156,7 @@ export function TermsContent() {
           <li>Agrees not to hold the Released Parties responsible for personal injury, property damage, or any other harm, whether caused by negligence or otherwise</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">6.3 Indemnification</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">6.3 Indemnification</h3>
         <p>
           Participant agrees to indemnify and hold harmless the Released Parties from any claims, liabilities, damages, or expenses (including legal fees) arising from Participant&apos;s conduct, breach of these Terms, or violation of any law or third-party rights.
         </p>
@@ -166,20 +166,20 @@ export function TermsContent() {
       <section id="medical">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">7. MEDICAL FITNESS AND INSURANCE</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">7.1 Physical Fitness</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">7.1 Physical Fitness</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Participant affirms that they are in adequate physical condition to participate in dance classes</li>
           <li>Participant has no medical conditions, injuries, or physical limitations that would prevent safe participation</li>
           <li>Participant is advised to consult a physician before beginning any physical activity program</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">7.2 Medical Disclosure</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">7.2 Medical Disclosure</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Participants with known medical conditions, injuries, or concerns should inform instructors before class</li>
           <li>Instructors are not medical professionals and cannot provide medical advice</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">7.3 Personal Insurance</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">7.3 Personal Insurance</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Participant is solely responsible for obtaining and maintaining personal health and accident insurance</li>
           <li>The Rookie Dance Studio does not provide insurance coverage for participants</li>
@@ -191,7 +191,7 @@ export function TermsContent() {
       <section id="conduct">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">8. CODE OF CONDUCT</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">8.1 Expected Behavior</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">8.1 Expected Behavior</h3>
         <p className="mb-2">Participants agree to:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Follow all instructor guidance and safety instructions</li>
@@ -201,7 +201,7 @@ export function TermsContent() {
           <li>Respect venue property and equipment</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">8.2 Prohibited Conduct</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">8.2 Prohibited Conduct</h3>
         <p className="mb-2">The following behaviors are strictly prohibited:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Harassment, discrimination, or bullying of any kind</li>
@@ -211,7 +211,7 @@ export function TermsContent() {
           <li>Any behavior that endangers the safety or well-being of others</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">8.3 Enforcement</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">8.3 Enforcement</h3>
         <p className="mb-2">Violation of the Code of Conduct may result in:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Verbal warning</li>
@@ -225,13 +225,13 @@ export function TermsContent() {
       <section id="media">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">9. INTELLECTUAL PROPERTY AND MEDIA RELEASE</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">9.1 Platform Content</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">9.1 Platform Content</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>All content on the Platform, including text, graphics, logos, images, and software, is the property of The Rookie Dance Studio or its licensors</li>
           <li>Users may not reproduce, distribute, modify, or create derivative works without written permission</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">9.2 Photo and Video Release</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">9.2 Photo and Video Release</h3>
         <p className="mb-2">By participating in classes and using the Platform, Participant grants The Rookie Dance Studio:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Permission to capture photos, videos, and other media during classes, events, and activities</li>
@@ -239,7 +239,7 @@ export function TermsContent() {
           <li>The right to use Participant&apos;s name, likeness, and voice in connection with such media</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">9.3 Opt-Out</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">9.3 Opt-Out</h3>
         <p>
           Participants who wish to opt out of photo/video capture must notify The Rookie Dance Studio in writing at therookiestudio.ch@gmail.com. Opting out may limit participation in certain activities.
         </p>
@@ -249,7 +249,7 @@ export function TermsContent() {
       <section id="privacy">
         <h2 className="font-syne font-bold text-2xl text-white mb-4">10. DATA PRIVACY AND PROTECTION</h2>
         
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">10.1 Data Collection</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">10.1 Data Collection</h3>
         <p className="mb-2">The Rookie Dance Studio collects and processes personal data including:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Account information (name, email, date of birth)</li>
@@ -258,7 +258,7 @@ export function TermsContent() {
           <li>Subscription and payment information</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">10.2 Data Use</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">10.2 Data Use</h3>
         <p className="mb-2">Personal data is used solely for:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Account management and authentication</li>
@@ -268,14 +268,14 @@ export function TermsContent() {
           <li>Student verification and member type determination</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">10.3 Data Protection</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">10.3 Data Protection</h3>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>All personal data is handled in compliance with Swiss Federal Act on Data Protection (FADP) and applicable regulations</li>
           <li>Data is stored securely using industry-standard encryption and security measures</li>
           <li>Data is not sold, rented, or shared with third parties except as required by law or with explicit consent</li>
         </ul>
 
-        <h3 className="font-syne font-semibold text-xl text-white/90 mb-3 mt-6">10.4 User Rights</h3>
+        <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">10.4 User Rights</h3>
         <p className="mb-2">Users have the right to:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
           <li>Access their personal data</li>
@@ -346,7 +346,7 @@ export function TermsContent() {
         <p className="mb-4">
           For questions, concerns, or notices regarding these Terms and Conditions, please contact:
         </p>
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4 border border-border/40">
           <p className="font-semibold">The Rookie Dance Studio</p>
           <p>Email: therookiestudio.ch@gmail.com</p>
         </div>

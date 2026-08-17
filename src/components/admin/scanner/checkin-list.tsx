@@ -15,9 +15,9 @@ interface CheckinListProps {
 export function CheckinList({ checkins, maxHeight = '300px' }: CheckinListProps) {
   if (checkins.length === 0) {
     return (
-      <div className="bg-white/5 rounded-xl p-6 border border-white/10 text-center">
-        <Users className="h-10 w-10 text-white/40 mx-auto mb-2" />
-        <p className="text-white/60 font-outfit text-sm">
+      <div className="bg-white/5 rounded-xl p-6 border border-border/40 text-center">
+        <Users className="h-10 w-10 text-foreground/40 mx-auto mb-2" />
+        <p className="text-foreground/60 font-outfit text-sm">
           No check-ins yet
         </p>
       </div>
@@ -25,8 +25,8 @@ export function CheckinList({ checkins, maxHeight = '300px' }: CheckinListProps)
   }
 
   return (
-    <div className="bg-white/5 rounded-xl border border-white/10">
-      <div className="px-4 py-3 border-b border-white/10">
+    <div className="bg-white/5 rounded-xl border border-border/40">
+      <div className="px-4 py-3 border-b border-border/40">
         <div className="flex items-center justify-between">
           <h3 className="font-syne font-semibold text-white">
             Check-ins Today
@@ -44,7 +44,7 @@ export function CheckinList({ checkins, maxHeight = '300px' }: CheckinListProps)
         {checkins.map((checkin) => (
           <div
             key={checkin.id}
-            className="bg-white/5 rounded-xl p-3 border border-white/10 hover:bg-white/10 transition-colors"
+            className="bg-white/5 rounded-xl p-3 border border-border/40 hover:bg-white/10 transition-colors"
           >
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
@@ -58,7 +58,7 @@ export function CheckinList({ checkins, maxHeight = '300px' }: CheckinListProps)
                 <div className="font-syne font-semibold text-white text-sm">
                   {checkin.user.full_name}
                 </div>
-                <div className="flex items-center gap-1 text-xs text-white/60 font-outfit">
+                <div className="flex items-center gap-1 text-xs text-foreground/60 font-outfit">
                   <Clock className="h-3 w-3" />
                   {formatTimestampTime(checkin.created_at)}
                 </div>

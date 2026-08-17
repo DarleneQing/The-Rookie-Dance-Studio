@@ -4,6 +4,7 @@ import React, { useState } from "react"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -34,15 +35,15 @@ function formatStatus(status: SubscriptionHistoryItem["status"]) {
 function statusBadgeClass(status: SubscriptionHistoryItem["status"]) {
   switch (status) {
     case "active":
-      return "bg-green-500/20 text-green-300 border-green-500/30"
+      return "bg-success/20 text-success border-success/30"
     case "archived":
-      return "bg-white/10 text-white/70 border-white/20"
+      return "bg-white/10 text-foreground/70 border-border/60"
     case "depleted":
-      return "bg-orange-500/20 text-orange-300 border-orange-500/30"
+      return "bg-warning/20 text-warning border-warning/30"
     case "expired":
-      return "bg-red-500/20 text-red-300 border-red-500/30"
+      return "bg-destructive/20 text-destructive border-destructive/30"
     default:
-      return "bg-white/10 text-white/70 border-white/20"
+      return "bg-white/10 text-foreground/70 border-border/60"
   }
 }
 
@@ -55,16 +56,19 @@ export function SubscriptionHistoryDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[520px] max-h-[80vh] overflow-y-auto bg-black/90 border-white/20 backdrop-blur-xl" aria-describedby={undefined}>
+      <DialogContent className="w-[95vw] max-w-[520px] max-h-[80vh] overflow-y-auto bg-popover border-border/60 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="font-syne text-white">
             Subscription History
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Your past and current class cards
+          </DialogDescription>
         </DialogHeader>
 
         {subscriptions.length === 0 ? (
           <div className="py-8 text-center">
-            <p className="text-white/70 font-outfit">No subscriptions yet.</p>
+            <p className="text-foreground/70 font-outfit">No subscriptions yet.</p>
           </div>
         ) : (
           <div className="space-y-3 py-2">
@@ -75,7 +79,7 @@ export function SubscriptionHistoryDialog({
               return (
                 <div
                   key={sub.id}
-                  className="rounded-2xl border border-white/15 bg-white/5 p-4"
+                  className="rounded-2xl border border-border/50 bg-white/5 p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -93,7 +97,7 @@ export function SubscriptionHistoryDialog({
                         </span>
                       </div>
 
-                      <div className="mt-1 text-sm text-white/70 font-outfit space-y-1">
+                      <div className="mt-1 text-sm text-foreground/70 font-outfit space-y-1">
                         <div>
                           Assigned on{" "}
                           {sub.created_at
@@ -103,10 +107,10 @@ export function SubscriptionHistoryDialog({
                       </div>
                     </div>
 
-                    <div className="text-right text-sm font-outfit text-white/70">
+                    <div className="text-right text-sm font-outfit text-foreground/70">
                       {isMonthly ? (
                         <div>
-                          <div className="text-white/90 font-medium">
+                          <div className="text-foreground/90 font-medium">
                             {sub.start_date
                               ? new Date(sub.start_date).toLocaleDateString()
                               : "—"}{" "}
@@ -115,17 +119,17 @@ export function SubscriptionHistoryDialog({
                               ? new Date(sub.end_date).toLocaleDateString()
                               : "—"}
                           </div>
-                          <div className="text-xs text-white/60 mt-1">
+                          <div className="text-xs text-foreground/60 mt-1">
                             Check-ins: {checkins}
                           </div>
                         </div>
                       ) : (
                         <div>
-                          <div className="text-white/90 font-medium">
+                          <div className="text-foreground/90 font-medium">
                             {sub.remaining_credits ?? 0} /{" "}
                             {sub.total_credits ?? 0}
                           </div>
-                          <div className="text-xs text-white/60 mt-1">
+                          <div className="text-xs text-foreground/60 mt-1">
                             Check-ins: {checkins}
                           </div>
                         </div>

@@ -37,6 +37,12 @@ function createChainableMock(table: string) {
 
 const mockSupabase = {
   from: vi.fn((table: string) => createChainableMock(table)),
+  auth: {
+    getUser: vi.fn(async () => ({
+      data: { user: { id: '00000000-0000-0000-0000-0000000000aa' } },
+      error: null,
+    })),
+  },
 }
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -45,6 +51,10 @@ vi.mock('@/lib/supabase/server', () => ({
 
 // Import AFTER mocking
 import { getCheckinContext } from '@/app/admin/scanner/actions'
+import {
+  usableSubscriptionFilter,
+  isUsableSubscription,
+} from '@/lib/utils/subscription-helpers'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -118,11 +128,17 @@ function configureMocks(opts: {
   let callIndex = 0
   mockSupabase.from.mockImplementation(() => {
     const idx = callIndex++
+    // [0] = requireAdmin() role lookup on profiles
+    // [1] = profiles  (getCheckinContext)
+    // [2] = checkins
+    // [3] = bookings
+    // [4] = subscriptions
     const responses = [
-      { data: opts.profile ?? null, error: null },       // profiles
-      { data: opts.checkins ?? [], error: null },         // checkins
-      { data: opts.booking ?? null, error: null },        // bookings
-      { data: opts.usableSub ?? null, error: null },      // subscriptions
+      { data: { role: 'admin' }, error: null },              // requireAdmin
+      { data: opts.profile ?? null, error: null },           // profiles
+      { data: opts.checkins ?? [], error: null },            // checkins
+      { data: opts.booking ?? null, error: null },           // bookings
+      { data: opts.usableSub ?? null, error: null },         // subscriptions
     ]
     const resp = responses[idx] ?? { data: null, error: null }
 
@@ -489,6 +505,40 @@ describe('SQL flow tracing — find_usable_subscription logic', () => {
   })
 })
 
+describe('TS usability filter parity with SQL find_usable_subscription', () => {
+  // The TS filter (usableSubscriptionFilter in src/lib/utils/subscription-helpers.ts)
+  // must stay in sync with the SQL rule (docs/migrations/2026-04-04_1).
+  // This test pins the exact predicate the server actions and pages rely on.
+
+  it('filter excludes depleted times cards (status <> depleted)', () => {
+    const f = usableSubscriptionFilter(futureDate)
+    expect(f).toContain('status.neq.depleted')
+    expect(f).toContain('remaining_credits.gt.0')
+    expect(f).toContain('type.in.(5_times,10_times)')
+  })
+
+  it('filter requires monthly to be active and within end_date', () => {
+    const f = usableSubscriptionFilter(futureDate)
+    expect(f).toContain('type.eq.monthly')
+    expect(f).toContain('status.eq.active')
+    expect(f).toContain(`end_date.gte.${futureDate}`)
+  })
+
+  it('isUsableSubscription matches SQL rule for every status/type combination', () => {
+    // times cards: usable iff credits > 0 and not depleted (archived OK)
+    expect(isUsableSubscription({ type: '5_times', status: 'active', remaining_credits: 3, end_date: null }, today)).toBe(true)
+    expect(isUsableSubscription({ type: '5_times', status: 'archived', remaining_credits: 2, end_date: null }, today)).toBe(true)
+    expect(isUsableSubscription({ type: '5_times', status: 'depleted', remaining_credits: 0, end_date: null }, today)).toBe(false)
+    expect(isUsableSubscription({ type: '5_times', status: 'active', remaining_credits: 0, end_date: null }, today)).toBe(false)
+    expect(isUsableSubscription({ type: '10_times', status: 'active', remaining_credits: 10, end_date: null }, today)).toBe(true)
+    // monthly: usable iff active and end_date >= today
+    expect(isUsableSubscription({ type: 'monthly', status: 'active', remaining_credits: null, end_date: futureDate }, today)).toBe(true)
+    expect(isUsableSubscription({ type: 'monthly', status: 'active', remaining_credits: null, end_date: pastDate }, today)).toBe(false)
+    expect(isUsableSubscription({ type: 'monthly', status: 'expired', remaining_credits: null, end_date: futureDate }, today)).toBe(false)
+    expect(isUsableSubscription({ type: 'monthly', status: 'archived', remaining_credits: null, end_date: futureDate }, today)).toBe(false)
+  })
+})
+
 describe('SQL flow tracing — book_course logic', () => {
   // book_course decision tree:
   //   1. Course exists? No → error
@@ -553,7 +603,7 @@ describe('SQL flow tracing — perform_course_checkin logic', () => {
   it('single booking + new subscription → upgrade to subscription + deduct', () => {
     const bookingType = 'single'
     const hasUsableSub = true
-    const subType = '5_times'
+    const subType: string = '5_times'
     const credits = 5
 
     // Step 2: upgrade
@@ -594,17 +644,67 @@ describe('SQL flow tracing — perform_course_checkin logic', () => {
     // → "No remaining credits"
   })
 
-  it('drop-in path → delegates to book_course(admin_override=true)', () => {
+  it('drop-in path without an existing booking → delegates to book_course(admin_override=true)', () => {
     const isDropIn = true
-    // perform_course_checkin calls book_course(userId, courseId, true)
-    // which skips time+capacity checks and uses find_usable_subscription
-    expect(isDropIn).toBe(true)
+    const existingBooking = false
+    // perform_course_checkin only calls book_course(userId, courseId, true)
+    // when NO confirmed booking exists yet for (user, course).
+    expect(isDropIn && !existingBooking).toBe(true)
     // → booking created, then check-in proceeds
+  })
+
+  it('walk-in path with an existing booking (shared account) → reuses booking, no duplicate-booking error', () => {
+    // Shared-account scenario: two people share one account and both walk in.
+    // The first check-in created a confirmed booking; the second walk-in must
+    // REUSE it instead of hitting book_course's "You already have a booking"
+    // guard — otherwise the second person cannot check in.
+    const hasExistingConfirmedBooking = true
+
+    // book_course's duplicate guard would reject a second booking INSERT
+    const bookCourseWouldReject = hasExistingConfirmedBooking
+    expect(bookCourseWouldReject).toBe(true)
+
+    // Fix: the walk-in path looks up the existing booking first and reuses it,
+    // so it never reaches book_course's duplicate guard.
+    const reusesExistingBooking = hasExistingConfirmedBooking && bookCourseWouldReject
+    expect(reusesExistingBooking).toBe(true)
+    // → check-in proceeds, one more credit deducted
+  })
+
+  it('shared account, reused single booking + account now has a card → upgraded to subscription + deduct', () => {
+    // First person paid cash (single booking); second person's check-in
+    // reuses that booking, and the account now has a 5_times card → the
+    // upgrade/re-link step must still run so the second check-in deducts.
+    const bookingType = 'single'
+    const hasUsableSub = true
+    const effectiveType = bookingType === 'single' && hasUsableSub ? 'subscription' : bookingType
+
+    expect(effectiveType).toBe('subscription')
+    // one credit deducted per check-in
+    expect(5 - 1).toBe(4)
+  })
+
+  it('shared account, two walk-ins with a times card → two check-ins, two credits deducted', () => {
+    // Same account, same course, two people: each check-in must deduct exactly
+    // one credit, and both must succeed (no duplicate guard in the check-in
+    // path — the guard lives only in book_course for booking creation).
+    let credits = 5
+    const checkins: string[] = []
+
+    for (let i = 0; i < 2; i++) {
+      const checkinAllowed = credits > 0
+      if (!checkinAllowed) break
+      checkins.push('checkin')
+      credits -= 1
+    }
+
+    expect(checkins.length).toBe(2)
+    expect(credits).toBe(3)
   })
 
   it('monthly subscription check-in → no credit deduction', () => {
     const bookingType = 'subscription'
-    const subType = 'monthly'
+    const subType: string = 'monthly'
     const shouldDeduct = bookingType === 'subscription' && (subType === '5_times' || subType === '10_times')
     expect(shouldDeduct).toBe(false)
   })

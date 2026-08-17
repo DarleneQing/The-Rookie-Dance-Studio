@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,13 +9,26 @@ export default async function AuthDebugPage() {
   const cookieStore = cookies()
   
   const { data: { user }, error } = await supabase.auth.getUser()
+
+  // Debug tool: only admins may view session/token/env details.
+  // (Route is auth-gated via middleware; this adds the admin check.)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user?.id ?? '')
+    .maybeSingle()
+
+  if (!user || profile?.role !== 'admin') {
+    redirect('/login')
+  }
+
   const { data: { session } } = await supabase.auth.getSession()
   
   const allCookies = cookieStore.getAll()
   const authCookies = allCookies.filter(c => c.name.startsWith('sb-'))
 
   return (
-    <main className="min-h-screen bg-black text-white p-8">
+    <main id="main-content" className="min-h-screen bg-background text-white p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-rookie-pink">Auth Debug Info</h1>
         
@@ -23,7 +37,7 @@ export default async function AuthDebugPage() {
           <div className="bg-white/5 border border-white/10 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4 text-rookie-blue">User Info</h2>
             {error ? (
-              <div className="text-red-400">Error: {error.message}</div>
+              <div className="text-destructive">Error: {error.message}</div>
             ) : user ? (
               <pre className="text-sm overflow-auto">
                 {JSON.stringify({
@@ -37,7 +51,7 @@ export default async function AuthDebugPage() {
                 }, null, 2)}
               </pre>
             ) : (
-              <div className="text-white/60">No user logged in</div>
+              <div className="text-foreground/60">No user logged in</div>
             )}
           </div>
 
@@ -55,7 +69,7 @@ export default async function AuthDebugPage() {
                 }, null, 2)}
               </pre>
             ) : (
-              <div className="text-white/60">No active session</div>
+              <div className="text-foreground/60">No active session</div>
             )}
           </div>
 
@@ -67,14 +81,14 @@ export default async function AuthDebugPage() {
                 {authCookies.map((cookie) => (
                   <div key={cookie.name} className="text-sm">
                     <span className="text-rookie-cyan">{cookie.name}:</span>{' '}
-                    <span className="text-white/60">
+                    <span className="text-foreground/60">
                       {cookie.value.substring(0, 30)}...
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-white/60">No auth cookies found</div>
+              <div className="text-foreground/60">No auth cookies found</div>
             )}
           </div>
 
@@ -84,11 +98,11 @@ export default async function AuthDebugPage() {
             <div className="space-y-2 text-sm">
               <div>
                 <span className="text-rookie-cyan">NEXT_PUBLIC_SUPABASE_URL:</span>{' '}
-                <span className="text-white/60">{process.env.NEXT_PUBLIC_SUPABASE_URL}</span>
+                <span className="text-foreground/60">{process.env.NEXT_PUBLIC_SUPABASE_URL}</span>
               </div>
               <div>
                 <span className="text-rookie-cyan">NEXT_PUBLIC_SITE_URL:</span>{' '}
-                <span className="text-white/60">
+                <span className="text-foreground/60">
                   {process.env.NEXT_PUBLIC_SITE_URL || 'Not set (will default to http://localhost:3000)'}
                 </span>
               </div>

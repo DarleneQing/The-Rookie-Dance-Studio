@@ -139,7 +139,7 @@ export function EditCourseDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unassigned">
-                  <span className="text-white/60">Unassigned</span>
+                  <span className="text-foreground/60">Unassigned</span>
                 </SelectItem>
                 {instructors.map((instructor) => (
                   <SelectItem key={instructor.id} value={instructor.id}>
@@ -170,7 +170,7 @@ export function EditCourseDialog({
                   type="time"
                   value={formData.start_time}
                   onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                  className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                 />
               </div>
             </div>
@@ -187,7 +187,7 @@ export function EditCourseDialog({
                 step="15"
                 value={formData.duration_minutes}
                 onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
-                className="bg-white/10 border-white/20 text-white"
+                className="bg-white/10 border-border/60 text-white"
               />
             </div>
           </div>
@@ -204,7 +204,7 @@ export function EditCourseDialog({
               max="100"
               value={formData.capacity}
               onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-white/10 border-border/60 text-white"
             />
           </div>
 
@@ -218,7 +218,7 @@ export function EditCourseDialog({
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-white/10 border-border/60 text-white"
             />
           </div>
 
@@ -234,7 +234,7 @@ export function EditCourseDialog({
                 placeholder="e.g., Magnetic"
                 value={formData.song || ''}
                 onChange={(e) => setFormData({ ...formData, song: e.target.value || null })}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
               />
             </div>
 
@@ -248,7 +248,7 @@ export function EditCourseDialog({
                 placeholder="e.g., ILLIT"
                 value={formData.singer || ''}
                 onChange={(e) => setFormData({ ...formData, singer: e.target.value || null })}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
               />
             </div>
           </div>
@@ -264,7 +264,7 @@ export function EditCourseDialog({
               placeholder="https://youtube.com/..."
               value={formData.video_link || ''}
               onChange={(e) => setFormData({ ...formData, video_link: e.target.value || null })}
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+              className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
             />
           </div>
 

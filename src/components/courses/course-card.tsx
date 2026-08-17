@@ -32,12 +32,12 @@ function CourseCardComponent({
 }: CourseCardProps) {
   const getCapacityColor = (current: number, max: number) => {
     const percentage = (current / max) * 100
-    if (percentage >= 100) return 'text-red-400'
-    if (percentage >= 80) return 'text-orange-400'
-    return 'text-green-400'
+    if (percentage >= 100) return 'text-destructive'
+    if (percentage >= 80) return 'text-warning'
+    return 'text-success'
   }
 
-  const isFull = course.booking_count >= course.capacity
+  const isFull = course.capacity > 0 && course.booking_count >= course.capacity
   const isBooked = !!userBooking
 
   return (
@@ -45,11 +45,16 @@ function CourseCardComponent({
       {/* Header with Song Name or Dance Style and Status */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className="font-syne font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple">
+          <h3 className={cn(
+            'font-syne text-xl font-bold',
+            course.song
+              ? 'bg-gradient-to-r from-white via-rookie-pink to-rookie-blue bg-clip-text text-transparent'
+              : 'text-foreground'
+          )}>
             {course.song || getDisplayDanceStyle(course.dance_style)}
           </h3>
           {course.singer && (
-            <p className="text-sm text-white/70 font-outfit mt-1">
+            <p className="text-sm text-foreground/70 font-outfit mt-1">
               {course.singer}
             </p>
           )}
@@ -72,51 +77,42 @@ function CourseCardComponent({
       </div>
 
       {/* Date and Time */}
-      <div className="space-y-1.5">
-        <div className="flex items-center gap-1.5 text-sm text-white/80 font-outfit">
-          <Calendar className="h-4 w-4 text-white/60" />
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+        <div className="flex items-center gap-1.5 text-sm text-foreground/80 font-outfit">
+          <Calendar className="h-4 w-4 text-foreground/60" />
           <span>{formatDate(course.scheduled_date, { includeWeekday: true })}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-sm text-white/80 font-outfit">
-          <Clock className="h-4 w-4 text-white/60" />
+        <div className="flex items-center gap-1.5 text-sm text-foreground/80 font-outfit">
+          <Clock className="h-4 w-4 text-foreground/60" />
           <span>{getTimeInterval(course.start_time, course.duration_minutes)}</span>
         </div>
       </div>
 
-      {/* Instructor */}
-      <div className="flex items-center gap-2">
-        {course.instructor ? (
-          <>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={course.instructor.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white text-xs">
-                {course.instructor.full_name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-white font-outfit">
-              {course.instructor.full_name}
-            </span>
-          </>
-        ) : (
-          <span className="text-sm text-white/60 font-outfit italic">Unassigned</span>
-        )}
-      </div>
-
-
-      {/* Capacity and Video Link */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-white/60" />
-          <span className={cn('text-sm font-outfit font-semibold', getCapacityColor(course.booking_count, course.capacity))}>
-            {course.booking_count}/{course.capacity} spots
-          </span>
+      {/* Instructor and Video Link */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          {course.instructor ? (
+            <>
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarImage src={course.instructor.avatar_url || undefined} />
+                <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white text-xs">
+                  {course.instructor.full_name.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="truncate text-sm text-white font-outfit">
+                {course.instructor.full_name}
+              </span>
+            </>
+          ) : (
+            <span className="text-sm text-foreground/60 font-outfit italic">Unassigned</span>
+          )}
         </div>
         {course.video_link && (
           <a
             href={course.video_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs text-rookie-cyan hover:text-rookie-cyan/80 font-outfit font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-rookie-cyan hover:text-rookie-cyan/80 font-outfit font-medium transition-colors min-h-11"
             onClick={(e) => e.stopPropagation()}
           >
             <Music className="h-3.5 w-3.5" />
@@ -126,39 +122,44 @@ function CourseCardComponent({
         )}
       </div>
 
-      {/* Actions */}
-      <div className="pt-2 border-t border-white/10">
+      {/* Capacity and Actions */}
+      <div className="flex items-center gap-3 border-t border-white/10 pt-3">
+        <div className="flex shrink-0 items-center gap-2">
+          <Users className="h-4 w-4 text-foreground/60" />
+          <span className={cn('text-sm font-outfit font-semibold', getCapacityColor(course.booking_count, course.capacity))}>
+            {course.booking_count}/{course.capacity} spots
+          </span>
+        </div>
+
         {isBooked ? (
-          <div className="flex gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onCancel}
-                    disabled={!canCancelBooking || cancelLoading}
-                    className="w-full bg-red-500/10 hover:bg-red-500/20 border-red-500/30 text-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {cancelLoading ? 'Cancelling...' : canCancelBooking ? 'Cancel Booking' : 'Cancel Not Available'}
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              {!canCancelBooking && (
-                <TooltipContent>
-                  <p>Cannot cancel within 24 hours of start</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="min-w-0 flex-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onCancel}
+                  disabled={!canCancelBooking || cancelLoading}
+                  className="min-h-11 w-full bg-destructive/10 hover:bg-destructive/20 border-destructive/30 text-destructive disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {cancelLoading ? 'Cancelling...' : canCancelBooking ? 'Cancel Booking' : 'Cancel Not Available'}
+                </Button>
+              </div>
+            </TooltipTrigger>
+            {!canCancelBooking && (
+              <TooltipContent>
+                <p>Cannot cancel within 24 hours of start</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
         ) : (
           <Button
             onClick={onBook}
             disabled={isFull || bookingLoading}
             className={cn(
-              'w-full font-outfit',
+              'min-h-11 min-w-0 flex-1 font-outfit',
               isFull
-                ? 'bg-white/10 text-white/40 cursor-not-allowed'
+                ? 'bg-white/10 text-foreground/60 cursor-not-allowed'
                 : ''
             )}
           >

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/utils/admin-guard';
 import type {
   CreateCourseInput,
   BatchCreateCoursesInput,
@@ -14,18 +15,8 @@ export async function createCourse(input: CreateCourseInput) {
   const supabase = await createClient();
   
   // Verify admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-  
-  if (profile?.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
+  const admin = await requireAdmin();
+  if (!admin) throw new Error('Unauthorized');
   
   const { data, error } = await supabase
     .from('courses')
@@ -45,6 +36,9 @@ export async function batchCreateCourses(
   input: BatchCreateCoursesInput
 ): Promise<BatchCreateResponse> {
   const supabase = await createClient();
+  
+  const admin = await requireAdmin();
+  if (!admin) throw new Error('Unauthorized');
   
   const { data, error } = await supabase.rpc('batch_create_courses', {
     p_year: input.year,
@@ -71,6 +65,9 @@ export async function updateCourse(
 ) {
   const supabase = await createClient();
   
+  const admin = await requireAdmin();
+  if (!admin) throw new Error('Unauthorized');
+  
   const { data, error } = await supabase
     .from('courses')
     .update(updates)
@@ -88,6 +85,9 @@ export async function updateCourse(
 
 export async function deleteCourse(courseId: string) {
   const supabase = await createClient();
+  
+  const admin = await requireAdmin();
+  if (!admin) throw new Error('Unauthorized');
   
   // Check if course has bookings
   const { count } = await supabase
@@ -112,6 +112,9 @@ export async function deleteCourse(courseId: string) {
 
 export async function getCourseDetails(courseId: string): Promise<CourseWithDetails> {
   const supabase = await createClient();
+  
+  const admin = await requireAdmin();
+  if (!admin) throw new Error('Unauthorized');
   
   const { data, error } = await supabase
     .from('courses')
@@ -143,12 +146,18 @@ export async function deleteCheckin(
 ): Promise<{ success: boolean; message: string }> {
   const supabase = await createClient();
 
+  const admin = await requireAdmin();
+  if (!admin) {
+    return { success: false, message: 'Unauthorized' };
+  }
+
   const { data, error } = await supabase.rpc('delete_course_checkin', {
     p_checkin_id: checkinId,
   });
 
   if (error) {
-    return { success: false, message: error.message };
+    console.error('delete_course_checkin RPC error:', error);
+    return { success: false, message: 'Failed to delete check-in' };
   }
 
   revalidatePath('/admin/courses');
@@ -161,22 +170,23 @@ export async function manualCheckin(
   paymentMethod: PaymentMethod
 ): Promise<{ success: boolean; message: string; booking_type?: string }> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const admin = await requireAdmin();
 
-  if (!user) {
-    return { success: false, message: 'Not authenticated' };
+  if (!admin) {
+    return { success: false, message: 'Unauthorized' };
   }
 
   const { data, error } = await supabase.rpc('perform_course_checkin', {
     p_user_id: userId,
     p_course_id: courseId,
-    p_admin_id: user.id,
+    p_admin_id: admin.id,
     p_is_drop_in: true,
     p_payment_method: paymentMethod,
   });
 
   if (error) {
-    return { success: false, message: error.message };
+    console.error('perform_course_checkin RPC error:', error);
+    return { success: false, message: 'Failed to check in member' };
   }
 
   revalidatePath('/admin/courses');
@@ -192,6 +202,9 @@ export async function searchUsers(query: string): Promise<Array<{
 
   const supabase = await createClient();
 
+  const admin = await requireAdmin();
+  if (!admin) return [];
+
   const { data, error } = await supabase
     .from('profiles')
     .select('id, full_name, avatar_url')
@@ -205,6 +218,9 @@ export async function searchUsers(query: string): Promise<Array<{
 
 export async function getInstructors() {
   const supabase = await createClient();
+  
+  const admin = await requireAdmin();
+  if (!admin) return [];
   
   const { data, error } = await supabase
     .from('profiles')

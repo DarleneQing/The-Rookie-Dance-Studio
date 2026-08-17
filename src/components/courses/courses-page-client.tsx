@@ -35,13 +35,50 @@ export function CoursesPageClient({
   const [selectedCourseForBooking, setSelectedCourseForBooking] = useState<CourseWithBookingCount | null>(null)
   const [selectedBookingForCancel, setSelectedBookingForCancel] = useState<BookingWithCourse | null>(null)
 
-  // Periodically refresh so capacity updates when other users book/cancel
+  // Periodically refresh so capacity updates when other users book/cancel.
+  // Only poll while the tab is visible and the connection isn't a data saver;
+  // background tabs and metered connections skip the ~3-query refresh entirely.
   useEffect(() => {
-    const interval = setInterval(() => {
-      startTransition(() => router.refresh())
-    }, 10000) // every 10 seconds
+    let interval: ReturnType<typeof setInterval> | null = null
 
-    return () => clearInterval(interval)
+    // navigator.connection is a non-standard Network Information API — type it
+    // defensively so older browsers / TS lib don't break.
+    const isWorthPolling = () => {
+      const nav = navigator as Navigator & { connection?: { saveData?: boolean } }
+      return document.visibilityState === 'visible' && !(nav.connection?.saveData ?? false)
+    }
+
+    const startPolling = () => {
+      if (interval || !isWorthPolling()) return
+      interval = setInterval(() => {
+        startTransition(() => router.refresh())
+      }, 30000) // every 30s while visible (was 10s unconditional)
+    }
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval)
+        interval = null
+      }
+    }
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        // Refresh immediately on return to the tab, then resume polling
+        startTransition(() => router.refresh())
+        startPolling()
+      } else {
+        stopPolling()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+    startPolling()
+
+    return () => {
+      stopPolling()
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }, [router])
 
   const handleBookClick = useCallback(

@@ -1,24 +1,24 @@
 export default function AdminUsersLoading() {
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0 z-0 bg-black" />
-      <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">
-        <div className="relative">
-          <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
-          <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-4 md:p-6 shadow-2xl overflow-hidden">
-            <div className="mb-4">
-              <div className="h-10 w-10 rounded-full bg-white/20 animate-pulse" />
+    <main className="relative min-h-screen overflow-hidden bg-background">
+      <div className="mx-auto max-w-3xl px-4 pb-10 pt-6 sm:pt-8">
+        <div className="h-11 w-11 animate-pulse rounded-full bg-card" />
+        <div className="mb-6 mt-5 space-y-2">
+          <div className="h-8 w-56 animate-pulse rounded-lg bg-white/10" />
+          <div className="h-4 w-72 max-w-full animate-pulse rounded bg-white/5" />
+        </div>
+        <div className="mb-4 h-12 animate-pulse rounded-2xl bg-card" />
+        <div className="divide-y divide-border/40 overflow-hidden rounded-2xl border border-border/60 bg-card">
+          {Array.from({ length: 8 }, (_, index) => (
+            <div key={index} className="flex h-[76px] items-center gap-3 px-4 sm:px-5">
+              <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-white/10" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-32 animate-pulse rounded bg-white/10" />
+                <div className="h-3 w-24 animate-pulse rounded bg-white/5" />
+              </div>
+              <div className="h-5 w-5 animate-pulse rounded bg-white/5" />
             </div>
-            <div className="h-8 w-56 bg-white/20 rounded mb-6 animate-pulse" />
-            <div className="space-y-2">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div
-                  key={i}
-                  className="bg-white/5 rounded-lg p-4 h-16 animate-pulse"
-                />
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </main>

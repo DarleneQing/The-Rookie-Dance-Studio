@@ -1,11 +1,10 @@
 export default function AdminCoursesLoading() {
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0 z-0 bg-black" />
+      <div className="absolute inset-0 z-0 bg-background" />
       <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">
         <div className="relative">
-          <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
-          <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-4 md:p-6 shadow-2xl overflow-hidden">
+          <div className="relative bg-card border border-border/60 rounded-3xl p-4 md:p-6 shadow-2xl overflow-hidden">
             <div className="mb-4">
               <div className="h-10 w-10 rounded-full bg-white/20 animate-pulse" />
             </div>

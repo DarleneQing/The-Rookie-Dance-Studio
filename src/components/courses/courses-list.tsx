@@ -29,8 +29,8 @@ export function CoursesList({
   if (courses.length === 0) {
     return (
       <div className="bg-white/10 rounded-2xl p-12 text-center border border-white/20">
-        <Calendar className="h-12 w-12 text-white/40 mx-auto mb-4" />
-        <p className="text-white/70 font-outfit">{emptyMessage}</p>
+        <Calendar className="h-12 w-12 text-foreground/40 mx-auto mb-4" />
+        <p className="text-foreground/70 font-outfit">{emptyMessage}</p>
       </div>
     )
   }

@@ -1,20 +1,20 @@
 'use client'
 
 import { logout } from '@/app/auth/actions'
-import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
 
 export function LogoutButton() {
   return (
     <form action={logout}>
-      <Button
+      <button
         type="submit"
-        variant="outline"
-        className="w-full bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-sm rounded-3xl p-4 shadow-lg"
+        className="flex min-h-14 w-full items-center gap-3 px-3 py-2.5 text-left text-destructive transition-colors hover:bg-destructive/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-destructive"
       >
-        <LogOut className="mr-2 h-5 w-5" />
-        <span className="font-outfit font-medium">Logout</span>
-      </Button>
+        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-destructive/25 bg-destructive/10">
+          <LogOut className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <span className="font-outfit text-sm font-medium">Log out</span>
+      </button>
     </form>
   )
 }

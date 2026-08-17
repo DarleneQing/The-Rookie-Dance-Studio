@@ -22,25 +22,20 @@ export function CourseSelector({
 }: CourseSelectorProps) {
   const getCapacityColor = (current: number, max: number) => {
     const percentage = (current / max) * 100
-    if (percentage >= 100) return 'text-red-400'
-    if (percentage >= 80) return 'text-orange-400'
-    return 'text-green-400'
+    if (percentage >= 100) return 'text-destructive'
+    if (percentage >= 80) return 'text-warning'
+    return 'text-success'
   }
 
   if (courses.length === 0) {
     return (
-      <div className="bg-white/5 rounded-xl p-6 border border-white/10 text-center">
-        <Calendar className="h-12 w-12 text-white/40 mx-auto mb-3" />
-        <p className="text-white/70 font-outfit text-sm">
+      <div className="bg-white/5 rounded-xl p-6 border border-border/40 text-center">
+        <Calendar className="h-12 w-12 text-foreground/40 mx-auto mb-3" />
+        <p className="text-foreground/70 font-outfit text-sm">
           No courses scheduled for today
         </p>
       </div>
     )
-  }
-
-  if (courses.length === 1 && !selectedCourseId) {
-    // Auto-select the only course
-    onSelectCourse(courses[0].id)
   }
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId)
@@ -49,14 +44,14 @@ export function CourseSelector({
     <div className="space-y-3">
       {/* Selected Course Display */}
       {selectedCourse && (
-        <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 border border-white/20 space-y-3">
+        <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 border border-border/60 space-y-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
               <h3 className="font-syne font-bold text-lg text-white">
                 {selectedCourse.song || selectedCourse.dance_style}
               </h3>
               {selectedCourse.singer && (
-                <p className="text-sm text-white/70 font-outfit">
+                <p className="text-sm text-foreground/70 font-outfit">
                   {selectedCourse.singer}
                 </p>
               )}
@@ -67,8 +62,8 @@ export function CourseSelector({
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-2 text-white/80 font-outfit">
-              <Clock className="h-4 w-4 text-white/60" />
+            <div className="flex items-center gap-2 text-foreground/80 font-outfit">
+              <Clock className="h-4 w-4 text-foreground/60" />
               <span>{formatTime(selectedCourse.start_time)}</span>
             </div>
             {selectedCourse.instructor && (
@@ -79,7 +74,7 @@ export function CourseSelector({
                     {selectedCourse.instructor.full_name.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-white/80 font-outfit text-xs truncate">
+                <span className="text-foreground/80 font-outfit text-xs truncate">
                   {selectedCourse.instructor.full_name}
                 </span>
               </div>
@@ -87,10 +82,10 @@ export function CourseSelector({
           </div>
 
           {/* Attendance Count */}
-          <div className="flex items-center justify-between pt-2 border-t border-white/10">
+          <div className="flex items-center justify-between pt-2 border-t border-border/40">
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-white/60" />
-              <span className="text-white/70 font-outfit text-sm">Attendance:</span>
+              <Users className="h-5 w-5 text-foreground/60" />
+              <span className="text-foreground/70 font-outfit text-sm">Attendance:</span>
             </div>
             <span className={cn('font-syne font-bold text-2xl', getCapacityColor(attendanceCount, selectedCourse.capacity))}>
               {attendanceCount}/{selectedCourse.capacity}
@@ -98,7 +93,7 @@ export function CourseSelector({
           </div>
 
           {/* Bookings Count */}
-          <div className="flex items-center justify-between text-xs text-white/60 font-outfit">
+          <div className="flex items-center justify-between text-xs text-foreground/60 font-outfit">
             <span>Pre-booked:</span>
             <span>{selectedCourse.booking_count}/{selectedCourse.capacity}</span>
           </div>
@@ -108,17 +103,18 @@ export function CourseSelector({
       {/* Course List (if multiple courses) */}
       {courses.length > 1 && (
         <div className="space-y-2">
-          <p className="text-xs text-white/60 font-outfit">Select Course:</p>
+          <p className="text-xs text-foreground/60 font-outfit">Select Course:</p>
           <div className="space-y-2">
             {courses.map((course) => (
               <button
                 key={course.id}
+                type="button"
                 onClick={() => onSelectCourse(course.id)}
                 className={cn(
                   'w-full text-left bg-white/5 hover:bg-white/10 rounded-xl p-3 border transition-all',
                   selectedCourseId === course.id
                     ? 'border-rookie-purple bg-white/10'
-                    : 'border-white/10'
+                    : 'border-border/40'
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -126,11 +122,11 @@ export function CourseSelector({
                     <div className="font-syne font-semibold text-white text-sm">
                       {course.song || getDisplayDanceStyle(course.dance_style)}
                     </div>
-                    <div className="text-xs text-white/60 font-outfit">
+                    <div className="text-xs text-foreground/60 font-outfit">
                       {formatTime(course.start_time)}
                     </div>
                   </div>
-                  <div className="text-xs text-white/60 font-outfit">
+                  <div className="text-xs text-foreground/60 font-outfit">
                     {course.booking_count}/{course.capacity}
                   </div>
                 </div>

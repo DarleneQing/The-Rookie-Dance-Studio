@@ -1,7 +1,7 @@
 export default function AdminVerificationsLoading() {
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="absolute inset-0 z-0 bg-black" />
+      <div className="absolute inset-0 z-0 bg-background" />
       <div className="relative z-10 container max-w-6xl mx-auto pt-8 pb-8 px-4">
         <div className="space-y-6">
           <div>

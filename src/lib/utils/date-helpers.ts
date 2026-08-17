@@ -60,3 +60,15 @@ export function weekStartKeyFromYMD(y: number, m: number, d: number): string {
   const weekStartYMD = dayNumberToYMDUTC(weekStartDay)
   return `${weekStartYMD.y}-${String(weekStartYMD.m).padStart(2, '0')}-${String(weekStartYMD.d).padStart(2, '0')}`
 }
+
+/**
+ * Today's date (YYYY-MM-DD) in Europe/Zurich.
+ *
+ * Use this instead of `new Date().toISOString().split('T')[0]` — that returns
+ * the UTC date, which is YESTERDAY between 00:00–02:00 Zurich time (CET/CEST),
+ * so "today" filters (courses, check-ins, subscriptions) would be off by one.
+ */
+export function getZurichToday(): string {
+  const { y, m, d } = getZurichYMD(new Date())
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}

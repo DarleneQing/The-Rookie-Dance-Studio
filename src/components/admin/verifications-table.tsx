@@ -59,9 +59,9 @@ export function VerificationsTable({ verifications }: VerificationsTableProps) {
           <Table>
             <TableHeader>
               <TableRow className="border-white/10">
-                <TableHead className="text-white/90 font-syne font-semibold">User</TableHead>
-                <TableHead className="text-white/90 font-syne font-semibold">Submitted</TableHead>
-                <TableHead className="text-white/90 font-syne font-semibold text-right">Actions</TableHead>
+                <TableHead className="text-foreground/90 font-syne font-semibold">User</TableHead>
+                <TableHead className="text-foreground/90 font-syne font-semibold">Submitted</TableHead>
+                <TableHead className="text-foreground/90 font-syne font-semibold text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -76,11 +76,11 @@ export function VerificationsTable({ verifications }: VerificationsTableProps) {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-outfit font-medium text-white/90">
+                        <div className="font-outfit font-medium text-foreground/90">
                           {verification.full_name || 'Unknown User'}
                         </div>
                         {verification.dob && (
-                          <div className="font-outfit text-xs text-white/60">
+                          <div className="font-outfit text-xs text-foreground/60">
                             DOB: {new Date(verification.dob).toLocaleDateString()}
                           </div>
                         )}
@@ -88,7 +88,7 @@ export function VerificationsTable({ verifications }: VerificationsTableProps) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="font-outfit text-white/70 text-sm">
+                    <span className="font-outfit text-foreground/70 text-sm">
                       {formatDate(verification.created_at, { includeYear: true })}
                     </span>
                   </TableCell>

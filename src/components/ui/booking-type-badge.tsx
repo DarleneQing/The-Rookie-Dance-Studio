@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import type { BookingType } from '@/types/courses'
 
 interface BookingTypeBadgeProps {
@@ -13,12 +14,14 @@ interface BookingTypeBadgeProps {
  */
 export function BookingTypeBadge({
   type,
-  className = '',
+  className,
   size = 'default',
 }: BookingTypeBadgeProps) {
-  const sizeClass = size === 'small' ? 'text-xs' : ''
-  const baseClass = 'font-semibold'
-  const combinedClass = `${baseClass} ${sizeClass} ${className}`.trim()
+  const combinedClass = cn(
+    'font-semibold',
+    size === 'small' && 'text-xs',
+    className
+  )
 
   if (type === 'subscription') {
     return (

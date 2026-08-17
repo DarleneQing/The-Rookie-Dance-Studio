@@ -40,15 +40,17 @@ export function TableOfContents({ items }: TableOfContentsProps) {
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden w-full bg-white/10 hover:bg-white/15 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg transition-colors flex items-center justify-between font-outfit text-white"
+        aria-expanded={isOpen}
+        aria-controls="toc-list"
+        className="md:hidden w-full bg-white/10 hover:bg-white/15 backdrop-blur-sm rounded-2xl p-4 border border-border/60 shadow-lg transition-colors flex items-center justify-between font-outfit text-white"
       >
         <span className="font-semibold">Table of Contents</span>
         {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
       </button>
 
       {/* TOC Content */}
-      <div className={`${isOpen ? 'block' : 'hidden'} md:block mt-4 md:mt-0`}>
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+      <div id="toc-list" className={`${isOpen ? 'block' : 'hidden'} md:block mt-4 md:mt-0`}>
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-border/60 shadow-lg">
           <h2 className="font-syne font-bold text-lg text-white mb-4">Table of Contents</h2>
           <nav>
             <ul className="space-y-2">
@@ -56,7 +58,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
                 <li key={item.id}>
                   <button
                     onClick={() => scrollToSection(item.id)}
-                    className={`text-left w-full text-white/70 hover:text-white font-outfit text-sm transition-colors ${
+                    className={`text-left w-full text-foreground/70 hover:text-white font-outfit text-sm transition-colors ${
                       item.level === 2 ? 'pl-4' : ''
                     }`}
                   >

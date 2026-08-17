@@ -39,17 +39,20 @@ export async function compressImage(
       // Load image
       const image = await loadImage(imageUrl)
 
-      // Calculate dimensions
+      // Calculate dimensions. Default cap prevents decoding huge phone photos
+      // (12MP+) into a giant canvas before compression.
       let { width, height } = image
+      const effectiveMaxWidth = maxWidth ?? 1600
+      const effectiveMaxHeight = maxHeight ?? 1600
       
-      if (maxWidth && width > maxWidth) {
-        height = (height * maxWidth) / width
-        width = maxWidth
+      if (width > effectiveMaxWidth) {
+        height = (height * effectiveMaxWidth) / width
+        width = effectiveMaxWidth
       }
       
-      if (maxHeight && height > maxHeight) {
-        width = (width * maxHeight) / height
-        height = maxHeight
+      if (height > effectiveMaxHeight) {
+        width = (width * effectiveMaxHeight) / height
+        height = effectiveMaxHeight
       }
 
       // Create canvas
@@ -65,8 +68,9 @@ export async function compressImage(
         }
       }
 
-      // For PNG images with transparency, fill with white background
-      if (file.type === 'image/png') {
+      // For images with alpha (PNG, WebP), fill with white so transparency
+      // doesn't composite to black when converted to JPEG.
+      if (file.type === 'image/png' || file.type === 'image/webp') {
         ctx.fillStyle = '#FFFFFF'
         ctx.fillRect(0, 0, width, height)
       }

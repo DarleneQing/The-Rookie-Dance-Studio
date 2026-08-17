@@ -277,7 +277,7 @@ export function BatchCreateDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="unassigned">
-                  <span className="text-white/60">Unassigned</span>
+                  <span className="text-foreground/60">Unassigned</span>
                 </SelectItem>
                 {instructors.map((instructor) => (
                   <SelectItem key={instructor.id} value={instructor.id}>
@@ -307,7 +307,7 @@ export function BatchCreateDialog({
                 type="time"
                 value={formData.start_time}
                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="w-full border-0 bg-transparent p-0 text-base text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                 required
               />
             </div>
@@ -327,7 +327,7 @@ export function BatchCreateDialog({
                 step="15"
                 value={formData.duration_minutes}
                 onChange={(e) => setFormData({ ...formData, duration_minutes: parseInt(e.target.value) })}
-                className="bg-white/10 border-white/20 text-white"
+                className="bg-white/10 border-border/60 text-white"
                 required
               />
             </div>
@@ -343,7 +343,7 @@ export function BatchCreateDialog({
                 max="100"
                 value={formData.capacity}
                 onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
-                className="bg-white/10 border-white/20 text-white"
+                className="bg-white/10 border-border/60 text-white"
                 required
               />
             </div>
@@ -359,7 +359,7 @@ export function BatchCreateDialog({
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="bg-white/10 border-white/20 text-white"
+              className="bg-white/10 border-border/60 text-white"
               required
             />
           </div>
@@ -369,7 +369,7 @@ export function BatchCreateDialog({
             <Label className="font-syne font-semibold text-white">
               Saturday Preview
             </Label>
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10 space-y-2">
+            <div className="bg-white/5 rounded-xl p-4 border border-border/40 space-y-2">
               {loadingPreview ? (
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="h-6 w-6 animate-spin text-rookie-purple" />
@@ -383,36 +383,36 @@ export function BatchCreateDialog({
                     >
                       {item.isPast ? (
                         <>
-                          <XCircle className="h-4 w-4 text-white/40" />
-                          <span className="text-white/40">{item.formatted}</span>
-                          <span className="text-white/40 text-xs">(Past)</span>
+                          <XCircle className="h-4 w-4 text-foreground/40" />
+                          <span className="text-foreground/40">{item.formatted}</span>
+                          <span className="text-foreground/40 text-xs">(Past)</span>
                         </>
                       ) : item.exists ? (
                         <>
-                          <XCircle className="h-4 w-4 text-red-400" />
-                          <span className="text-white/60">{item.formatted}</span>
-                          <span className="text-red-400 text-xs">(Skipped - already exists)</span>
+                          <XCircle className="h-4 w-4 text-destructive" />
+                          <span className="text-foreground/60">{item.formatted}</span>
+                          <span className="text-destructive text-xs">(Skipped - already exists)</span>
                         </>
                       ) : (
                         <>
-                          <CheckCircle2 className="h-4 w-4 text-green-400" />
+                          <CheckCircle2 className="h-4 w-4 text-success" />
                           <span className="text-white">{item.formatted}</span>
-                          <span className="text-green-400 text-xs">(New)</span>
+                          <span className="text-success text-xs">(New)</span>
                         </>
                       )}
                     </div>
                   ))}
-                  <div className="pt-2 mt-2 border-t border-white/10 text-sm font-outfit text-white/80">
-                    Will create <span className="font-semibold text-green-400">{newCoursesCount}</span> course{newCoursesCount !== 1 ? 's' : ''}{skippedCount > 0 || pastCount > 0 ? ', skip ' : ''}
-                    {skippedCount > 0 && <span className="font-semibold text-red-400">{skippedCount}</span>}
+                  <div className="pt-2 mt-2 border-t border-border/40 text-sm font-outfit text-foreground/80">
+                    Will create <span className="font-semibold text-success">{newCoursesCount}</span> course{newCoursesCount !== 1 ? 's' : ''}{skippedCount > 0 || pastCount > 0 ? ', skip ' : ''}
+                    {skippedCount > 0 && <span className="font-semibold text-destructive">{skippedCount}</span>}
                     {skippedCount > 0 && ' existing'}
                     {skippedCount > 0 && pastCount > 0 && ' and '}
-                    {pastCount > 0 && <span className="font-semibold text-white/40">{pastCount}</span>}
+                    {pastCount > 0 && <span className="font-semibold text-foreground/40">{pastCount}</span>}
                     {pastCount > 0 && ' past'}
                   </div>
                 </>
               ) : (
-                <div className="text-center py-4 text-white/60 font-outfit text-sm">
+                <div className="text-center py-4 text-foreground/60 font-outfit text-sm">
                   No Saturdays found in selected month
                 </div>
               )}
@@ -431,7 +431,7 @@ export function BatchCreateDialog({
                 placeholder="e.g., Magnetic"
                 value={formData.song || ''}
                 onChange={(e) => setFormData({ ...formData, song: e.target.value || null })}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
               />
             </div>
 
@@ -445,7 +445,7 @@ export function BatchCreateDialog({
                 placeholder="e.g., ILLIT"
                 value={formData.singer || ''}
                 onChange={(e) => setFormData({ ...formData, singer: e.target.value || null })}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
               />
             </div>
           </div>
@@ -461,7 +461,7 @@ export function BatchCreateDialog({
               placeholder="https://youtube.com/..."
               value={formData.video_link || ''}
               onChange={(e) => setFormData({ ...formData, video_link: e.target.value || null })}
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+              className="bg-white/10 border-border/60 text-white placeholder:text-foreground/40"
             />
           </div>
 

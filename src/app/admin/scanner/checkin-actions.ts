@@ -2,12 +2,17 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/utils/admin-guard';
+import { getZurichToday } from '@/lib/utils/date-helpers';
 import type { CheckinResponse } from '@/types/courses';
 
 export async function getTodaysCourse() {
   const supabase = await createClient();
-  
-  const today = new Date().toISOString().split('T')[0];
+
+  const admin = await requireAdmin();
+  if (!admin) return null;
+
+  const today = getZurichToday();
   
   const { data, error } = await supabase
     .from('courses')
@@ -33,17 +38,17 @@ export async function performCourseCheckin(
   isDropIn: boolean = false
 ): Promise<CheckinResponse> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const admin = await requireAdmin();
   
-  if (!user) {
-    return { success: false, message: 'Not authenticated' };
+  if (!admin) {
+    return { success: false, message: 'Unauthorized' };
   }
   
   try {
     const { data, error } = await supabase.rpc('perform_course_checkin', {
       p_user_id: userId,
       p_course_id: courseId,
-      p_admin_id: user.id,
+      p_admin_id: admin.id,
       p_is_drop_in: isDropIn
     });
     
@@ -60,7 +65,10 @@ export async function performCourseCheckin(
 
 export async function hasBookingForCourse(userId: string, courseId: string): Promise<boolean> {
   const supabase = await createClient();
-  
+
+  const admin = await requireAdmin();
+  if (!admin) return false;
+
   const { data, error } = await supabase
     .from('bookings')
     .select('id')

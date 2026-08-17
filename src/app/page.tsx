@@ -14,17 +14,17 @@ export const dynamic = "force-static"
 
 export default function Home() {
   return (
-    <main className="relative flex flex-col items-center justify-center overflow-x-hidden bg-black min-h-screen">
+    <main id="main-content" className="relative flex flex-col items-center justify-center overflow-x-hidden bg-background min-h-screen">
       {/* Decoration loads in separate chunk – does not block content or interaction */}
       <FloatingElementsLazy />
 
       {/* Critical content: static HTML, no client JS required (progressive enhancement) */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-8">
         <div className="w-full text-center pt-8 pb-4 px-4">
-          <h1 className="font-syne font-bold text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-1 drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+          <h1 className="font-syne font-bold text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-blue mb-1">
             The Rookie Dance Studio
           </h1>
-          <p className="text-white/70 font-outfit font-light text-base md:text-lg mt-1">
+          <p className="text-foreground/70 font-outfit font-light text-base md:text-lg mt-1">
             Welcome to join our enthusiastic, open, and vibrant dance community.
           </p>
         </div>
@@ -45,13 +45,13 @@ export default function Home() {
         <div className="w-full max-w-md px-4 pb-2 space-y-3">
           <a
             href="/login"
-            className="block w-full h-14 bg-white/10 hover:bg-white/20 border-2 border-black rounded-xl font-syne font-bold text-white text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+            className="block w-full h-14 bg-white/10 hover:bg-white/20 border-2 border-border/40 rounded-xl font-syne font-bold text-white text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
           >
             Log in
           </a>
           <a
             href="/register"
-            className="block w-full h-14 bg-rookie-blue hover:bg-rookie-blue/90 border-2 border-black rounded-xl font-syne font-bold text-black text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+            className="block w-full h-14 bg-rookie-blue hover:bg-rookie-blue/90 border-2 border-border/40 rounded-xl font-syne font-bold text-black text-center flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
           >
             Sign Up
           </a>

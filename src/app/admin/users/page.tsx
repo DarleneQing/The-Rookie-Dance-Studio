@@ -14,6 +14,9 @@ export default async function UserManagementPage() {
 
   const supabase = createClient()
 
+  // Load a bounded initial page (most recent 100 profiles). Full search is
+  // server-side via searchAdminUsers() — we never ship the whole profiles
+  // table to the client.
   const [{ data: profile }, { data: profiles }, { data: subscriptions }] =
     await Promise.all([
       supabase
@@ -23,9 +26,13 @@ export default async function UserManagementPage() {
         .single(),
       supabase
         .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false }),
-      supabase.from("subscriptions").select("*").eq("status", "active"),
+        .select("id, full_name, avatar_url, role, member_type, verification_status, dob")
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("subscriptions")
+        .select("type, status, start_date, end_date, total_credits, remaining_credits, user_id")
+        .eq("status", "active"),
     ])
 
   if (profile?.role !== "admin") {
@@ -44,31 +51,31 @@ export default async function UserManagementPage() {
   }))
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden">
-      <div className="absolute inset-0 z-0 bg-black" />
+    <main id="main-content" className="relative min-h-screen overflow-x-hidden bg-background">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_75%_0%,rgba(176,175,221,0.10),transparent_48%)]"
+        aria-hidden="true"
+      />
 
-      {/* Content */}
-      <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">
-        <div className="relative">
-          <div className="absolute -inset-4 bg-gradient-to-r from-rookie-purple to-rookie-blue opacity-20 blur-2xl rounded-[30px]" />
-          <div className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-[30px] p-4 md:p-6 shadow-2xl overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-50" />
-            
-            <div className="mb-4">
-              <Link
-                href="/admin"
-                aria-label="Back to Admin"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-            </div>
-            <h2 className="font-syne font-bold text-2xl md:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-white via-rookie-pink to-rookie-purple mb-4 md:mb-6 px-2">
-              User Management
-            </h2>
-            <UsersTable users={users} />
-          </div>
-        </div>
+      <div className="relative z-10 mx-auto max-w-3xl px-4 pb-10 pt-6 sm:pt-8">
+        <Link
+          href="/admin"
+          aria-label="Back to Admin"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/60 bg-card text-foreground transition hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+        </Link>
+
+        <header className="mb-6 mt-5">
+          <h1 className="font-syne text-2xl font-bold text-foreground sm:text-3xl">
+            User Management
+          </h1>
+          <p className="mt-1 font-outfit text-sm text-foreground/55">
+            Review member details and manage plans.
+          </p>
+        </header>
+
+        <UsersTable users={users} />
       </div>
     </main>
   )

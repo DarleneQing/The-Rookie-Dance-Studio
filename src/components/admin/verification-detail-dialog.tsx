@@ -112,7 +112,7 @@ export function VerificationDetailDialog({
 
         <div className="grid gap-6 py-4">
           {/* User Info */}
-          <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
+          <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-border/40">
             <Avatar className="h-16 w-16">
               <AvatarImage src={verification.avatar_url || undefined} />
               <AvatarFallback className="bg-gradient-to-br from-rookie-purple to-rookie-pink text-white font-syne text-lg">
@@ -124,11 +124,11 @@ export function VerificationDetailDialog({
                 {verification.full_name || 'Unknown User'}
               </h3>
               {verification.dob && (
-                <p className="font-outfit text-sm text-white/60 mt-1">
+                <p className="font-outfit text-sm text-foreground/60 mt-1">
                   Date of Birth: {new Date(verification.dob).toLocaleDateString()}
                 </p>
               )}
-              <p className="font-outfit text-xs text-white/50 mt-1">
+              <p className="font-outfit text-xs text-foreground/50 mt-1">
                 Submitted: {new Date(verification.created_at).toLocaleString()}
               </p>
             </div>
@@ -137,8 +137,8 @@ export function VerificationDetailDialog({
           {/* Student Card Image */}
           {verification.student_card_url ? (
             <div className="space-y-2">
-              <Label className="text-white/90 font-outfit font-medium">Student Card Image</Label>
-              <div className="relative w-full rounded-lg overflow-hidden border border-white/20 bg-black/20">
+              <Label className="text-foreground/90 font-outfit font-medium">Student Card Image</Label>
+              <div className="relative w-full rounded-lg overflow-hidden border border-border/60 bg-black/20">
                 <Image
                   src={verification.student_card_url}
                   alt="Student card"
@@ -150,14 +150,14 @@ export function VerificationDetailDialog({
               </div>
             </div>
           ) : (
-            <div className="p-8 bg-red-500/10 border border-red-500/20 rounded-lg text-center">
-              <p className="text-red-400 font-outfit">No student card image available</p>
+            <div className="p-8 bg-destructive/10 border border-destructive/20 rounded-lg text-center">
+              <p className="text-destructive font-outfit">No student card image available</p>
             </div>
           )}
 
           {/* Rejection Reason Input */}
           <div className="space-y-2">
-            <Label htmlFor="rejection-reason" className="text-white/90 font-outfit font-medium">
+            <Label htmlFor="rejection-reason" className="text-foreground/90 font-outfit font-medium">
               Rejection Reason (required if rejecting)
             </Label>
             <Textarea
@@ -165,7 +165,7 @@ export function VerificationDetailDialog({
               placeholder="Enter reason for rejection..."
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
-              className="min-h-[100px] bg-white/5 border-white/20 text-white placeholder:text-white/40"
+              className="min-h-[100px] bg-white/5 border-border/60 text-white placeholder-foreground/40"
               disabled={loading !== null}
             />
           </div>
@@ -201,7 +201,7 @@ export function VerificationDetailDialog({
           <Button
             onClick={handleApprove}
             disabled={loading !== null}
-            className="w-full sm:w-auto flex items-center gap-2 bg-green-600 hover:bg-green-700"
+            className="w-full sm:w-auto flex items-center gap-2 bg-success hover:bg-success"
           >
             {loading === 'approve' ? (
               <>

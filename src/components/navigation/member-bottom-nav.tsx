@@ -31,7 +31,7 @@ export function MemberBottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-t border-white/20 shadow-lg">
+    <nav aria-label="Primary" className="fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-t border-white/20 shadow-lg">
       <div className="container max-w-md mx-auto">
         <div className="flex items-center justify-around h-16">
           {navItems.map((item) => {
@@ -42,9 +42,10 @@ export function MemberBottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
                   'flex flex-1 flex-col items-center justify-center gap-1 transition-all duration-200',
-                  active ? 'text-white' : 'text-white/60 hover:text-white/90'
+                  active ? 'text-white' : 'text-foreground/60 hover:text-white/90'
                 )}
               >
                 <Icon
@@ -56,8 +57,7 @@ export function MemberBottomNav() {
                 <span
                   className={cn(
                     'text-xs font-outfit font-medium transition-all duration-200',
-                    active &&
-                      'bg-gradient-to-r from-rookie-purple to-rookie-pink bg-clip-text text-transparent'
+                    active && 'text-white'
                   )}
                 >
                   {item.label}

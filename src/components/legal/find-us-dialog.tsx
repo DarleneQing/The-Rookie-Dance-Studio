@@ -9,8 +9,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { ChevronRight, ExternalLink, Instagram, Mail, MapPin, MessageCircle } from 'lucide-react'
-import { RednoteIcon } from '@/components/icons/social-icons'
+import { RednoteIcon, WeChatIcon } from '@/components/icons/social-icons'
 import { WhatsAppQrDialog } from '@/components/legal/whatsapp-qr-dialog'
+import { WECHAT_ID } from '@/components/legal/wechat-id-dialog'
 
 const LOCATION = 'Quartierzentrum Sch\u00fctze Flex 4, Heinrichstrasse 238, 8005 Zurich'
 const LOCATION_QUERY = encodeURIComponent('Heinrichstrasse 238, 8005 Zurich, Switzerland')
@@ -149,6 +150,19 @@ export function FindUsDialog({ children }: FindUsDialogProps) {
               />
             </button>
           </WhatsAppQrDialog>
+
+          {/* WeChat */}
+          <div className="flex min-h-16 items-center gap-3 rounded-xl border border-border/40 bg-white/5 p-4">
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#07C160]/15 text-[#39d781]">
+              <WeChatIcon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-syne text-sm font-semibold text-foreground">WeChat</p>
+              <p className="mt-0.5 font-outfit text-sm text-foreground/70">
+                WeChat ID: <span className="select-all font-medium text-rookie-cyan">{WECHAT_ID}</span>
+              </p>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

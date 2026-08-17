@@ -26,10 +26,13 @@ describe('finance check-in connection', () => {
 
   it('uses a compact, scroll-safe table at every screen size', () => {
     const financeCard = readWorkspaceFile('src/components/admin/checkins-finance-card.tsx')
+    const dashboard = readWorkspaceFile('src/components/admin/admin-dashboard.tsx')
 
-    expect(financeCard).toContain('overflow-auto')
-    expect(financeCard).toContain('min-w-[600px]')
-    expect(financeCard).toContain('sticky left-0')
-    expect(financeCard).toContain('group h-11')
+    expect(financeCard).toContain('<table className="w-full table-fixed')
+    expect(financeCard).toContain('overflow-y-auto overflow-x-hidden')
+    expect(financeCard).toContain('hidden w-[24%]')
+    expect(financeCard).toContain('className="h-11')
+    expect(financeCard).not.toContain('min-w-[600px]')
+    expect(dashboard).toContain('group/details min-w-0 w-full max-w-full')
   })
 })

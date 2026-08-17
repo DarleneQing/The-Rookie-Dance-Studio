@@ -252,7 +252,7 @@ export function AdminDashboard({ stats, todayCheckins, todaysCourses }: AdminDas
               />
             </Link>
 
-            <details className="group/details md:col-span-2">
+            <details className="group/details min-w-0 w-full max-w-full md:col-span-2">
               <summary className={`${quickActionClassName} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}>
                 <QuickActionContent
                   icon={CircleDollarSign}
@@ -261,7 +261,7 @@ export function AdminDashboard({ stats, todayCheckins, todaysCourses }: AdminDas
                   iconClassName="bg-success/15 text-success"
                 />
               </summary>
-              <div className="mt-3">
+              <div className="mt-3 min-w-0 w-full max-w-full overflow-hidden">
                 <CheckinsFinanceCard />
               </div>
             </details>

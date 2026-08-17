@@ -1,4 +1,6 @@
-﻿import { EmailIcon, InstagramIcon, RednoteIcon } from "@/components/icons/social-icons"
+﻿import { EmailIcon, InstagramIcon, RednoteIcon, WeChatIcon, WhatsAppIcon } from "@/components/icons/social-icons"
+import { WhatsAppQrDialog } from "@/components/legal/whatsapp-qr-dialog"
+import { WeChatIdDialog } from "@/components/legal/wechat-id-dialog"
 
 export function Footer() {
   return (
@@ -16,6 +18,28 @@ export function Footer() {
               <EmailIcon />
               <span className="hidden sm:inline">therookiestudio.ch@gmail.com</span>
             </a>
+
+            <WhatsAppQrDialog>
+              <button
+                type="button"
+                aria-label="Show WhatsApp group QR code"
+                title="WhatsApp group"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-[#25D366]/10 hover:text-[#49dc7f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <WhatsAppIcon className="h-5 w-5" />
+              </button>
+            </WhatsAppQrDialog>
+
+            <WeChatIdDialog>
+              <button
+                type="button"
+                aria-label="Show WeChat ID"
+                title="WeChat"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-[#07C160]/10 hover:text-[#39d781] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <WeChatIcon className="h-5 w-5" />
+              </button>
+            </WeChatIdDialog>
 
             {/* Divider */}
             <span className="hidden md:inline text-foreground/30 mx-6">|</span>

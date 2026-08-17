@@ -4,14 +4,6 @@ import React, { useState } from "react"
 import { Calendar, Loader2, Calculator, FileSpreadsheet, Landmark } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { FinanceSummaryDialog } from "@/components/admin/finance-summary-dialog"
 import { formatTimestampTime } from "@/lib/utils/date-formatters"
 import { getFinanceCheckins, type FinanceCheckinItem } from "@/app/admin/actions"
@@ -69,8 +61,8 @@ export function CheckinsFinanceCard() {
   }
 
   return (
-    <div className="relative">
-      <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-card p-4 shadow-2xl sm:p-6">
+    <div className="relative min-w-0 w-full max-w-full">
+      <div className="relative min-w-0 w-full max-w-full overflow-hidden rounded-3xl border border-border/60 bg-card p-4 shadow-2xl sm:p-6">
         <div className="flex flex-col space-y-4">
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="bg-gradient-to-br from-green-500 to-blue-500 rounded-full p-4">
@@ -139,7 +131,7 @@ export function CheckinsFinanceCard() {
             )}
 
             {hasSearched && !errorMessage && (
-              <div className="space-y-2 pt-2">
+              <div className="min-w-0 space-y-2 pt-2">
                 <div className="text-foreground/70 font-outfit text-sm">
                   {checkins.length === 0
                     ? "No check-ins found for this date"
@@ -148,39 +140,39 @@ export function CheckinsFinanceCard() {
 
                 {checkins.length > 0 && (
                   <>
-                    <div className="relative max-h-[300px] overflow-auto overscroll-contain rounded-xl border border-border/60 bg-white/[0.03]">
-                      <Table className="min-w-[600px] text-xs">
-                        <TableHeader className="sticky top-0 z-20 bg-card shadow-[0_1px_0_hsl(var(--border))]">
-                          <TableRow className="border-0 bg-card hover:bg-card">
-                            <TableHead className="sticky left-0 z-30 min-w-28 bg-card px-3 py-2 font-syne text-xs font-bold text-foreground/90">Name</TableHead>
-                            <TableHead className="w-24 px-3 py-2 font-syne text-xs font-bold text-foreground/90">Time</TableHead>
-                            <TableHead className="w-24 px-3 py-2 font-syne text-xs font-bold text-foreground/90">Member</TableHead>
-                            <TableHead className="w-24 px-3 py-2 font-syne text-xs font-bold text-foreground/90">Payment</TableHead>
-                            <TableHead className="w-36 px-3 py-2 font-syne text-xs font-bold text-foreground/90">Phone</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <div className="relative max-h-[300px] min-w-0 w-full max-w-full overflow-y-auto overflow-x-hidden overscroll-contain rounded-xl border border-border/60 bg-white/[0.03]">
+                      <table className="w-full table-fixed border-collapse text-left text-xs">
+                        <thead className="sticky top-0 z-20 bg-card shadow-[0_1px_0_hsl(var(--border))]">
+                          <tr>
+                            <th className="w-[28%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[22%] sm:px-3 sm:text-xs">Name</th>
+                            <th className="w-[20%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[18%] sm:px-3 sm:text-xs">Time</th>
+                            <th className="w-[26%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[18%] sm:px-3 sm:text-xs">Member</th>
+                            <th className="w-[26%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[18%] sm:px-3 sm:text-xs">Payment</th>
+                            <th className="hidden w-[24%] px-3 py-2 font-syne text-xs font-bold text-foreground/90 sm:table-cell">Phone</th>
+                          </tr>
+                        </thead>
+                        <tbody>
                           {checkins.map((checkin) => (
-                            <TableRow key={checkin.id} className="group h-11 border-border/50 hover:bg-white/5">
-                              <TableCell className="sticky left-0 z-10 max-w-36 whitespace-normal break-words bg-card px-3 py-2 font-outfit font-medium text-foreground group-hover:bg-[#181818]">
+                            <tr key={checkin.id} className="h-11 border-b border-border/50 last:border-0 hover:bg-white/5">
+                              <td className="truncate px-2 py-2 font-outfit font-medium text-foreground sm:px-3" title={checkin.full_name || "Unknown"}>
                                 {checkin.full_name || "Unknown"}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap px-3 py-2 font-outfit text-foreground/80">
+                              </td>
+                              <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3">
                                 {formatTimestampTime(checkin.created_at)}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap px-3 py-2 font-outfit capitalize text-foreground/80">
+                              </td>
+                              <td className="truncate px-2 py-2 font-outfit capitalize text-foreground/80 sm:px-3" title={checkin.member_type ?? "—"}>
                                 {checkin.member_type ?? "—"}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap px-3 py-2 font-outfit text-foreground/80">
+                              </td>
+                              <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3" title={formatPaymentMethod(checkin.payment_method)}>
                                 {formatPaymentMethod(checkin.payment_method)}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap px-3 py-2 font-outfit text-foreground/80">
+                              </td>
+                              <td className="hidden truncate px-3 py-2 font-outfit text-foreground/80 sm:table-cell" title={checkin.phone_number || "—"}>
                                 {checkin.phone_number || "—"}
-                              </TableCell>
-                            </TableRow>
+                              </td>
+                            </tr>
                           ))}
-                        </TableBody>
-                      </Table>
+                        </tbody>
+                      </table>
                     </div>
 
                     <button

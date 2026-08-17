@@ -61,6 +61,18 @@ describe("UI accessibility contracts", () => {
     expect(footer).not.toMatch(/Â©|â€¢|å°çº¢ä¹¦/)
   })
 
+  it("exposes WhatsApp and WeChat contacts in the footer and Find Us dialog", () => {
+    const footer = readWorkspaceFile("src/components/footer.tsx")
+    const findUs = readWorkspaceFile("src/components/legal/find-us-dialog.tsx")
+    const weChatDialog = readWorkspaceFile("src/components/legal/wechat-id-dialog.tsx")
+
+    expect(footer).toContain('aria-label="Show WhatsApp group QR code"')
+    expect(footer).toContain('aria-label="Show WeChat ID"')
+    expect(footer.match(/className="inline-flex h-11 w-11/g)).toHaveLength(2)
+    expect(findUs).toContain("WeChat ID:")
+    expect(weChatDialog).toContain("export const WECHAT_ID = 'yyyuanfish'")
+  })
+
   it("offers an accessible progressive-disclosure control for FAQ topics", () => {
     const faq = readWorkspaceFile("src/components/legal/faq-content.tsx")
 

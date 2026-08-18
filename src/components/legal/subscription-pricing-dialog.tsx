@@ -64,6 +64,26 @@ function PriceColumn({
   )
 }
 
+function PricingTierTitle({ name }: { name: string }) {
+  const cardSuffix = ' Card'
+  const isCardName = name.endsWith(cardSuffix)
+  const primary = isCardName ? name.slice(0, -cardSuffix.length) : name
+
+  return (
+    <h3 className="font-syne text-sm font-bold leading-tight text-foreground sm:text-base">
+      {isCardName ? (
+        <>
+          {primary}
+          <br />
+          Card
+        </>
+      ) : (
+        name
+      )}
+    </h3>
+  )
+}
+
 function PricingTierCard({
   name,
   student,
@@ -83,11 +103,9 @@ function PricingTierCard({
           <Icon className="h-4 w-4 text-white sm:h-5 sm:w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <h3 className="truncate font-syne text-sm font-bold text-foreground sm:text-base">
-            {name}
-          </h3>
+          <PricingTierTitle name={name} />
           {description ? (
-            <p className="mt-0.5 truncate font-outfit text-[10px] leading-snug text-foreground/55 sm:text-xs">
+            <p className="mt-0.5 font-outfit text-[10px] leading-snug text-foreground/55 sm:truncate sm:text-xs">
               {description}
             </p>
           ) : null}

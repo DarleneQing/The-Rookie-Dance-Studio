@@ -22,6 +22,7 @@ describe('finance check-in connection', () => {
 
     expect(summaryDialog).toContain('Create the system snapshot?')
     expect(summaryDialog).toContain('createOrRefreshFinanceCloseout(course.id)')
+    expect(summaryDialog).toContain('financeWorkbookLinks.backupCloseout')
     expect(adminActions).toContain("settlementId: `CLASS-${course.id}`")
     expect(webhook).toContain('BACKUP_CONFIRMED_COLUMN = 22')
     expect(webhook).toContain("status: 'locked'")

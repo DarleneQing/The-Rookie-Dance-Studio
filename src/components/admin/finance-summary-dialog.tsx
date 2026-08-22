@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { calculateClassFinance } from "@/lib/finance/calculate-class-finance"
+import { financeWorkbookLinks } from "@/lib/finance-workbook"
 import { SINGLE_CLASS_PRICE } from "@/lib/pricing"
 
 interface FinanceSummaryDialogProps {
@@ -196,9 +197,18 @@ export function FinanceSummaryDialog({
           </div>
 
           {result && !result.success && (
-            <p className="font-outfit text-sm text-destructive" role="alert">
-              {result.message}
-            </p>
+            <div className="space-y-2 font-outfit text-sm" role="alert">
+              <p className="text-destructive">{result.message}</p>
+              <a
+                href={financeWorkbookLinks.backupCloseout}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-semibold text-foreground underline underline-offset-4"
+              >
+                Open workbook manually
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
           )}
 
           <DialogFooter className="gap-2 sm:gap-0">

@@ -1,13 +1,25 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { Calendar, Loader2, Calculator, FileSpreadsheet, Landmark } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { FinanceSummaryDialog } from "@/components/admin/finance-summary-dialog"
 import { formatTimestampTime } from "@/lib/utils/date-formatters"
-import { getFinanceCheckins, type FinanceCheckinItem } from "@/app/admin/actions"
+import {
+  getFinanceCheckins,
+  type FinanceCheckinItem,
+  type FinanceCourseItem,
+} from "@/app/admin/actions"
 import { financeWorkbookLinks } from "@/lib/finance-workbook"
+import { getZurichToday } from "@/lib/utils/date-helpers"
 
 export type CheckinFinanceItem = FinanceCheckinItem
 
@@ -19,18 +31,27 @@ function formatPaymentMethod(method: string | null): string {
 
 export function CheckinsFinanceCard() {
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    getZurichToday()
   )
   const [checkins, setCheckins] = useState<CheckinFinanceItem[]>([])
+  const [courses, setCourses] = useState<FinanceCourseItem[]>([])
+  const [selectedCourseId, setSelectedCourseId] = useState("")
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const [financeDialogOpen, setFinanceDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const selectedCourse = courses.find((course) => course.id === selectedCourseId) ?? null
+  const visibleCheckins = useMemo(
+    () => checkins.filter((checkin) => checkin.course_id === selectedCourseId),
+    [checkins, selectedCourseId]
+  )
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date)
     setHasSearched(false)
     setCheckins([])
+    setCourses([])
+    setSelectedCourseId("")
     setErrorMessage(null)
   }
 
@@ -47,10 +68,14 @@ export function CheckinsFinanceCard() {
       if (!result.success) {
         setErrorMessage(result.message ?? "Failed to load check-ins")
         setCheckins([])
+        setCourses([])
+        setSelectedCourseId("")
         return
       }
 
       setCheckins(result.items ?? [])
+      setCourses(result.courses ?? [])
+      setSelectedCourseId(result.courses?.[0]?.id ?? "")
     } catch (error) {
       console.error("Error fetching check-ins:", error)
       setErrorMessage("Failed to load check-ins. Please try again.")
@@ -133,47 +158,69 @@ export function CheckinsFinanceCard() {
             {hasSearched && !errorMessage && (
               <div className="min-w-0 space-y-2 pt-2">
                 <div className="text-foreground/70 font-outfit text-sm">
-                  {checkins.length === 0
-                    ? "No check-ins found for this date"
-                    : `${checkins.length} check-in${checkins.length !== 1 ? "s" : ""} found`}
+                  {courses.length === 0
+                    ? "No classes found for this date"
+                    : `${visibleCheckins.length} check-in${visibleCheckins.length !== 1 ? "s" : ""} found`}
                 </div>
 
-                {checkins.length > 0 && (
+                {courses.length > 1 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="finance-course" className="font-outfit text-sm text-foreground/90">
+                      Class
+                    </Label>
+                    <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                      <SelectTrigger id="finance-course" className="h-11 rounded-xl border-border/60 bg-white/[0.03]">
+                        <SelectValue placeholder="Select a class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.start_time.slice(0, 5)} · {course.dance_style}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {selectedCourse && (
                   <>
-                    <div className="relative max-h-[300px] min-w-0 w-full max-w-full overflow-y-auto overflow-x-auto overscroll-contain rounded-xl border border-border/60 bg-white/[0.03]">
-                      <table className="w-full min-w-[540px] table-fixed border-collapse text-left text-xs">
-                        <thead className="sticky top-0 z-20 bg-card shadow-[0_1px_0_hsl(var(--border))]">
-                          <tr>
-                            <th className="w-[24%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[22%] sm:px-3 sm:text-xs">Name</th>
-                            <th className="w-[17%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[16%] sm:px-3 sm:text-xs">Time</th>
-                            <th className="w-[17%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[15%] sm:px-3 sm:text-xs">Member</th>
-                            <th className="w-[18%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[15%] sm:px-3 sm:text-xs">Payment</th>
-                            <th className="w-[24%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[32%] sm:px-3 sm:text-xs">Phone</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {checkins.map((checkin) => (
-                            <tr key={checkin.id} className="h-11 border-b border-border/50 last:border-0 hover:bg-white/5">
-                              <td className="truncate px-2 py-2 font-outfit font-medium text-foreground sm:px-3" title={checkin.full_name || "Unknown"}>
-                                {checkin.full_name || "Unknown"}
-                              </td>
-                              <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3">
-                                {formatTimestampTime(checkin.created_at)}
-                              </td>
-                              <td className="truncate px-2 py-2 font-outfit capitalize text-foreground/80 sm:px-3" title={checkin.member_type ?? "—"}>
-                                {checkin.member_type ?? "—"}
-                              </td>
-                              <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3" title={formatPaymentMethod(checkin.payment_method)}>
-                                {formatPaymentMethod(checkin.payment_method)}
-                              </td>
-                              <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3" title={checkin.phone_number || "—"}>
-                                {checkin.phone_number || "—"}
-                              </td>
+                    {visibleCheckins.length > 0 && (
+                      <div className="relative max-h-[300px] min-w-0 w-full max-w-full overflow-y-auto overflow-x-auto overscroll-contain rounded-xl border border-border/60 bg-white/[0.03]">
+                        <table className="w-full min-w-[540px] table-fixed border-collapse text-left text-xs">
+                          <thead className="sticky top-0 z-20 bg-card shadow-[0_1px_0_hsl(var(--border))]">
+                            <tr>
+                              <th className="w-[24%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[22%] sm:px-3 sm:text-xs">Name</th>
+                              <th className="w-[17%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[16%] sm:px-3 sm:text-xs">Time</th>
+                              <th className="w-[17%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[15%] sm:px-3 sm:text-xs">Member</th>
+                              <th className="w-[18%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[15%] sm:px-3 sm:text-xs">Payment</th>
+                              <th className="w-[24%] px-2 py-2 font-syne text-[11px] font-bold text-foreground/90 sm:w-[32%] sm:px-3 sm:text-xs">Phone</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {visibleCheckins.map((checkin) => (
+                              <tr key={checkin.id} className="h-11 border-b border-border/50 last:border-0 hover:bg-white/5">
+                                <td className="truncate px-2 py-2 font-outfit font-medium text-foreground sm:px-3" title={checkin.full_name || "Unknown"}>
+                                  {checkin.full_name || "Unknown"}
+                                </td>
+                                <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3">
+                                  {formatTimestampTime(checkin.created_at)}
+                                </td>
+                                <td className="truncate px-2 py-2 font-outfit capitalize text-foreground/80 sm:px-3" title={checkin.member_type ?? "—"}>
+                                  {checkin.member_type ?? "—"}
+                                </td>
+                                <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3" title={formatPaymentMethod(checkin.payment_method)}>
+                                  {formatPaymentMethod(checkin.payment_method)}
+                                </td>
+                                <td className="truncate px-2 py-2 font-outfit text-foreground/80 sm:px-3" title={checkin.phone_number || "—"}>
+                                  {checkin.phone_number || "—"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
 
                     <button
                       type="button"
@@ -185,7 +232,8 @@ export function CheckinsFinanceCard() {
                     </button>
 
                     <FinanceSummaryDialog
-                      checkins={checkins}
+                      checkins={visibleCheckins}
+                      course={selectedCourse}
                       open={financeDialogOpen}
                       onOpenChange={setFinanceDialogOpen}
                     />

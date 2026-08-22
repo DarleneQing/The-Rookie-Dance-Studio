@@ -11,13 +11,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { SINGLE_CLASS_PRICE } from '@/lib/pricing'
 
 const PRICING = [
   {
     name: 'Single Class',
     description: 'Drop in for one class.',
-    student: 10,
-    adult: 15,
+    student: SINGLE_CLASS_PRICE.student,
+    adult: SINGLE_CLASS_PRICE.adult,
     icon: Ticket,
   },
   {

@@ -15,6 +15,26 @@ describe('finance check-in connection', () => {
     expect(financeCard).not.toContain('@/lib/supabase/client')
   })
 
+  it('requires a confirmation before recomputing and upserting a class snapshot', () => {
+    const summaryDialog = readWorkspaceFile('src/components/admin/finance-summary-dialog.tsx')
+    const adminActions = readWorkspaceFile('src/app/admin/actions.ts')
+    const webhook = readWorkspaceFile('docs/google-apps-script/finance-closeout-webhook.gs')
+
+    expect(summaryDialog).toContain('Create the system snapshot?')
+    expect(summaryDialog).toContain('createOrRefreshFinanceCloseout(course.id)')
+    expect(adminActions).toContain("settlementId: `CLASS-${course.id}`")
+    expect(webhook).toContain('BACKUP_CONFIRMED_COLUMN = 22')
+    expect(webhook).toContain("status: 'locked'")
+    expect(webhook).toContain('getRange(row, 1, 1, 13).setValues(values)')
+  })
+
+  it('loads finance by scheduled class instead of check-in timestamp', () => {
+    const adminActions = readWorkspaceFile('src/app/admin/actions.ts')
+
+    expect(adminActions).toContain(".eq('scheduled_date', selectedDate)")
+    expect(adminActions).toContain(".in('course_id', courses.map((course) => course.id))")
+  })
+
   it('keeps the latest role-based workbook destinations', () => {
     const financeCard = readWorkspaceFile('src/components/admin/checkins-finance-card.tsx')
     const workbookLinks = readWorkspaceFile('src/lib/finance-workbook.ts')

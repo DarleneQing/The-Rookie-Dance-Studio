@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/utils/admin-guard'
+import { calculateClassFinance } from '@/lib/finance/calculate-class-finance'
+import { upsertFinanceCloseout } from '@/lib/finance/finance-closeout-webhook'
+import { getFinanceCloseoutRowLink } from '@/lib/finance-workbook'
 
 export type PaymentMethod = 'cash' | 'twint' | 'abo';
 
@@ -327,11 +330,19 @@ export async function requestStudentReVerification(
 
 export interface FinanceCheckinItem {
   id: string
+  course_id: string
   full_name: string | null
   member_type: 'adult' | 'student' | null
   payment_method: 'cash' | 'twint' | 'abo' | null
   phone_number: string | null
   created_at: string
+}
+
+export interface FinanceCourseItem {
+  id: string
+  dance_style: string
+  scheduled_date: string
+  start_time: string
 }
 
 /**
@@ -341,28 +352,39 @@ export interface FinanceCheckinItem {
  */
 export async function getFinanceCheckins(
   selectedDate: string
-): Promise<{ success: boolean; message?: string; items?: FinanceCheckinItem[] }> {
+): Promise<{
+  success: boolean
+  message?: string
+  items?: FinanceCheckinItem[]
+  courses?: FinanceCourseItem[]
+}> {
   const admin = await requireAdmin()
   if (!admin) {
     return { success: false, message: 'Unauthorized' }
   }
 
   const supabase = createClient()
+  const { data: courseData, error: courseError } = await supabase
+    .from('courses')
+    .select('id, dance_style, scheduled_date, start_time')
+    .eq('scheduled_date', selectedDate)
+    .neq('status', 'cancelled')
+    .order('start_time', { ascending: true })
 
-  const dateStart = new Date(selectedDate)
-  dateStart.setHours(0, 0, 0, 0)
-  const dateStartISO = dateStart.toISOString()
+  if (courseError) {
+    console.error('getFinanceCheckins course error:', courseError)
+    return { success: false, message: 'Failed to load classes' }
+  }
 
-  const dateEnd = new Date(selectedDate)
-  dateEnd.setHours(23, 59, 59, 999)
-  const dateEndISO = dateEnd.toISOString()
+  const courses = (courseData ?? []) as FinanceCourseItem[]
+  if (courses.length === 0) {
+    return { success: true, items: [], courses: [] }
+  }
 
   const { data, error } = await supabase
     .from('checkins')
-    .select('id, created_at, payment_method, profiles!user_id(full_name, member_type, phone_number)')
-    .not('course_id', 'is', null)
-    .gte('created_at', dateStartISO)
-    .lte('created_at', dateEndISO)
+    .select('id, course_id, created_at, payment_method, profiles!user_id(full_name, member_type, phone_number)')
+    .in('course_id', courses.map((course) => course.id))
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -372,6 +394,7 @@ export async function getFinanceCheckins(
 
   const items: FinanceCheckinItem[] = ((data as Array<{
     id: string
+    course_id: string
     created_at: string
     payment_method: 'cash' | 'twint' | 'abo' | null
     profiles:
@@ -383,6 +406,7 @@ export async function getFinanceCheckins(
     const p = profile && !Array.isArray(profile) ? profile : Array.isArray(profile) && profile[0] ? profile[0] : null
     return {
       id: item.id,
+      course_id: item.course_id,
       full_name: p?.full_name ?? null,
       member_type: (p?.member_type === 'adult' || p?.member_type === 'student' ? p.member_type : null) as 'adult' | 'student' | null,
       payment_method: item.payment_method,
@@ -391,7 +415,112 @@ export async function getFinanceCheckins(
     }
   })
 
-  return { success: true, items }
+  return { success: true, items, courses }
+}
+
+export interface FinanceCloseoutActionResult {
+  success: boolean
+  status?: 'created' | 'refreshed' | 'locked'
+  message: string
+  sheetUrl?: string
+}
+
+/**
+ * Recomputes a single class from server-side check-ins and upserts only the
+ * workbook's system snapshot columns. A Backup-confirmed row is immutable.
+ */
+export async function createOrRefreshFinanceCloseout(
+  courseId: string
+): Promise<FinanceCloseoutActionResult> {
+  const admin = await requireAdmin()
+  if (!admin) return { success: false, message: 'Unauthorized' }
+  if (!courseId) return { success: false, message: 'No class selected.' }
+
+  const supabase = createClient()
+  const { data: course, error: courseError } = await supabase
+    .from('courses')
+    .select('id, dance_style, scheduled_date, start_time')
+    .eq('id', courseId)
+    .single()
+
+  if (courseError || !course) {
+    console.error('createOrRefreshFinanceCloseout course error:', courseError)
+    return { success: false, message: 'The selected class could not be loaded.' }
+  }
+
+  const [checkinsResult, adminProfileResult] = await Promise.all([
+    supabase
+      .from('checkins')
+      .select('payment_method, profiles!user_id(member_type)')
+      .eq('course_id', courseId),
+    supabase.from('profiles').select('full_name').eq('id', admin.id).single(),
+  ])
+
+  if (checkinsResult.error) {
+    console.error('createOrRefreshFinanceCloseout check-ins error:', checkinsResult.error)
+    return { success: false, message: 'The latest check-ins could not be loaded.' }
+  }
+
+  const checkins = ((checkinsResult.data ?? []) as Array<{
+    payment_method: 'cash' | 'twint' | 'abo' | null
+    profiles:
+      | { member_type: string | null }
+      | { member_type: string | null }[]
+      | null
+  }>).map((checkin) => {
+    const profile = Array.isArray(checkin.profiles)
+      ? checkin.profiles[0] ?? null
+      : checkin.profiles
+    return {
+      payment_method: checkin.payment_method,
+      member_type:
+        profile?.member_type === 'adult' || profile?.member_type === 'student'
+          ? profile.member_type
+          : null,
+    } as const
+  })
+
+  const finance = calculateClassFinance(checkins)
+  if (finance.unresolvedCount > 0) {
+    return {
+      success: false,
+      message: `${finance.unresolvedCount} check-in${finance.unresolvedCount === 1 ? '' : 's'} need a valid payment method and member type before finance can be calculated.`,
+    }
+  }
+
+  const backupName = adminProfileResult.data?.full_name?.trim() || 'Admin'
+  const result = await upsertFinanceCloseout({
+    settlementId: `CLASS-${course.id}`,
+    classDate: course.scheduled_date,
+    courseId: course.id,
+    classStyle: course.dance_style,
+    startTime: course.start_time.slice(0, 5),
+    backupName,
+    adultCashCount: finance.adultCashCount,
+    studentCashCount: finance.studentCashCount,
+    adultTwintCount: finance.adultTwintCount,
+    studentTwintCount: finance.studentTwintCount,
+    aboCount: finance.aboCount,
+    systemCash: finance.cashTotal,
+    systemTwint: finance.twintTotal,
+  })
+
+  if (!result.ok || !result.status || !result.row) {
+    return { success: false, message: result.message || 'The finance row was not updated.' }
+  }
+
+  const messages = {
+    created: 'The latest check-ins were added to a new finance row.',
+    refreshed: 'The finance row was refreshed from the latest check-ins.',
+    locked: 'This row is already Backup confirmed, so no system values were changed.',
+  } as const
+
+  return {
+    success: true,
+    status: result.status,
+    message: messages[result.status],
+    sheetUrl: getFinanceCloseoutRowLink(result.row),
+  }
 }
 
 export interface AdminUserRow {

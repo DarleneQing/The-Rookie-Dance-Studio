@@ -188,7 +188,15 @@ export function UserDetailsDialog({ user, children }: UserDetailsDialogProps) {
               </div>
             )}
 
-            <AssignSubscriptionDialog userId={user.id} userName={user.full_name ?? 'User'}>
+            <AssignSubscriptionDialog
+              userId={user.id}
+              userName={user.full_name ?? 'User'}
+              memberType={
+                user.member_type === 'adult' || user.member_type === 'student'
+                  ? user.member_type
+                  : null
+              }
+            >
               <Button className="mt-3 h-11 w-full rounded-xl font-outfit">
                 <CreditCard className="mr-2 h-4 w-4" aria-hidden="true" />
                 {subscription ? 'Replace Plan' : 'Assign Plan'}

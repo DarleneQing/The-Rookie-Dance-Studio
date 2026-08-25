@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
-import { Calendar, Loader2, Calculator, FileSpreadsheet, Landmark } from "lucide-react"
+import React, { useEffect, useMemo, useState } from "react"
+import { Calendar, Loader2, Calculator, FileSpreadsheet, Landmark, ReceiptText } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { FinanceSummaryDialog } from "@/components/admin/finance-summary-dialog"
+import { QuickTransactionDialog } from "@/components/admin/quick-transaction-dialog"
 import { formatTimestampTime } from "@/lib/utils/date-formatters"
 import {
   getFinanceCheckins,
@@ -30,6 +32,7 @@ function formatPaymentMethod(method: string | null): string {
 }
 
 export function CheckinsFinanceCard() {
+  const searchParams = useSearchParams()
   const [selectedDate, setSelectedDate] = useState<string>(
     getZurichToday()
   )
@@ -39,12 +42,17 @@ export function CheckinsFinanceCard() {
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const [financeDialogOpen, setFinanceDialogOpen] = useState(false)
+  const [transactionDialogOpen, setTransactionDialogOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const selectedCourse = courses.find((course) => course.id === selectedCourseId) ?? null
   const visibleCheckins = useMemo(
     () => checkins.filter((checkin) => checkin.course_id === selectedCourseId),
     [checkins, selectedCourseId]
   )
+
+  useEffect(() => {
+    if (searchParams.get("finance") === "transaction") setTransactionDialogOpen(true)
+  }, [searchParams])
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date)
@@ -97,7 +105,15 @@ export function CheckinsFinanceCard() {
               Check-ins & Finance
             </div>
 
-            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3">
+              <button
+                type="button"
+                onClick={() => setTransactionDialogOpen(true)}
+                className="rounded-md bg-amber-500 px-4 py-3 font-outfit font-medium text-black transition-colors hover:bg-amber-400 flex items-center justify-center gap-2"
+              >
+                <ReceiptText className="h-4 w-4" />
+                Record Transaction
+              </button>
               <a
                 href={financeWorkbookLinks.accountReview}
                 target="_blank"
@@ -117,6 +133,11 @@ export function CheckinsFinanceCard() {
                 Audit Summary
               </a>
             </div>
+
+            <QuickTransactionDialog
+              open={transactionDialogOpen}
+              onOpenChange={setTransactionDialogOpen}
+            />
           </div>
 
           <div className="space-y-4 pt-2">

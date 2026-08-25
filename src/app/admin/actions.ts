@@ -4,8 +4,20 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/utils/admin-guard'
 import { calculateClassFinance } from '@/lib/finance/calculate-class-finance'
-import { upsertFinanceCloseout } from '@/lib/finance/finance-closeout-webhook'
-import { getFinanceCloseoutRowLink } from '@/lib/finance-workbook'
+import {
+  upsertAboSale,
+  upsertFinanceCloseout,
+  upsertOtherTransaction,
+  type AboSalePayload,
+  type OtherTransactionPayload,
+} from '@/lib/finance/finance-closeout-webhook'
+import {
+  financeWorkbookLinks,
+  getAboSaleRowLink,
+  getFinanceCloseoutRowLink,
+  getOtherTransactionRowLink,
+} from '@/lib/finance-workbook'
+import type { SubscriptionType } from '@/lib/pricing'
 
 export type PaymentMethod = 'cash' | 'twint' | 'abo';
 
@@ -98,11 +110,141 @@ export async function getMemberProfile(userId: string): Promise<{
   }
 }
 
+export type AboPriceLabel = AboSalePayload['priceLabel']
+export type FinancePaymentChannel = AboSalePayload['paymentChannel']
+export type FinanceDestination = AboSalePayload['destination']
+
+export type AboPaymentInput =
+  | { recordPayment: false }
+  | {
+      recordPayment: true
+      paymentDate: string
+      priceLabel: AboPriceLabel
+      actualSaleAmount: number
+      paymentChannel: FinancePaymentChannel
+      destination: FinanceDestination
+      relatedSettlementId?: string
+    }
+
+export interface AssignSubscriptionResult {
+  success: boolean
+  message: string
+  subscriptionId?: string
+  financeRecorded?: boolean
+  financeMessage?: string
+  financeSheetUrl?: string
+}
+
+const ABO_PRODUCT_BY_TYPE: Record<SubscriptionType, AboSalePayload['product']> = {
+  monthly: 'Monthly',
+  '5_times': '5-times',
+  '10_times': '10-times',
+}
+
+const ABO_PRICE_LABELS: readonly AboPriceLabel[] = [
+  'Old Price',
+  'New Price',
+  'Discount',
+  'Special',
+  'N/A',
+]
+const FINANCE_PAYMENT_CHANNELS: readonly FinancePaymentChannel[] = [
+  'Cash',
+  'TWINT',
+  'Bank',
+  'Other',
+]
+const FINANCE_DESTINATIONS: readonly FinanceDestination[] = [
+  'Cash Box',
+  'Personal TWINT',
+  'Public Bank Account',
+  'Other',
+]
+
+function isValidPaymentDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return false
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const date = new Date(Date.UTC(year, month - 1, day))
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  )
+}
+
+function validateAboPayment(payment: AboPaymentInput): string | null {
+  if (!payment.recordPayment) return null
+  if (!isValidPaymentDate(payment.paymentDate)) return 'A valid payment date is required.'
+  if (!ABO_PRICE_LABELS.includes(payment.priceLabel)) return 'The price context is invalid.'
+  if (!Number.isFinite(payment.actualSaleAmount) || payment.actualSaleAmount <= 0) {
+    return 'Actual sale amount must be greater than zero.'
+  }
+  if (!FINANCE_PAYMENT_CHANNELS.includes(payment.paymentChannel)) {
+    return 'The payment channel is invalid.'
+  }
+  if (!FINANCE_DESTINATIONS.includes(payment.destination)) {
+    return 'The payment destination is invalid.'
+  }
+  return null
+}
+
+async function writeAboSale(params: {
+  adminId: string
+  subscriptionId: string
+  userId: string
+  type: SubscriptionType
+  payment: Extract<AboPaymentInput, { recordPayment: true }>
+}): Promise<{ recorded: boolean; message: string; sheetUrl: string }> {
+  const supabase = createClient()
+  const [memberResult, adminResult] = await Promise.all([
+    supabase.from('profiles').select('full_name').eq('id', params.userId).single(),
+    supabase.from('profiles').select('full_name').eq('id', params.adminId).single(),
+  ])
+
+  const memberName = memberResult.data?.full_name?.trim() || 'Member'
+  const result = await upsertAboSale({
+    saleId: `ABO-${params.subscriptionId}`,
+    paymentDate: params.payment.paymentDate,
+    relatedSettlementId: params.payment.relatedSettlementId?.trim() || '',
+    memberReference: `${memberName} | ${params.userId}`,
+    product: ABO_PRODUCT_BY_TYPE[params.type],
+    priceLabel: params.payment.priceLabel,
+    actualSaleAmount: params.payment.actualSaleAmount,
+    paymentChannel: params.payment.paymentChannel,
+    destination: params.payment.destination,
+    subscriptionId: params.subscriptionId,
+    enteredBy: adminResult.data?.full_name?.trim() || 'Admin',
+  })
+
+  if (!result.ok || !result.row) {
+    return {
+      recorded: false,
+      message: result.message || 'The Abo sale could not be added to Google Sheets.',
+      sheetUrl: financeWorkbookLinks.aboSales,
+    }
+  }
+
+  return {
+    recorded: true,
+    message:
+      result.status === 'locked'
+        ? 'The Abo sale was already recorded.'
+        : 'The Abo sale was recorded for account review.',
+    sheetUrl: getAboSaleRowLink(result.row),
+  }
+}
+
 export async function assignUserSubscription(
-  userId: string, 
-  type: 'monthly' | '5_times' | '10_times', 
-  startDate?: string
-) {
+  userId: string,
+  type: SubscriptionType,
+  startDate?: string,
+  payment: AboPaymentInput = { recordPayment: false }
+): Promise<AssignSubscriptionResult> {
   const supabase = createClient()
   
   const admin = await requireAdmin()
@@ -111,7 +253,13 @@ export async function assignUserSubscription(
   }
 
   // Call RPC
-  const { error } = await supabase.rpc('assign_subscription', {
+  const validationError = validateAboPayment(payment)
+  if (validationError) return { success: false, message: validationError }
+  if (!(type in ABO_PRODUCT_BY_TYPE)) {
+    return { success: false, message: 'This subscription type is invalid.' }
+  }
+
+  const { data, error } = await supabase.rpc('assign_subscription', {
     p_user_id: userId,
     p_type: type,
     p_start_date: startDate || null,
@@ -123,8 +271,236 @@ export async function assignUserSubscription(
     return { success: false, message: 'Failed to assign subscription' }
   }
 
+  const subscriptionId = typeof data === 'string' ? data : null
+  if (!subscriptionId) {
+    console.error('assign_subscription did not return a subscription ID')
+    return {
+      success: true,
+      message: 'Subscription assigned, but its finance reference needs manual entry.',
+      financeRecorded: payment.recordPayment ? false : undefined,
+      financeMessage: payment.recordPayment
+        ? 'The website did not receive the new Subscription ID. Record this sale manually in Abo Sales.'
+        : undefined,
+      financeSheetUrl: payment.recordPayment ? financeWorkbookLinks.aboSales : undefined,
+    }
+  }
+
   revalidatePath('/admin/users')
-  return { success: true, message: 'Subscription assigned successfully' }
+
+  if (!payment.recordPayment) {
+    return {
+      success: true,
+      message: 'Subscription assigned without a new payment.',
+      subscriptionId,
+    }
+  }
+
+  const finance = await writeAboSale({
+    adminId: admin.id,
+    subscriptionId,
+    userId,
+    type,
+    payment,
+  })
+
+  return {
+    success: true,
+    message: 'Subscription assigned successfully.',
+    subscriptionId,
+    financeRecorded: finance.recorded,
+    financeMessage: finance.message,
+    financeSheetUrl: finance.sheetUrl,
+  }
+}
+
+export async function retryAboSaleRecord(
+  subscriptionId: string,
+  payment: Extract<AboPaymentInput, { recordPayment: true }>
+): Promise<AssignSubscriptionResult> {
+  const admin = await requireAdmin()
+  if (!admin) return { success: false, message: 'Unauthorized' }
+
+  const validationError = validateAboPayment(payment)
+  if (validationError) return { success: false, message: validationError }
+
+  const supabase = createClient()
+  const { data: subscription, error } = await supabase
+    .from('subscriptions')
+    .select('id, user_id, type')
+    .eq('id', subscriptionId)
+    .single()
+
+  if (error || !subscription) {
+    return { success: false, message: 'The assigned subscription could not be loaded.' }
+  }
+
+  const type = subscription.type as SubscriptionType
+  if (!(type in ABO_PRODUCT_BY_TYPE)) {
+    return { success: false, message: 'This subscription type cannot be recorded as an Abo sale.' }
+  }
+
+  const finance = await writeAboSale({
+    adminId: admin.id,
+    subscriptionId,
+    userId: subscription.user_id,
+    type,
+    payment,
+  })
+
+  return {
+    success: true,
+    message: 'Subscription remains assigned.',
+    subscriptionId,
+    financeRecorded: finance.recorded,
+    financeMessage: finance.message,
+    financeSheetUrl: finance.sheetUrl,
+  }
+}
+
+export type QuickTransactionCategory = OtherTransactionPayload['category']
+export type FinanceCustodyStatus = OtherTransactionPayload['custodyStatus']
+
+const QUICK_TRANSACTION_CATEGORIES: readonly QuickTransactionCategory[] = [
+  'Instructor',
+  'Venue',
+  'Admin',
+  'Donation',
+  'Sponsorship',
+  'Refund',
+  'Other',
+]
+const FINANCE_CUSTODY_STATUSES: readonly FinanceCustodyStatus[] = [
+  'Not Needed',
+  'Pending',
+  'Reimbursed',
+  'Holding Cash',
+  'Transferred',
+  'Other',
+]
+
+export interface QuickTransactionInput {
+  transactionId: string
+  transactionDate: string
+  serviceDate?: string
+  direction: 'income' | 'expense'
+  category: QuickTransactionCategory
+  description: string
+  amount: number
+  paymentChannel: FinancePaymentChannel
+  destination: FinanceDestination
+  receiptLink?: string
+  custodyStatus: FinanceCustodyStatus
+  notes?: string
+}
+
+export interface FinanceRecordActionResult {
+  success: boolean
+  message: string
+  sheetUrl?: string
+}
+
+function getTransactionType(
+  direction: QuickTransactionInput['direction'],
+  category: QuickTransactionCategory
+): OtherTransactionPayload['transactionType'] | null {
+  if (direction === 'income') {
+    if (category === 'Donation') return 'Donation'
+    if (category === 'Sponsorship') return 'Sponsorship'
+    if (category === 'Other') return 'Other'
+    return null
+  }
+
+  if (category === 'Instructor') return 'Instructor Fee'
+  if (category === 'Venue') return 'Rent'
+  if (category === 'Refund') return 'Refund'
+  if (category === 'Admin') return 'Expense'
+  if (category === 'Other') return 'Expense'
+  return null
+}
+
+export async function recordOtherTransaction(
+  input: QuickTransactionInput
+): Promise<FinanceRecordActionResult> {
+  const admin = await requireAdmin()
+  if (!admin) return { success: false, message: 'Unauthorized' }
+
+  const transactionType = getTransactionType(input.direction, input.category)
+  if (!/^TXN-[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.transactionId)) {
+    return { success: false, message: 'The transaction reference is invalid.' }
+  }
+  if (!isValidPaymentDate(input.transactionDate)) {
+    return { success: false, message: 'A valid transaction date is required.' }
+  }
+  if (input.serviceDate && !isValidPaymentDate(input.serviceDate)) {
+    return { success: false, message: 'The service date is invalid.' }
+  }
+  if (!QUICK_TRANSACTION_CATEGORIES.includes(input.category)) {
+    return { success: false, message: 'The transaction category is invalid.' }
+  }
+  if (!transactionType) {
+    return { success: false, message: 'This category does not match the selected income or expense type.' }
+  }
+  if (!input.description.trim()) {
+    return { success: false, message: 'A short description is required.' }
+  }
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    return { success: false, message: 'Amount must be greater than zero.' }
+  }
+  if (input.receiptLink && !/^https?:\/\//i.test(input.receiptLink)) {
+    return { success: false, message: 'Receipt link must start with http:// or https://.' }
+  }
+  if (!FINANCE_PAYMENT_CHANNELS.includes(input.paymentChannel)) {
+    return { success: false, message: 'The payment channel is invalid.' }
+  }
+  if (!FINANCE_DESTINATIONS.includes(input.destination)) {
+    return { success: false, message: 'The payment destination is invalid.' }
+  }
+  if (!FINANCE_CUSTODY_STATUSES.includes(input.custodyStatus)) {
+    return { success: false, message: 'The reimbursement or custody status is invalid.' }
+  }
+
+  const supabase = createClient()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', admin.id)
+    .single()
+  const adminName = profile?.full_name?.trim() || 'Admin'
+
+  const result = await upsertOtherTransaction({
+    transactionId: input.transactionId,
+    transactionDate: input.transactionDate,
+    serviceDate: input.serviceDate || input.transactionDate,
+    transactionType,
+    category: input.category,
+    description: input.description.trim(),
+    direction: input.direction,
+    amount: input.amount,
+    paymentChannel: input.paymentChannel,
+    destination: input.destination,
+    paidCollectedBy: adminName,
+    receiptLink: input.receiptLink?.trim() || '',
+    custodyStatus: input.custodyStatus,
+    confirmedBy: adminName,
+    notes: input.notes?.trim() || '',
+  })
+
+  if (!result.ok || !result.row) {
+    return {
+      success: false,
+      message: result.message || 'The transaction could not be added to Google Sheets.',
+      sheetUrl: financeWorkbookLinks.otherTransactions,
+    }
+  }
+
+  return {
+    success: true,
+    message:
+      result.status === 'locked'
+        ? 'This transaction was already recorded.'
+        : 'Transaction recorded for account review.',
+    sheetUrl: getOtherTransactionRowLink(result.row),
+  }
 }
 
 export async function approveStudentVerification(

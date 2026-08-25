@@ -24,9 +24,9 @@ describe('finance check-in connection', () => {
     expect(summaryDialog).toContain('createOrRefreshFinanceCloseout(course.id)')
     expect(summaryDialog).toContain('financeWorkbookLinks.backupCloseout')
     expect(adminActions).toContain("settlementId: `CLASS-${course.id}`")
-    expect(webhook).toContain('BACKUP_CONFIRMED_COLUMN = 22')
+    expect(webhook).toContain('CLASS_BACKUP_CONFIRMED_COLUMN = 22')
     expect(webhook).toContain("status: 'locked'")
-    expect(webhook).toContain('getRange(row, 1, 1, 13).setValues(values)')
+    expect(webhook).toContain('getRange(row, 1, 1, 13).setValues([[')
   })
 
   it('loads finance by scheduled class instead of check-in timestamp', () => {
@@ -43,6 +43,8 @@ describe('finance check-in connection', () => {
     expect(financeCard).toContain('financeWorkbookLinks.accountReview')
     expect(financeCard).toContain('financeWorkbookLinks.auditSummary')
     expect(workbookLinks).toContain('backupCloseout')
+    expect(workbookLinks).toContain('aboSales')
+    expect(workbookLinks).toContain('otherTransactions')
   })
 
   it('shows the saved mobile number in a scroll-safe table at every screen size', () => {

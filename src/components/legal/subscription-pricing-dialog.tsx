@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { SINGLE_CLASS_PRICE } from '@/lib/pricing'
+import { SINGLE_CLASS_PRICE, SUBSCRIPTION_PRICES } from '@/lib/pricing'
 
 const PRICING = [
   {
@@ -23,20 +23,20 @@ const PRICING = [
   },
   {
     name: 'Monthly Card',
-    student: 30,
-    adult: 45,
+    student: SUBSCRIPTION_PRICES.monthly.student,
+    adult: SUBSCRIPTION_PRICES.monthly.adult,
     icon: Tag,
   },
   {
     name: '5-Times Card',
-    student: 45,
-    adult: 68,
+    student: SUBSCRIPTION_PRICES['5_times'].student,
+    adult: SUBSCRIPTION_PRICES['5_times'].adult,
     icon: Zap,
   },
   {
     name: '10-Times Card',
-    student: 85,
-    adult: 128,
+    student: SUBSCRIPTION_PRICES['10_times'].student,
+    adult: SUBSCRIPTION_PRICES['10_times'].adult,
     icon: Star,
   },
 ] as const

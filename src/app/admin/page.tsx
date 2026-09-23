@@ -5,6 +5,7 @@ import type { TodayCheckinItem } from '@/components/admin/today-checkins-dialog'
 import { getCachedUser } from '@/lib/supabase/cached'
 import { createClient } from '@/lib/supabase/server'
 import { getTodaysCourses } from './scanner/actions'
+import { getZurichDayRange, getZurichToday } from '@/lib/utils/date-helpers'
 
 export default async function AdminDashboardPage() {
   const user = await getCachedUser()
@@ -33,19 +34,15 @@ export default async function AdminDashboardPage() {
     )
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayStart = today.toISOString()
-  const todayEnd = new Date(today)
-  todayEnd.setHours(23, 59, 59, 999)
+  const today = getZurichDayRange(getZurichToday())
 
   const [statsResult, todayCheckinsResult, todaysCourses] = await Promise.all([
     supabase.rpc('get_admin_stats'),
     supabase
       .from('checkins')
       .select('id, created_at, profiles!user_id(full_name)')
-      .gte('created_at', todayStart)
-      .lte('created_at', todayEnd.toISOString())
+      .gte('created_at', today.start)
+      .lt('created_at', today.end)
       .order('created_at', { ascending: false }),
     getTodaysCourses(),
   ])

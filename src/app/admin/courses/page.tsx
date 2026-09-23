@@ -1,16 +1,19 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Plus, Calendar } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
 import { getCachedUser } from '@/lib/supabase/cached'
+import { requireAdmin } from '@/lib/utils/admin-guard'
 import { getCourses } from '@/app/courses/actions'
 import { getInstructors } from '@/app/admin/courses/actions'
-import { getZurichToday, getZurichYMD } from '@/lib/utils/date-helpers'
+import { getZurichToday, shiftYMD } from '@/lib/utils/date-helpers'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CoursesTable } from '@/components/admin/courses/courses-table'
 import { CreateCourseDialog } from '@/components/admin/courses/create-course-dialog'
 import { BatchCreateDialog } from '@/components/admin/courses/batch-create-dialog'
+
+// ponytail: fixed window instead of pagination; add paging if admins need older courses here.
+const PAST_COURSES_WINDOW_DAYS = 90
 
 export default async function AdminCoursesPage() {
   const user = await getCachedUser()
@@ -19,33 +22,22 @@ export default async function AdminCoursesPage() {
     return redirect('/login')
   }
 
-  const supabase = createClient()
-
   const today = getZurichToday()
-  const yesterday = new Date()
-  yesterday.setDate(yesterday.getDate() - 1)
-  const yesterdayZurich = getZurichYMD(yesterday)
-  const yesterdayStr = `${yesterdayZurich.y}-${String(yesterdayZurich.m).padStart(2, '0')}-${String(yesterdayZurich.d).padStart(2, '0')}`
 
-  const [
-    { data: profile },
-    futureCourses,
-    pastCourses,
-    instructors,
-  ] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single(),
+  // requireAdmin() is cached per request, so getInstructors() shares its lookup.
+  const [admin, futureCourses, pastCourses, instructors] = await Promise.all([
+    requireAdmin(),
     getCourses({ status: 'scheduled', fromDate: today }),
-    getCourses({ toDate: yesterdayStr }),
+    getCourses({ fromDate: shiftYMD(today, -PAST_COURSES_WINDOW_DAYS), toDate: shiftYMD(today, -1) }),
     getInstructors(),
   ])
 
-  if (profile?.role !== 'admin') {
+  if (!admin) {
     return redirect('/admin')
   }
+
+  // getCourses sorts ascending (right for upcoming); history reads latest first.
+  const pastCoursesLatestFirst = [...pastCourses].reverse()
 
   return (
     <main id="main-content" className="relative min-h-screen overflow-x-hidden">
@@ -98,7 +90,7 @@ export default async function AdminCoursesPage() {
                   Future Courses ({futureCourses.length})
                 </TabsTrigger>
                 <TabsTrigger value="past">
-                  Past Courses ({pastCourses.length})
+                  Past {PAST_COURSES_WINDOW_DAYS} Days ({pastCourses.length})
                 </TabsTrigger>
               </TabsList>
 
@@ -112,7 +104,7 @@ export default async function AdminCoursesPage() {
 
               <TabsContent value="past">
                 <CoursesTable
-                  courses={pastCourses}
+                  courses={pastCoursesLatestFirst}
                   instructors={instructors}
                   type="past"
                 />

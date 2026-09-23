@@ -73,6 +73,16 @@ export function getZurichToday(): string {
   return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 }
 
+/**
+ * Shift a YYYY-MM-DD calendar date by whole days (negative = earlier).
+ * Pure calendar arithmetic, so DST never skews it — e.g.
+ * shiftYMD(getZurichToday(), -1) is Zurich yesterday.
+ */
+export function shiftYMD(ymd: string, days: number): string {
+  const [y, m, d] = ymd.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
+}
+
 const zurichWallClock = new Intl.DateTimeFormat('en-US', {
   timeZone: 'Europe/Zurich',
   hourCycle: 'h23',

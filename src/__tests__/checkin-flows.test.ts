@@ -121,6 +121,8 @@ function configureMocks(opts: {
   checkins?: MockRow[]
   booking?: MockRow | null
   usableSub?: MockRow | null
+  /** All usable subscriptions, newest first (overrides usableSub) */
+  usableSubs?: MockRow[]
   callerRole?: 'admin' | 'member' | null
 }) {
   const callerRole = opts.callerRole === undefined ? 'admin' : opts.callerRole
@@ -137,7 +139,10 @@ function configureMocks(opts: {
         case 'bookings':
           return { data: opts.booking ?? null, error: null }
         case 'subscriptions':
-          return { data: opts.usableSub ?? null, error: null }
+          return {
+            data: opts.usableSubs ?? (opts.usableSub ? [opts.usableSub] : []),
+            error: null,
+          }
         default:
           return { data: null, error: null }
       }
@@ -406,6 +411,30 @@ describe('getCheckinContext — user flow scenarios', () => {
 
     expect(ctx.success).toBe(true)
     expect(ctx.isRepeatCheckin).toBe(true)
+  })
+
+  // ========================================================================
+  // Flow J2: Stacked times cards — new 10-times assigned while the old
+  // 5-times (now archived) still has 4 credits. Check-ins drain both, so the
+  // scanner shows the summed balance, labelled with the card charged next.
+  // ========================================================================
+  it('Flow J2: stacked times cards → remaining credits summed across cards', async () => {
+    const newTen = makeSub('10_times', { remaining_credits: 10 })
+    const oldFive = makeSub('5_times', { status: 'archived', remaining_credits: 4 })
+
+    // Booked before the new card → booking still linked to the old card
+    configureMocks({
+      profile: makeProfile(),
+      booking: makeBooking('subscription', SUB_5T_ID, oldFive),
+      usableSubs: [newTen, oldFive],
+    })
+    const booked = await getCheckinContext(USER_ID, COURSE_ID)
+    expect(booked.subscriptionDetails).toEqual({ type: '5_times', remainingCredits: 14 })
+
+    // Walk-in → newest card is charged next
+    configureMocks({ profile: makeProfile(), booking: null, usableSubs: [newTen, oldFive] })
+    const walkIn = await getCheckinContext(USER_ID, COURSE_ID)
+    expect(walkIn.subscriptionDetails).toEqual({ type: '10_times', remainingCredits: 14 })
   })
 
   // ========================================================================

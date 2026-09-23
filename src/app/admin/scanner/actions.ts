@@ -4,7 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 import type { CourseWithBookingCount } from '@/types/courses';
 import { getErrorMessage } from '@/lib/utils/error-helpers';
 import { unwrapSupabaseRelation } from '@/lib/utils/supabase-helpers';
-import { usableSubscriptionFilter, isUsableSubscription } from '@/lib/utils/subscription-helpers';
+import {
+  usableSubscriptionFilter,
+  isUsableSubscription,
+  isTimesBasedSubscription,
+} from '@/lib/utils/subscription-helpers';
 import { requireAdmin } from '@/lib/utils/admin-guard';
 import { getZurichToday } from '@/lib/utils/date-helpers';
 
@@ -59,17 +63,26 @@ export interface CheckinContext {
 // find_usable_subscription() helper so client and server stay in sync.
 // Moved to src/lib/utils/subscription-helpers.ts (usableSubscriptionFilter).
 
-function formatSubDetails(sub: {
+type ScannerSubscription = {
   type: string;
   remaining_credits: number;
   end_date: string;
-}): SubscriptionDetails {
+};
+
+/**
+ * Check-ins drain every usable times card (newest first), so the scanner shows
+ * the balance summed across them, not just the card being charged next.
+ */
+function sumTimesCredits(usableSubs: ScannerSubscription[]): number {
+  return usableSubs
+    .filter((sub) => isTimesBasedSubscription(sub.type))
+    .reduce((sum, sub) => sum + (sub.remaining_credits ?? 0), 0);
+}
+
+function formatSubDetails(sub: ScannerSubscription, timesCredits: number): SubscriptionDetails {
   return {
     type: sub.type,
-    remainingCredits:
-      sub.type === '5_times' || sub.type === '10_times'
-        ? sub.remaining_credits
-        : undefined,
+    remainingCredits: isTimesBasedSubscription(sub.type) ? timesCredits : undefined,
     endDate: sub.type === 'monthly' ? sub.end_date : undefined,
   };
 }
@@ -117,15 +130,13 @@ export async function getCheckinContext(
       .eq('course_id', courseId)
       .eq('status', 'confirmed')
       .maybeSingle(),
-    // 4. Best usable subscription (independent of any booking)
+    // 4. All usable subscriptions, newest first (independent of any booking)
     supabase
       .from('subscriptions')
       .select('id, status, type, remaining_credits, end_date')
       .eq('user_id', userId)
       .or(usableSubscriptionFilter(today))
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .order('created_at', { ascending: false }),
   ]);
   // Mark as handled so an early Unauthorized return can never surface an
   // unhandled rejection; awaiting `reads` below still rethrows.
@@ -153,7 +164,10 @@ export async function getCheckinContext(
   const profile = profileResult.data;
   const isRepeatCheckin = !!(checkinResult.data && checkinResult.data.length > 0);
   const booking = bookingResult.data;
-  const usableSub = subscriptionResult.data;
+  const usableSubs = subscriptionResult.data ?? [];
+  // The card find_usable_subscription() would pick
+  const usableSub = usableSubs[0] ?? null;
+  const timesCredits = sumTimesCredits(usableSubs);
 
   // No booking — return profile + subscription info (for drop-in/capacity-override dialogs)
   if (!booking) {
@@ -169,7 +183,7 @@ export async function getCheckinContext(
       isRepeatCheckin,
       hasBooking: false,
       bookingType: usableSub ? 'subscription' : 'single',
-      subscriptionDetails: usableSub ? formatSubDetails(usableSub) : undefined,
+      subscriptionDetails: usableSub ? formatSubDetails(usableSub, timesCredits) : undefined,
     };
   }
 
@@ -181,11 +195,11 @@ export async function getCheckinContext(
     // Check if the linked subscription is still usable (mirrors SQL usability rule)
     const linkedSub = unwrapSupabaseRelation(booking.subscription);
     if (linkedSub && isUsableSubscription(linkedSub, today)) {
-      subDetails = formatSubDetails(linkedSub);
+      subDetails = formatSubDetails(linkedSub, timesCredits);
     }
     // Linked sub is depleted/expired/missing — fall through to check usableSub
     if (!subDetails && usableSub) {
-      subDetails = formatSubDetails(usableSub);
+      subDetails = formatSubDetails(usableSub, timesCredits);
     }
     // If no usable sub at all, downgrade display to 'single'
     if (!subDetails) {
@@ -195,7 +209,7 @@ export async function getCheckinContext(
     // Booking is single/drop_in — check if user has since acquired a subscription
     if (usableSub) {
       bookingType = 'subscription';
-      subDetails = formatSubDetails(usableSub);
+      subDetails = formatSubDetails(usableSub, timesCredits);
     }
   }
 
@@ -323,17 +337,15 @@ export async function getUserActiveSubscription(
     .select('id, status, type, remaining_credits, end_date')
     .eq('user_id', userId)
     .or(usableSubscriptionFilter(today))
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order('created_at', { ascending: false });
 
-  if (error || !data) {
+  if (error || !data?.length) {
     return { hasSubscription: false };
   }
 
   return {
     hasSubscription: true,
-    subscriptionDetails: formatSubDetails(data),
+    subscriptionDetails: formatSubDetails(data[0], sumTimesCredits(data)),
   };
 }
 

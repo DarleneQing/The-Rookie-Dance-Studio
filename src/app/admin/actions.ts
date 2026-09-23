@@ -3,7 +3,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/utils/admin-guard'
-import { getZurichDayRange } from '@/lib/utils/date-helpers'
+import { getZurichDayRange, getZurichToday } from '@/lib/utils/date-helpers'
+import {
+  combineUsableSubscriptionsByUser,
+  usableSubscriptionFilter,
+} from '@/lib/utils/subscription-helpers'
 
 export type PaymentMethod = 'cash' | 'twint' | 'abo';
 
@@ -505,12 +509,11 @@ export async function searchAdminUsers(query: string): Promise<AdminUserRow[]> {
   const { data: subscriptions } = await supabase
     .from('subscriptions')
     .select('type, status, start_date, end_date, total_credits, remaining_credits, user_id')
-    .eq('status', 'active')
     .in('user_id', ids)
+    .or(usableSubscriptionFilter(getZurichToday()))
+    .order('created_at', { ascending: false })
 
-  const subMap = new Map(
-    (subscriptions || []).map((s) => [s.user_id, s])
-  )
+  const subMap = combineUsableSubscriptionsByUser(subscriptions)
 
   return profiles.map((p) => ({
     id: p.id,

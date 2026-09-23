@@ -46,7 +46,8 @@ const mockSupabase = {
 }
 
 vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(() => Promise.resolve(mockSupabase)),
+  // Synchronous, like the real createClient() (callers may or may not await it).
+  createClient: vi.fn(() => mockSupabase),
 }))
 
 // Import AFTER mocking
@@ -109,57 +110,49 @@ function makeBooking(
 }
 
 /**
- * Configure what each Supabase .from(table) query returns.
- *
- * getCheckinContext runs 4 parallel queries via Promise.all:
- *   [0] profiles  (single)
- *   [1] checkins  (array — already checked in?)
- *   [2] bookings  (maybeSingle — confirmed booking)
- *   [3] subscriptions (maybeSingle — best usable sub)
- *
- * Since each from() call creates a fresh chain, we track call order.
+ * Configure mock responses by TABLE (and, for profiles, by selected columns),
+ * not by call order: getCheckinContext starts its reads concurrently with the
+ * requireAdmin() role lookup, so the order of from() calls is not stable.
+ *   profiles + select('*' | 'role') -> requireAdmin's role lookup
+ *   profiles + other select -> the scanned member's profile
  */
 function configureMocks(opts: {
   profile?: MockRow | null
   checkins?: MockRow[]
   booking?: MockRow | null
   usableSub?: MockRow | null
+  callerRole?: 'admin' | 'member' | null
 }) {
-  let callIndex = 0
-  mockSupabase.from.mockImplementation(() => {
-    const idx = callIndex++
-    // [0] = requireAdmin() role lookup on profiles
-    // [1] = profiles  (getCheckinContext)
-    // [2] = checkins
-    // [3] = bookings
-    // [4] = subscriptions
-    const responses = [
-      { data: { role: 'admin' }, error: null },              // requireAdmin
-      { data: opts.profile ?? null, error: null },           // profiles
-      { data: opts.checkins ?? [], error: null },            // checkins
-      { data: opts.booking ?? null, error: null },           // bookings
-      { data: opts.usableSub ?? null, error: null },         // subscriptions
-    ]
-    const resp = responses[idx] ?? { data: null, error: null }
+  const callerRole = opts.callerRole === undefined ? 'admin' : opts.callerRole
+  mockSupabase.from.mockImplementation((table: string) => {
+    let selected = ''
+    const respond = () => {
+      switch (table) {
+        case 'profiles':
+          return selected === '*' || selected === 'role'
+            ? { data: callerRole ? { role: callerRole } : null, error: null }
+            : { data: opts.profile ?? null, error: null }
+        case 'checkins':
+          return { data: opts.checkins ?? [], error: null }
+        case 'bookings':
+          return { data: opts.booking ?? null, error: null }
+        case 'subscriptions':
+          return { data: opts.usableSub ?? null, error: null }
+        default:
+          return { data: null, error: null }
+      }
+    }
 
     const chain: Record<string, unknown> = {}
-    const methods = ['select', 'eq', 'or', 'order', 'limit', 'maybeSingle', 'single']
-    for (const m of methods) {
-      chain[m] = vi.fn(() => {
-        if (m === 'maybeSingle' || m === 'single') return resp
-        // For checkins (array query), terminal is the chain itself
-        // but we need to return after .limit() — we handle by making
-        // every chain method return the resp on last call
-        return chain
-      })
-    }
-    // The checkins query ends at .limit() not .maybeSingle/.single
-    // Promise.all awaits the result of the last chained call.
-    // Supabase client returns a thenable from any chain method.
-    // We simulate this by making the chain itself thenable.
-    ;(chain as { then?: unknown }).then = (resolve: (v: unknown) => void) =>
-      resolve(resp)
-
+    for (const m of ['eq', 'or', 'order', 'limit']) chain[m] = vi.fn(() => chain)
+    chain.select = vi.fn((columns: string) => {
+      selected = columns.trim()
+      return chain
+    })
+    chain.single = vi.fn(respond)
+    chain.maybeSingle = vi.fn(respond)
+    // Supabase builders are thenables (e.g. the checkins query ends at .limit()).
+    ;(chain as { then?: unknown }).then = (resolve: (v: unknown) => void) => resolve(respond())
     return chain
   })
 }
@@ -171,6 +164,34 @@ function configureMocks(opts: {
 beforeEach(() => {
   vi.clearAllMocks()
   mockResponses = {}
+})
+
+describe('getCheckinContext — authorization', () => {
+  it.each([
+    ['a member', 'member' as const],
+    ['a user with no profile row', null],
+  ])('returns only "Unauthorized" for %s, never member data', async (_label, callerRole) => {
+    configureMocks({
+      callerRole,
+      profile: makeProfile(),
+      booking: { id: 'b1', booking_type: 'single', subscription_id: null, subscription: null },
+    })
+    const result = await getCheckinContext(USER_ID, COURSE_ID)
+    expect(result).toEqual({
+      success: false,
+      message: 'Unauthorized',
+      isRepeatCheckin: false,
+      hasBooking: false,
+    })
+  })
+
+  it('returns "Unauthorized" when there is no signed-in user', async () => {
+    configureMocks({ profile: makeProfile() })
+    mockSupabase.auth.getUser.mockResolvedValueOnce({ data: { user: null }, error: null } as never)
+    const result = await getCheckinContext(USER_ID, COURSE_ID)
+    expect(result).toMatchObject({ success: false, message: 'Unauthorized' })
+    expect(result).not.toHaveProperty('profile')
+  })
 })
 
 describe('getCheckinContext — user flow scenarios', () => {

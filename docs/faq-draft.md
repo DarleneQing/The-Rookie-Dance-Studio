@@ -14,8 +14,8 @@ Visit our website and click "Sign Up" on the homepage. You'll need to provide yo
 
 ### What's the difference between student and adult membership?
 
-- **Student Members**: Verified students enrolled in educational institutions receive discounted class fees (CHF 10 per class). You'll need to upload a valid student card for verification.
-- **Adult Members**: Standard membership for individuals 18 years and older (CHF 15 per class).
+- **Student Members**: Verified students enrolled in educational institutions receive discounted class fees (CHF 12 per class). You'll need to upload a valid student card for verification.
+- **Adult Members**: Standard membership for individuals 18 years and older (CHF 18 per class).
 
 ### How do I verify my student status?
 
@@ -50,7 +50,7 @@ You'll be booked either as a single class or using your active subscription (if 
 
 ### What's the difference between single class booking and subscription booking?
 
-- **Single Class Booking**: Pay per class (CHF 10 for students, CHF 15 for adults). No subscription required.
+- **Single Class Booking**: Pay per class (CHF 12 for students, CHF 18 for adults). No subscription required.
 - **Subscription Booking**: If you have an active subscription (Monthly, 5-Times, or 10-Times card), your booking will automatically use your subscription credits.
 
 ### What subscription options are available?
@@ -204,7 +204,7 @@ Our instructors are experienced dancers passionate about teaching. You can see t
 
 ### What's the class duration?
 
-Most classes are 60-90 minutes long. The exact duration is shown on each course card (e.g., "7:00 PM - 8:30 PM").
+Classes are usually 120 minutes long. The exact duration is shown on each course card (e.g., "7:00 PM - 9:00 PM").
 
 ### Are classes suitable for beginners?
 
@@ -216,8 +216,8 @@ Classes vary in difficulty level. Check the class description or contact us at t
 
 ### How much do classes cost?
 
-- **Student Members** (verified): CHF 10 per class
-- **Adult Members**: CHF 15 per class
+- **Student Members** (verified): CHF 12 per class
+- **Adult Members**: CHF 18 per class
 
 These are contribution fees to cover the cost of running the studio.
 

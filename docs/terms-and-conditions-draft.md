@@ -64,8 +64,8 @@ The Rookie Dance Studio is a non-profit Verein registered under Swiss law, dedic
 
 ### 4.1 Class Fees
 Contribution fees are set as follows:
-- **CHF 10** for verified student members
-- **CHF 15** for adult members and general public
+- **CHF 12** for verified student members
+- **CHF 18** for adult members and general public
 
 ### 4.2 Subscription Types
 The Rookie Dance Studio offers the following subscription options:

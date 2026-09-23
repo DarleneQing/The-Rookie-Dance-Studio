@@ -161,7 +161,7 @@ export function BookCourseDialog({
           </p>
           <ul className="space-y-1 text-sm text-foreground/80 font-outfit list-disc list-inside ml-1">
             <li>I have read and understood the rules above.</li>
-            <li>I agree to contribute fees so as to cover the cost of running (CHF 10.- for students and CHF 15.- for general public).</li>
+            <li>I agree to contribute fees so as to cover the cost of running (CHF 12.- for students and CHF 18.- for general public).</li>
           </ul>
         </div>
         </div>

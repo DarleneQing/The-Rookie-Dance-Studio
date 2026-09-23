@@ -11,31 +11,28 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { PRICES } from '@/lib/pricing'
 
 const PRICING = [
   {
     name: 'Single Class',
     description: 'Drop in for one class.',
-    student: 10,
-    adult: 15,
+    ...PRICES.singleClass,
     icon: Ticket,
   },
   {
     name: 'Monthly Card',
-    student: 30,
-    adult: 45,
+    ...PRICES.monthly,
     icon: Tag,
   },
   {
     name: '5-Times Card',
-    student: 45,
-    adult: 68,
+    ...PRICES.fiveTimes,
     icon: Zap,
   },
   {
     name: '10-Times Card',
-    student: 85,
-    adult: 128,
+    ...PRICES.tenTimes,
     icon: Star,
   },
 ] as const

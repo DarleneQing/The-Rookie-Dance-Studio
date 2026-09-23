@@ -187,6 +187,7 @@ export function CheckinsFinanceCard() {
 
                     <FinanceSummaryDialog
                       checkins={checkins}
+                      date={selectedDate}
                       open={financeDialogOpen}
                       onOpenChange={setFinanceDialogOpen}
                     />

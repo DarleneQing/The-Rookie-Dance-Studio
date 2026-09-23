@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { getZurichToday } from '@/lib/utils/date-helpers'
 
 interface AssignSubscriptionDialogProps {
   userId: string
@@ -39,7 +40,7 @@ export function AssignSubscriptionDialog({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [type, setType] = useState<'monthly' | '5_times' | '10_times'>('monthly')
-  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0])
+  const [startDate, setStartDate] = useState<string>(getZurichToday)
 
   const handleAssign = async () => {
     setLoading(true)

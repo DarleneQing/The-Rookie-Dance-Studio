@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { batchCreateCourses } from '@/app/admin/courses/actions'
 import { getCourses } from '@/app/courses/actions'
 import type { BatchCreateCoursesInput } from '@/types/courses'
+import { getSaturdaysInMonth } from '@/lib/utils/date-helpers'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -63,31 +64,15 @@ export function BatchCreateDialog({
     video_link: null,
   })
 
-  const getSaturdaysInMonth = (year: number, month: number): Date[] => {
-    const saturdays: Date[] = []
-    const date = new Date(year, month - 1, 1)
-    
-    while (date.getMonth() === month - 1) {
-      if (date.getDay() === 6) {
-        saturdays.push(new Date(date))
-      }
-      date.setDate(date.getDate() + 1)
-    }
-    
-    return saturdays
-  }
-
   const generatePreview = async () => {
     setLoadingPreview(true)
     try {
+      // YYYY-MM-DD strings (every month has at least four Saturdays)
       const saturdays = getSaturdaysInMonth(formData.year, formData.month)
-      
-      // Fetch existing courses for the month
-      const firstDay = new Date(formData.year, formData.month - 1, 1).toISOString().split('T')[0]
-      const lastDay = new Date(formData.year, formData.month, 0).toISOString().split('T')[0]
+
       const existingCourses = await getCourses({
-        fromDate: firstDay,
-        toDate: lastDay
+        fromDate: saturdays[0],
+        toDate: saturdays[saturdays.length - 1],
       })
 
       // Create Set of dates that have courses at the same start_time
@@ -97,24 +82,26 @@ export function BatchCreateDialog({
           .map(c => c.scheduled_date)
       )
 
-      const previewData: SaturdayPreview[] = saturdays.map(date => {
-        const dateStr = date.toISOString().split('T')[0]
-        
-        // Check if date/time is in the past
-        const [hours, minutes] = formData.start_time.split(':')
-        const courseDateTime = new Date(date)
-        courseDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-        const isPast = courseDateTime <= new Date()
-        
+      const [hours, minutes] = formData.start_time.split(':').map(Number)
+
+      const previewData: SaturdayPreview[] = saturdays.map((dateStr) => {
+        const [y, m, d] = dateStr.split('-').map(Number)
+
+        // Browser wall clock (admins schedule from Zurich); the SQL
+        // batch_create_courses re-checks against the real Zurich instant.
+        const isPast = new Date(y, m - 1, d, hours, minutes) <= new Date()
+
         return {
           date: dateStr,
           exists: existingDateTimes.has(dateStr),
-          isPast: isPast,
-          formatted: date.toLocaleDateString('en-US', { 
-            month: 'short', 
+          isPast,
+          // Format the calendar date itself, independent of the browser zone.
+          formatted: new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {
+            timeZone: 'UTC',
+            month: 'short',
             day: 'numeric',
-            year: 'numeric'
-          })
+            year: 'numeric',
+          }),
         }
       })
 

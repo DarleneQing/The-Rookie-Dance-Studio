@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { AdminDashboard } from '@/components/admin/admin-dashboard'
 import type { TodayCheckinItem } from '@/components/admin/today-checkins-dialog'
 import { getCachedUser } from '@/lib/supabase/cached'
+import { requireAdmin } from '@/lib/utils/admin-guard'
 import { createClient } from '@/lib/supabase/server'
 import { getTodaysCourses } from './scanner/actions'
 import { getZurichDayRange, getZurichToday } from '@/lib/utils/date-helpers'
@@ -14,14 +15,8 @@ export default async function AdminDashboardPage() {
     return redirect('/login')
   }
 
-  const supabase = createClient()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'admin') {
+  // Cached per request: getTodaysCourses() below reuses this check.
+  if (!(await requireAdmin())) {
     return (
       <main className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden bg-background">
         <div className="relative z-10 space-y-4 px-4 text-center">
@@ -34,6 +29,7 @@ export default async function AdminDashboardPage() {
     )
   }
 
+  const supabase = createClient()
   const today = getZurichDayRange(getZurichToday())
 
   const [statsResult, todayCheckinsResult, todaysCourses] = await Promise.all([

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { getCachedUser } from "@/lib/supabase/cached"
+import { requireAdmin } from "@/lib/utils/admin-guard"
 import { CourseQRScanner } from "@/components/admin/scanner/course-qr-scanner"
 import { getTodaysCourses } from "./actions"
 
@@ -11,16 +11,8 @@ export default async function AdminScannerPage() {
     return redirect("/login")
   }
 
-  const supabase = createClient()
-
-  // Check if admin
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single()
-
-  if (profile?.role !== "admin") {
+  // Cached per request: getTodaysCourses() below reuses this check.
+  if (!(await requireAdmin())) {
     return (
       <main className="relative flex min-h-screen flex-col items-center justify-center overflow-x-hidden">
         <div className="absolute inset-0 z-0 bg-background" />

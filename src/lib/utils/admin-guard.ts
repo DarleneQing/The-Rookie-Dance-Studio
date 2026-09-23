@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { cache } from 'react'
+import { getCachedProfile, getCachedUser } from '@/lib/supabase/cached'
 
 /**
  * Server-side admin gate for server actions.
@@ -9,23 +10,20 @@ import { createClient } from '@/lib/supabase/server'
  * action (see docs/audit-findings-by-severity.md P1 "defense-in-depth").
  *
  * Returns the admin's user id when the current session belongs to an admin,
- * otherwise null. Each caller maps null to its own error shape.
+ * otherwise null. Each caller maps null to its own error shape. Fails closed:
+ * no user, no profile row, or a failed profile query all return null.
+ *
+ * Request-scoped via React cache(): a page and the actions it renders share
+ * one Auth call and one profile lookup. cache() never shares results across
+ * requests (outside a request it simply re-runs), so one user's answer cannot
+ * leak into another's.
  */
-export async function requireAdmin(): Promise<{ id: string } | null> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export const requireAdmin = cache(async (): Promise<{ id: string } | null> => {
+  const user = await getCachedUser()
   if (!user) return null
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle()
-
+  const profile = await getCachedProfile(user.id)
   if (profile?.role !== 'admin') return null
 
   return { id: user.id }
-}
+})

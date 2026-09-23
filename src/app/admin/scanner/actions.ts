@@ -84,51 +84,59 @@ export async function getCheckinContext(
   courseId: string
 ): Promise<CheckinContext> {
   const supabase = await createClient();
+  const today = getZurichToday();
+
+  // The reads below start concurrently with the admin check instead of after
+  // it, saving the check's round trips on every scan. This is safe because:
+  //   - they are side-effect-free SELECTs,
+  //   - they run under the caller's own session, so RLS still limits them,
+  //   - nothing they return is used or returned until the check passes.
+  // Never put a write, RPC, or anything with side effects in this batch.
+  const reads = Promise.all([
+    // 1. User profile
+    supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, dob, member_type')
+      .eq('id', userId)
+      .single(),
+    // 2. Already checked in for this course?
+    supabase
+      .from('checkins')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .limit(1),
+    // 3. Existing confirmed booking (with linked subscription)
+    supabase
+      .from('bookings')
+      .select(`
+        id, booking_type, subscription_id,
+        subscription:subscriptions(id, status, type, remaining_credits, end_date)
+      `)
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .eq('status', 'confirmed')
+      .maybeSingle(),
+    // 4. Best usable subscription (independent of any booking)
+    supabase
+      .from('subscriptions')
+      .select('id, status, type, remaining_credits, end_date')
+      .eq('user_id', userId)
+      .or(usableSubscriptionFilter(today))
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  // Mark as handled so an early Unauthorized return can never surface an
+  // unhandled rejection; awaiting `reads` below still rethrows.
+  reads.catch(() => undefined);
 
   const admin = await requireAdmin();
   if (!admin) {
     return { success: false, message: 'Unauthorized', isRepeatCheckin: false, hasBooking: false };
   }
 
-  const today = getZurichToday();
-
-  // Run all independent queries in parallel
-  const [profileResult, checkinResult, bookingResult, subscriptionResult] =
-    await Promise.all([
-      // 1. User profile
-      supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url, dob, member_type')
-        .eq('id', userId)
-        .single(),
-      // 2. Already checked in for this course?
-      supabase
-        .from('checkins')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('course_id', courseId)
-        .limit(1),
-      // 3. Existing confirmed booking (with linked subscription)
-      supabase
-        .from('bookings')
-        .select(`
-          id, booking_type, subscription_id,
-          subscription:subscriptions(id, status, type, remaining_credits, end_date)
-        `)
-        .eq('user_id', userId)
-        .eq('course_id', courseId)
-        .eq('status', 'confirmed')
-        .maybeSingle(),
-      // 4. Best usable subscription (independent of any booking)
-      supabase
-        .from('subscriptions')
-        .select('id, status, type, remaining_credits, end_date')
-        .eq('user_id', userId)
-        .or(usableSubscriptionFilter(today))
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
+  const [profileResult, checkinResult, bookingResult, subscriptionResult] = await reads;
 
   // Profile is required
   if (profileResult.error || !profileResult.data) {

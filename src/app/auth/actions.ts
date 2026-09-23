@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
+import { isRateLimited, RATE_LIMITED_MESSAGE } from '@/lib/utils/rate-limit'
 
 /**
  * Validate a callback path before redirecting to it.
@@ -39,6 +40,10 @@ export async function login(formData: FormData): Promise<{ error?: string; messa
 
   if (!email || !password) {
     return { error: 'Email and password are required.' }
+  }
+
+  if (await isRateLimited('login', email)) {
+    return { error: RATE_LIMITED_MESSAGE }
   }
 
   const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -132,6 +137,10 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   const redirectPath = isValidCallbackUrl(callbackUrl) ? callbackUrl : '/profile'
 
+  if (await isRateLimited('signup', data.email)) {
+    return { error: RATE_LIMITED_MESSAGE }
+  }
+
   const { error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
@@ -154,25 +163,11 @@ export async function signup(prevState: unknown, formData: FormData): Promise<{ 
   redirect('/verify-email')
 }
 
-export async function resetPassword(prevState: unknown, formData: FormData): Promise<{ error?: string; message?: string }> {
-  const supabase = createClient()
-  const email = formData.get('email') as string
-
-  if (!email) {
-    return { error: 'Email is required.' }
-  }
-
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${baseUrl}/auth/callback?next=/reset-password`,
-  })
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  return { message: 'Password reset link sent to your email.' }
-}
+// Password reset deliberately has no Server Action: auth-form.tsx calls
+// resetPasswordForEmail from the browser so the PKCE verifier is stored
+// client-side, and Supabase then rate-limits by the visitor's real IP. A
+// server-side variant would send reset emails from Vercel's IP, bypassing
+// that limit — do not reintroduce one without rate limiting it.
 
 export async function logout() {
   const supabase = createClient()

@@ -17,6 +17,10 @@ const DOCS = path.resolve(__dirname, '../../../docs')
 const SUPABASE_STUBS = `
   CREATE ROLE anon;
   CREATE ROLE authenticated;
+  -- Like Supabase: new public tables are granted to the API roles by
+  -- default (RLS is the intended guard), so tests see real exposure.
+  GRANT USAGE ON SCHEMA public TO anon, authenticated;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated;
   CREATE SCHEMA auth;
   CREATE TABLE auth.users (
     id UUID PRIMARY KEY,

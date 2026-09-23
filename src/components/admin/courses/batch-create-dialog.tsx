@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { DEFAULT_COURSE_DURATION_MINUTES } from '@/lib/pricing'
 
 interface BatchCreateDialogProps {
   instructors: Array<{ id: string; full_name: string; avatar_url: string | null }>
@@ -56,7 +57,7 @@ export function BatchCreateDialog({
     instructor_id: null,
     location: 'Quatierzentrum Schütze Flex 4, Heinrichstrasse 238, 8005 Zurich',
     start_time: '15:00',
-    duration_minutes: 90,
+    duration_minutes: DEFAULT_COURSE_DURATION_MINUTES,
     capacity: 20,
     song: null,
     singer: null,

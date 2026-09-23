@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { DEFAULT_COURSE_DURATION_MINUTES } from '@/lib/pricing'
 
 interface CreateCourseDialogProps {
   instructors: Array<{ id: string; full_name: string; avatar_url: string | null }>
@@ -44,7 +45,7 @@ export function CreateCourseDialog({
     location: 'Quatierzentrum Schütze Flex 4, Heinrichstrasse 238, 8005 Zurich',
     scheduled_date: '',
     start_time: '15:00',
-    duration_minutes: 90,
+    duration_minutes: DEFAULT_COURSE_DURATION_MINUTES,
     capacity: 20,
     song: null,
     singer: null,
@@ -87,7 +88,7 @@ export function CreateCourseDialog({
         location: 'Quatierzentrum Schütze Flex 4, Heinrichstrasse 238, 8005 Zurich',
         scheduled_date: '',
         start_time: '15:00',
-        duration_minutes: 90,
+        duration_minutes: DEFAULT_COURSE_DURATION_MINUTES,
         capacity: 20,
         song: null,
         singer: null,

@@ -11,14 +11,17 @@ import {
 import { ClipboardCheck } from "lucide-react"
 import type { CheckinFinanceItem } from "@/components/admin/checkins-finance-card"
 import { financeWorkbookLinks } from "@/lib/finance-workbook"
+import { getSingleClassPrice, type StudentAdultPrice } from "@/lib/pricing"
 
 interface FinanceSummaryDialogProps {
   checkins: CheckinFinanceItem[]
+  /** YYYY-MM-DD the check-ins belong to; selects the price in effect that day. */
+  date: string
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-function calculateFinance(checkins: CheckinFinanceItem[]) {
+function calculateFinance(checkins: CheckinFinanceItem[], price: StudentAdultPrice) {
   const paidCheckins = checkins.filter(
     (c) => c.payment_method === "cash" || c.payment_method === "twint"
   )
@@ -28,15 +31,15 @@ function calculateFinance(checkins: CheckinFinanceItem[]) {
 
   const adultCount = paidCheckins.filter((c) => c.member_type !== "student").length
   const studentCount = paidCheckins.filter((c) => c.member_type === "student").length
-  const adultTotal = adultCount * 15
-  const studentTotal = studentCount * 10
+  const adultTotal = adultCount * price.adult
+  const studentTotal = studentCount * price.student
 
   const cashTotal = cashCheckins.reduce(
-    (sum, c) => sum + (c.member_type === "student" ? 10 : 15),
+    (sum, c) => sum + (c.member_type === "student" ? price.student : price.adult),
     0
   )
   const twintTotal = twintCheckins.reduce(
-    (sum, c) => sum + (c.member_type === "student" ? 10 : 15),
+    (sum, c) => sum + (c.member_type === "student" ? price.student : price.adult),
     0
   )
   const totalRevenue = cashTotal + twintTotal
@@ -55,10 +58,12 @@ function calculateFinance(checkins: CheckinFinanceItem[]) {
 
 export function FinanceSummaryDialog({
   checkins,
+  date,
   open,
   onOpenChange,
 }: FinanceSummaryDialogProps) {
-  const finance = calculateFinance(checkins)
+  const price = getSingleClassPrice(date)
+  const finance = calculateFinance(checkins, price)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -81,13 +86,13 @@ export function FinanceSummaryDialog({
               <div className="flex justify-between">
                 <span>Adult</span>
                 <span>
-                  {finance.adultCount} × 15 CHF = {finance.adultTotal} CHF
+                  {finance.adultCount} × {price.adult} CHF = {finance.adultTotal} CHF
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Student</span>
                 <span>
-                  {finance.studentCount} × 10 CHF = {finance.studentTotal} CHF
+                  {finance.studentCount} × {price.student} CHF = {finance.studentTotal} CHF
                 </span>
               </div>
             </div>

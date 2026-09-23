@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getZurichDayRange } from '@/lib/utils/date-helpers'
+import { getZurichDayRange, shiftYMD } from '@/lib/utils/date-helpers'
 
 // Server code runs in UTC on Vercel, so "midnight" must be Zurich midnight
 // expressed as an absolute instant — not setHours(0) in the server's zone.
@@ -45,4 +45,18 @@ describe('getZurichDayRange', () => {
       expect(() => getZurichDayRange(input)).toThrow(/Invalid date/)
     }
   )
+})
+
+describe('shiftYMD', () => {
+  it.each([
+    ['2026-09-23', -1, '2026-09-22'],
+    ['2026-03-01', -1, '2026-02-28'],
+    ['2026-01-01', -1, '2025-12-31'],
+    ['2026-03-30', -1, '2026-03-29'], // day after spring-forward
+    ['2026-10-26', -1, '2026-10-25'], // day after fall-back
+    ['2026-09-23', -90, '2026-06-25'],
+    ['2028-02-28', 1, '2028-02-29'], // leap year
+  ])('shiftYMD(%s, %i) = %s', (ymd, days, expected) => {
+    expect(shiftYMD(ymd, days)).toBe(expected)
+  })
 })

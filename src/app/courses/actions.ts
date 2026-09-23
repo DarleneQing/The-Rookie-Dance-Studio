@@ -1,11 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { getZurichToday } from '@/lib/utils/date-helpers';
-import type { 
-  CourseWithBookingCount, 
+import { getCachedUser } from '@/lib/supabase/cached';
+import type {
+  CourseWithBookingCount,
   Booking,
-  BookingWithCourse,
   CourseAttendance,
   CourseStatistics,
   CheckinWithCourseQuery,
@@ -47,39 +46,38 @@ export async function getCourses(filters?: {
 
   const courseIds = (courses || []).map((c) => c.id);
 
-  // Batch 1: booking + check-in counts for ALL courses in one round trip
-  // (replaces the previous ~2 queries per course). checkin_count is only
-  // populated for admins (the RPC gates it).
+  // Both batches depend only on courseIds, so run them concurrently.
+  // Batch 1: booking + check-in counts for ALL courses in one round trip.
+  // checkin_count is only populated for admins (the RPC gates it).
+  // Batch 2: current user's confirmed bookings for these courses in one query.
+  // getCachedUser dedupes the Auth round trip with the page's own call.
+  const [countsResult, userBookings] = await Promise.all([
+    courseIds.length > 0
+      ? supabase.rpc('get_course_counts', { p_course_ids: courseIds })
+      : Promise.resolve({ data: null, error: null }),
+    getCachedUser().then(async (user) => {
+      if (!user || courseIds.length === 0) return [];
+      const { data } = await supabase
+        .from('bookings')
+        .select('*')
+        .in('course_id', courseIds)
+        .eq('user_id', user.id)
+        .eq('status', 'confirmed');
+      return (data as Booking[] | null) || [];
+    }),
+  ]);
+
   const countMap = new Map<string, { booking_count: number; checkin_count: number }>();
-  if (courseIds.length > 0) {
-    const { data: counts, error: countError } = await supabase.rpc('get_course_counts', {
-      p_course_ids: courseIds,
-    });
-    if (!countError) {
-      for (const row of (counts as Array<{ course_id: string; booking_count: number; checkin_count: number }>) || []) {
-        countMap.set(row.course_id, {
-          booking_count: row.booking_count ?? 0,
-          checkin_count: row.checkin_count ?? 0,
-        });
-      }
+  if (!countsResult.error) {
+    for (const row of (countsResult.data as Array<{ course_id: string; booking_count: number; checkin_count: number }>) || []) {
+      countMap.set(row.course_id, {
+        booking_count: row.booking_count ?? 0,
+        checkin_count: row.checkin_count ?? 0,
+      });
     }
   }
 
-  // Batch 2: current user's confirmed bookings for these courses in one query
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const bookingMap = new Map<string, Booking>();
-  if (user && courseIds.length > 0) {
-    const { data: userBookings } = await supabase
-      .from('bookings')
-      .select('*')
-      .in('course_id', courseIds)
-      .eq('user_id', user.id)
-      .eq('status', 'confirmed');
-    for (const b of (userBookings as Booking[] | null) || []) {
-      bookingMap.set(b.course_id, b);
-    }
-  }
+  const bookingMap = new Map<string, Booking>(userBookings.map((b) => [b.course_id, b]));
 
   // Assemble — no per-course round trips remain
   return (courses || []).map((course) => {
@@ -91,31 +89,6 @@ export async function getCourses(filters?: {
       user_booking: bookingMap.get(course.id) ?? null,
     };
   });
-}
-
-export async function getUserBookings(): Promise<BookingWithCourse[]> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) throw new Error('Not authenticated');
-  
-  const { data, error } = await supabase
-    .from('bookings')
-    .select(`
-      *,
-      course:courses(
-        *,
-        instructor:profiles!courses_instructor_id_fkey(id, full_name, avatar_url)
-      )
-    `)
-    .eq('user_id', user.id)
-    .eq('status', 'confirmed')
-    .gte('course.scheduled_date', getZurichToday())
-    .order('course(scheduled_date)', { ascending: true });
-  
-  if (error) throw error;
-  
-  return data || [];
 }
 
 export async function getCourseHistory(): Promise<CourseAttendance[]> {

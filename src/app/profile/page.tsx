@@ -27,7 +27,6 @@ export default async function ProfilePage() {
     { data: checkins },
     { data: checkinHistoryData },
     { data: subscriptionsData },
-    { data: checkinsBySubData },
   ] = await Promise.all([
     getCachedProfile(user.id),
     supabase
@@ -40,7 +39,7 @@ export default async function ProfilePage() {
       .maybeSingle(),
     supabase
       .from('checkins')
-      .select('created_at')
+      .select('created_at, subscription_id')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
@@ -80,10 +79,6 @@ export default async function ProfilePage() {
       )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
-    supabase
-      .from('checkins')
-      .select('subscription_id')
-      .eq('user_id', user.id),
   ])
 
   if (!profile) {
@@ -92,7 +87,7 @@ export default async function ProfilePage() {
 
   type CheckinSubscriptionRow = { subscription_id: string }
 
-  const checkinCountBySubscriptionId = (checkinsBySubData || []).reduce<
+  const checkinCountBySubscriptionId = (checkins || []).reduce<
     Record<string, number>
   >((counts, row) => {
     const id = (row as CheckinSubscriptionRow).subscription_id

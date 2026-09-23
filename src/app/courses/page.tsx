@@ -1,13 +1,14 @@
 import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedUser } from '@/lib/supabase/cached'
-import { getCourses, getUserBookings, canCancelBookings } from '@/app/courses/actions'
+import { getCourses, canCancelBookings } from '@/app/courses/actions'
 import { MemberLayout } from '@/components/navigation/member-layout'
 import { CoursesPageClient } from '@/components/courses/courses-page-client'
 import { WhatsAppGroupCard } from '@/components/courses/whatsapp-group-card'
 import { getZurichToday } from '@/lib/utils/date-helpers'
 import { Footer } from '@/components/footer'
 import { usableSubscriptionFilter } from '@/lib/utils/subscription-helpers'
+import type { BookingWithCourse } from '@/types/courses'
 
 const FloatingElementsLazy = dynamic(
   () =>
@@ -20,7 +21,7 @@ const FloatingElementsLazy = dynamic(
 const coursesPageContent = (
   allCourses: Awaited<ReturnType<typeof getCourses>>,
   bookedCourses: Awaited<ReturnType<typeof getCourses>>,
-  bookingsMap: Map<string, Awaited<ReturnType<typeof getUserBookings>>[number]>,
+  bookingsMap: Map<string, BookingWithCourse>,
   canCancelMap: Map<string, boolean>,
   hasActiveSubscription: boolean,
   subscriptionType: string | null,
@@ -62,7 +63,7 @@ export default async function CoursesPage() {
   ])
 
   if (!user) {
-    const bookingsMap = new Map<string, Awaited<ReturnType<typeof getUserBookings>>[number]>()
+    const bookingsMap = new Map<string, BookingWithCourse>()
     const canCancelMap = new Map<string, boolean>()
     const bookedCourses: Awaited<ReturnType<typeof getCourses>> = []
     return (
@@ -82,7 +83,14 @@ export default async function CoursesPage() {
 
   const supabase = createClient()
 
-  const [{ data: subscription }, userBookingsData] = await Promise.all([
+  // getCourses already attached the user's confirmed booking to each course,
+  // so the booked list is derived here instead of re-querying bookings.
+  const bookedCourses = allCourses.filter((course) => course.user_booking)
+  const bookingsMap = new Map<string, BookingWithCourse>(
+    bookedCourses.map((course) => [course.id, { ...course.user_booking!, course }])
+  )
+
+  const [{ data: subscription }, canCancelMap] = await Promise.all([
     supabase
       .from('subscriptions')
       .select('*')
@@ -91,17 +99,8 @@ export default async function CoursesPage() {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
-    getUserBookings(),
+    canCancelBookings(bookedCourses.map((course) => course.user_booking!.id)),
   ])
-
-  const canCancelMap =
-    userBookingsData.length > 0
-      ? await canCancelBookings(userBookingsData.map((b) => b.id))
-      : new Map<string, boolean>()
-  const bookingsMap = new Map(
-    userBookingsData.map((booking) => [booking.course_id, booking])
-  )
-  const bookedCourses = allCourses.filter((course) => bookingsMap.has(course.id))
 
   return (
     <MemberLayout>

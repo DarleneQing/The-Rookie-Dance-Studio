@@ -146,7 +146,7 @@ export function AdminDashboard({ stats, todayCheckins, todaysCourses }: AdminDas
             aria-hidden="true"
           >
             <Image
-              src="/assets/pose1.png"
+              src="/assets/pose1.webp"
               alt=""
               fill
               sizes="(max-width: 640px) 62vw, 380px"

@@ -90,3 +90,48 @@ export function isUsableSubscription(
   }
   return false
 }
+
+interface CombinableSubscription {
+  type: string
+  remaining_credits: number | null
+  total_credits?: number | null
+}
+
+/**
+ * Collapses a member's usable subscriptions (usableSubscriptionFilter rows,
+ * created_at DESC) into the single card the UI shows. Check-ins drain every
+ * usable times card, newest first (find_usable_subscription), so the real
+ * balance is the sum: an archived 5-times card with 4 left plus a newly
+ * assigned 10-times card shows as 14 / 15. A newest monthly pass wins as-is
+ * because check-ins use it before any leftover times credits.
+ */
+export function combineUsableSubscriptions<T extends CombinableSubscription>(
+  subs: T[] | null | undefined
+): T | null {
+  const newest = subs?.[0]
+  if (!newest) return null
+  if (!isTimesBasedSubscription(newest.type)) return newest
+
+  const cards = subs.filter((sub) => isTimesBasedSubscription(sub.type))
+  return {
+    ...newest,
+    remaining_credits: cards.reduce((sum, sub) => sum + (sub.remaining_credits ?? 0), 0),
+    total_credits: cards.reduce(
+      (sum, sub) => sum + (sub.total_credits ?? getSubscriptionTotalCredits(sub.type)),
+      0
+    ),
+  }
+}
+
+/** combineUsableSubscriptions per member, for admin lists spanning many users. */
+export function combineUsableSubscriptionsByUser<T extends CombinableSubscription & { user_id: string }>(
+  subs: T[] | null | undefined
+): Map<string, T> {
+  const byUser = new Map<string, T[]>()
+  for (const sub of subs ?? []) {
+    byUser.set(sub.user_id, [...(byUser.get(sub.user_id) ?? []), sub])
+  }
+  return new Map(
+    Array.from(byUser, ([userId, userSubs]) => [userId, combineUsableSubscriptions(userSubs)!])
+  )
+}

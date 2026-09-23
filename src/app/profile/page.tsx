@@ -9,7 +9,10 @@ import { getCachedProfile, getCachedUser } from '@/lib/supabase/cached'
 import { createClient } from '@/lib/supabase/server'
 import { calculateStreakWeeks } from '@/lib/utils/streak-calculator'
 import { getZurichToday } from '@/lib/utils/date-helpers'
-import { usableSubscriptionFilter } from '@/lib/utils/subscription-helpers'
+import {
+  combineUsableSubscriptions,
+  usableSubscriptionFilter,
+} from '@/lib/utils/subscription-helpers'
 
 export default async function ProfilePage() {
   const user = await getCachedUser()
@@ -23,7 +26,7 @@ export default async function ProfilePage() {
 
   const [
     profile,
-    { data: subscription },
+    { data: usableSubscriptions },
     { data: checkins },
     { data: checkinHistoryData },
     { data: subscriptionsData },
@@ -34,9 +37,7 @@ export default async function ProfilePage() {
       .select('*')
       .eq('user_id', user.id)
       .or(usableSubscriptionFilter(today))
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .order('created_at', { ascending: false }),
     supabase
       .from('checkins')
       .select('created_at, subscription_id')
@@ -114,7 +115,7 @@ export default async function ProfilePage() {
           role: profile.role,
           verificationStatus: profile.verification_status,
         }}
-        subscription={subscription}
+        subscription={combineUsableSubscriptions(usableSubscriptions)}
         totalClasses={checkins?.length || 0}
         streakWeeks={calculateStreakWeeks(checkins || [])}
         checkins={(checkinHistoryData || []) as CheckinHistoryItem[]}

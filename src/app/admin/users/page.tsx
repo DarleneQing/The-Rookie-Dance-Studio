@@ -4,6 +4,11 @@ import { ArrowLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getCachedUser } from "@/lib/supabase/cached"
 import { UsersTable } from "@/components/admin/users-table"
+import { getZurichToday } from "@/lib/utils/date-helpers"
+import {
+  combineUsableSubscriptionsByUser,
+  usableSubscriptionFilter,
+} from "@/lib/utils/subscription-helpers"
 
 export default async function UserManagementPage() {
   const user = await getCachedUser()
@@ -32,7 +37,8 @@ export default async function UserManagementPage() {
       supabase
         .from("subscriptions")
         .select("type, status, start_date, end_date, total_credits, remaining_credits, user_id")
-        .eq("status", "active"),
+        .or(usableSubscriptionFilter(getZurichToday()))
+        .order("created_at", { ascending: false }),
     ])
 
   if (profile?.role !== "admin") {
@@ -41,10 +47,8 @@ export default async function UserManagementPage() {
 
   if (!profiles) return <div>No users found</div>
 
-  // Merge data using Map for O(n) lookup instead of O(n²) find inside map
-  const subscriptionMap = new Map(
-    (subscriptions || []).map((sub) => [sub.user_id, sub])
-  )
+  // One entry per member, credits summed across stacked times cards
+  const subscriptionMap = combineUsableSubscriptionsByUser(subscriptions)
   const users = profiles.map((p) => ({
     ...p,
     subscription: subscriptionMap.get(p.id) || null,

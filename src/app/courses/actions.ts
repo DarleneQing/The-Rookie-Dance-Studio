@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { getCachedUser } from '@/lib/supabase/cached';
+import { getZurichToday } from '@/lib/utils/date-helpers';
 import type {
   CourseWithBookingCount,
   Booking,
@@ -155,7 +156,7 @@ export async function getCourseStatistics(): Promise<CourseStatistics> {
   const total_attended = checkins?.length || 0;
   
   // Count this month
-  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const currentMonth = getZurichToday().slice(0, 7); // YYYY-MM (Zurich, like scheduled_date)
   const this_month = (checkins || []).filter((c: CheckinWithCourseForStats) => {
     const course = unwrapSupabaseRelation(c.course);
     return course?.scheduled_date?.startsWith(currentMonth);

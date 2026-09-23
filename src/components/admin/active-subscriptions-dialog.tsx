@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { formatSubscriptionType } from "@/lib/utils/subscription-helpers"
+import { getZurichToday } from "@/lib/utils/date-helpers"
 
 type SubscriptionType = AdminSubscriptionMember["type"]
 
@@ -40,7 +41,7 @@ function formatDate(value: string | null) {
 }
 
 function getEffectiveStatus(subscription: AdminSubscriptionMember) {
-  const today = new Date().toISOString().split("T")[0]
+  const today = getZurichToday()
   if (subscription.type === "monthly" && subscription.end_date && subscription.end_date < today) {
     return "Expired"
   }

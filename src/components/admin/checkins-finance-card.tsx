@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FinanceSummaryDialog } from "@/components/admin/finance-summary-dialog"
 import { formatTimestampTime } from "@/lib/utils/date-formatters"
+import { getZurichToday } from "@/lib/utils/date-helpers"
 import { getFinanceCheckins, type FinanceCheckinItem } from "@/app/admin/actions"
 import { financeWorkbookLinks } from "@/lib/finance-workbook"
 
@@ -19,7 +20,7 @@ function formatPaymentMethod(method: string | null): string {
 
 export function CheckinsFinanceCard() {
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    getZurichToday()
   )
   const [checkins, setCheckins] = useState<CheckinFinanceItem[]>([])
   const [loading, setLoading] = useState(false)

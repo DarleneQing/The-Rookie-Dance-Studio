@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { getZurichToday } from '@/lib/utils/date-helpers'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface CreateCourseDialogProps {
@@ -105,10 +106,7 @@ export function CreateCourseDialog({
     }
   }
 
-  const getTodayDate = () => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  }
+  const getTodayDate = getZurichToday
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

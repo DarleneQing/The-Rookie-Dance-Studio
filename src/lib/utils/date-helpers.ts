@@ -83,6 +83,23 @@ export function shiftYMD(ymd: string, days: number): string {
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10)
 }
 
+/**
+ * Every Saturday of a month as YYYY-MM-DD, by pure calendar arithmetic.
+ *
+ * Do NOT build dates at local midnight and read them back with
+ * toISOString(): east of UTC (Zurich) that yields the PREVIOUS day, turning
+ * every Saturday into a Friday string.
+ */
+export function getSaturdaysInMonth(year: number, month: number): string[] {
+  const saturdays: string[] = []
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(Date.UTC(year, month - 1, day))
+    if (date.getUTCDay() === 6) saturdays.push(date.toISOString().slice(0, 10))
+  }
+  return saturdays
+}
+
 const zurichWallClock = new Intl.DateTimeFormat('en-US', {
   timeZone: 'Europe/Zurich',
   hourCycle: 'h23',

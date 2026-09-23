@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import { getCheckinHistory, type CheckinHistoryItem } from "@/app/admin/actions"
+import { getZurichToday } from "@/lib/utils/date-helpers"
 
 export type CheckinHistoryItemType = CheckinHistoryItem
 
 export function CheckinHistoryCard() {
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    getZurichToday()
   )
   const [checkins, setCheckins] = useState<CheckinHistoryItem[]>([])
   const [loading, setLoading] = useState(false)

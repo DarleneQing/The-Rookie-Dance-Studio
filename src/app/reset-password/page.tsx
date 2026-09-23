@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
-import { FloatingElementsLazy } from '@/components/auth/floating-elements-lazy';
+import { FloatingElements } from '@/components/auth/floating-elements';
 import { Lock, ArrowRight } from 'lucide-react';
 
 export default function ResetPasswordPage() {
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
       <div className="absolute inset-0 z-0 bg-background" />
 
       {/* Floating decorative elements */}
-      <FloatingElementsLazy />
+      <FloatingElements />
 
       {/* Content */}
       <div className="w-full max-w-md relative z-10 px-4">

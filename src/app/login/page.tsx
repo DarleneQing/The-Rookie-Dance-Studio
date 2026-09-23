@@ -1,19 +1,14 @@
 import { AuthForm } from "@/components/auth/auth-form"
-import { FloatingElementsLazy } from "@/components/auth/floating-elements-lazy"
+import { FloatingElements } from '@/components/auth/floating-elements'
 
-interface LoginPageProps {
-  searchParams: { callbackUrl?: string }
-}
-
-export default function LoginPage({ searchParams }: LoginPageProps) {
-  const callbackUrl = searchParams?.callbackUrl
+export default function LoginPage() {
   return (
     <main id="main-content" className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 z-0 bg-background" />
 
       {/* Floating decorative elements */}
-      <FloatingElementsLazy />
+      <FloatingElements />
 
       {/* Studio Name Header */}
       <div className="relative z-10 w-full text-center pt-12 pb-8 px-4">
@@ -24,7 +19,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
 
       {/* Auth Form - Centered */}
       <div className="relative z-10 w-full flex items-center justify-center px-4 pb-12">
-        <AuthForm callbackUrl={callbackUrl} />
+        <AuthForm />
       </div>
     </main>
   )

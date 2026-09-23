@@ -3,31 +3,27 @@ import React from 'react';
 import { Sparkle } from './sparkle';
 import { OrbitalRing } from './orbital-ring';
 
+// Plain markup + CSS animations: renders in the static HTML, ships no JS.
+// Glows use radial-gradient instead of filter: blur() — same look, no
+// full-screen blur repaint (that was what made this slow on phones).
 export const FloatingElements: React.FC = () => {
   return (
-    <div 
-      className="fixed inset-0 pointer-events-none overflow-hidden z-0"
-      style={{
-        contain: 'layout style paint',
-        willChange: 'transform',
-        transform: 'translateZ(0)',
-      }}
+    <div
+      className="floating-elements fixed inset-0 pointer-events-none overflow-hidden z-0"
+      aria-hidden="true"
     >
-        {/* Deep background gradients */}
-        <div 
-          className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] bg-indigo-900/30 blur-[120px] rounded-full mix-blend-screen" 
-          style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+        {/* Deep background glows */}
+        <div
+          className="absolute top-[-40%] left-[-40%] w-[100%] h-[100%] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgb(49 46 129 / 0.3) 0%, transparent 65%)' }}
         />
-        <div 
-          className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-900/20 blur-[100px] rounded-full mix-blend-screen" 
-          style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+        <div
+          className="absolute bottom-[-30%] right-[-30%] w-[90%] h-[90%] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgb(112 26 117 / 0.2) 0%, transparent 65%)' }}
         />
 
         {/* Orbital Rings - Mimicking the poster's central dynamic */}
-        <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 perspective-[1000px]"
-          style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-        >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
              {/* Large outer ring */}
             <OrbitalRing size={600} tilt={75} rotation={15} color="border-rookie-purple/30" className="border-2" />
             {/* Cross ring */}
@@ -38,7 +34,7 @@ export const FloatingElements: React.FC = () => {
 
         {/* Sparkles - Placed randomly to match the scatter in poster */}
         {/* Top Left Cluster */}
-        <Sparkle className="top-[15%] left-[10%]" size={60} color="#a855f7" /> 
+        <Sparkle className="top-[15%] left-[10%]" size={60} color="#a855f7" />
         <Sparkle className="top-[25%] left-[5%]" size={30} color="white" delay="0.5s" />
         <Sparkle className="top-[10%] left-[25%]" size={40} color="#67e8f9" delay="1s" />
 
@@ -56,4 +52,3 @@ export const FloatingElements: React.FC = () => {
     </div>
   );
 };
-

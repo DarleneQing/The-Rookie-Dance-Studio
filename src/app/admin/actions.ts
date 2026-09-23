@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/utils/admin-guard'
+import { getZurichDayRange } from '@/lib/utils/date-helpers'
 
 export type PaymentMethod = 'cash' | 'twint' | 'abo';
 
@@ -349,20 +350,19 @@ export async function getFinanceCheckins(
 
   const supabase = createClient()
 
-  const dateStart = new Date(selectedDate)
-  dateStart.setHours(0, 0, 0, 0)
-  const dateStartISO = dateStart.toISOString()
-
-  const dateEnd = new Date(selectedDate)
-  dateEnd.setHours(23, 59, 59, 999)
-  const dateEndISO = dateEnd.toISOString()
+  let day: { start: string; end: string }
+  try {
+    day = getZurichDayRange(selectedDate)
+  } catch {
+    return { success: false, message: 'Invalid date' }
+  }
 
   const { data, error } = await supabase
     .from('checkins')
     .select('id, created_at, payment_method, profiles!user_id(full_name, member_type, phone_number)')
     .not('course_id', 'is', null)
-    .gte('created_at', dateStartISO)
-    .lte('created_at', dateEndISO)
+    .gte('created_at', day.start)
+    .lt('created_at', day.end)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -541,19 +541,18 @@ export async function getCheckinHistory(
 
   const supabase = createClient()
 
-  const dateStart = new Date(selectedDate)
-  dateStart.setHours(0, 0, 0, 0)
-  const dateStartISO = dateStart.toISOString()
-
-  const dateEnd = new Date(selectedDate)
-  dateEnd.setHours(23, 59, 59, 999)
-  const dateEndISO = dateEnd.toISOString()
+  let day: { start: string; end: string }
+  try {
+    day = getZurichDayRange(selectedDate)
+  } catch {
+    return { success: false, message: 'Invalid date' }
+  }
 
   const { data, error } = await supabase
     .from('checkins')
     .select('id, created_at, profiles!user_id(full_name)')
-    .gte('created_at', dateStartISO)
-    .lte('created_at', dateEndISO)
+    .gte('created_at', day.start)
+    .lt('created_at', day.end)
     .order('created_at', { ascending: false })
 
   if (error) {

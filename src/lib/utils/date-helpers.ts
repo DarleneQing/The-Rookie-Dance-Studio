@@ -72,3 +72,52 @@ export function getZurichToday(): string {
   const { y, m, d } = getZurichYMD(new Date())
   return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 }
+
+const zurichWallClock = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Europe/Zurich',
+  hourCycle: 'h23',
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+  second: 'numeric',
+})
+
+/** Zurich's UTC offset (ms) at a given instant. */
+function zurichOffsetMs(instant: number): number {
+  const parts = zurichWallClock.formatToParts(new Date(instant))
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value)
+  return Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second')) - instant
+}
+
+/** The instant of 00:00 Zurich time on y-m-d (day overflow rolls over, like Date.UTC). */
+function zurichMidnight(y: number, m: number, d: number): number {
+  const wallMidnightAsUtc = Date.UTC(y, m - 1, d)
+  // Second pass uses the offset in force at the corrected instant, so it
+  // stays exact even on DST-switch days.
+  const firstGuess = wallMidnightAsUtc - zurichOffsetMs(wallMidnightAsUtc)
+  return wallMidnightAsUtc - zurichOffsetMs(firstGuess)
+}
+
+/**
+ * Absolute bounds of a Zurich calendar day (YYYY-MM-DD) as ISO instants,
+ * half-open: `created_at >= start AND created_at < end`. Matches the SQL
+ * `get_admin_stats` window.
+ *
+ * Use this for server-side day filters instead of `setHours(0, 0, 0, 0)`,
+ * which uses the server's zone (UTC on Vercel) and shifts the window by the
+ * Zurich offset (1h CET / 2h CEST).
+ */
+export function getZurichDayRange(ymd: string): { start: string; end: string } {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd)
+  const [y, m, d] = match ? match.slice(1).map(Number) : []
+  const calendar = match ? new Date(Date.UTC(y, m - 1, d)) : null
+  if (!calendar || calendar.getUTCMonth() !== m - 1 || calendar.getUTCDate() !== d) {
+    throw new Error(`Invalid date: ${JSON.stringify(ymd)} (expected YYYY-MM-DD)`)
+  }
+  return {
+    start: new Date(zurichMidnight(y, m, d)).toISOString(),
+    end: new Date(zurichMidnight(y, m, d + 1)).toISOString(),
+  }
+}

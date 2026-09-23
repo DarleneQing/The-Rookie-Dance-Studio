@@ -1,0 +1,37 @@
+-- Hardening: drop the legacy 2-argument book_course(UUID, UUID) overload
+-- Date: 2026-09-23
+--
+-- 2026-04-04_1 added p_is_admin_override via CREATE OR REPLACE. A different
+-- argument list does not replace a function in Postgres, it creates an
+-- OVERLOAD, so book_course(UUID, UUID) from 2026-02-06_4 survived alongside
+-- the new book_course(UUID, UUID, BOOLEAN). Every later hardening
+-- (2026-08-16_1 / _2: auth.uid() = p_user_id check, admin-only override,
+-- search_path, row_security) only touched the 3-argument version.
+--
+-- The legacy overload is SECURITY DEFINER, GRANTed to authenticated, and has
+-- no caller check: any signed-in member could book on behalf of any other
+-- member by calling it with a victim's p_user_id.
+--
+-- Found when replaying the full migration chain from scratch in the SQL test
+-- harness (src/__tests__/sql/pg-harness.ts): the unqualified
+-- `COMMENT ON FUNCTION book_course` in 2026-04-04_1 fails with
+-- 'function name "book_course" is not unique' once both overloads exist.
+--
+-- Production was checked on 2026-09-23 and did NOT have the overload (only
+-- book_course(uuid,uuid,boolean) exists), so there this is a no-op. It still
+-- matters for any DB rebuilt by replaying the migration files in order (a
+-- new environment or Supabase branch), which WOULD end up with the overload.
+--
+-- Safe either way: where the overload is absent this does nothing. The app calls book_course with two named args;
+-- with the overload gone that resolves to the 3-argument version through
+-- p_is_admin_override's DEFAULT false, which is the intended hardened path.
+--
+-- Idempotent. Apply in the Supabase SQL Editor.
+
+DROP FUNCTION IF EXISTS book_course(UUID, UUID);
+
+-- ============================================================================
+-- Verification (run after applying) — expect exactly one row:
+--   book_course(uuid,uuid,boolean)
+-- ============================================================================
+--   SELECT oid::regprocedure FROM pg_proc WHERE proname = 'book_course';

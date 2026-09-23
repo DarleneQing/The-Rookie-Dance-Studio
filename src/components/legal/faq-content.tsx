@@ -154,7 +154,7 @@ const faqData = [
       },
       {
         q: 'What\'s the class duration?',
-        a: 'Classes are usually 120 minutes long. The exact duration is shown on each course card (e.g., "7:00 PM - 9:00 PM").',
+        a: 'Classes run from 3:00 PM to 5:00 PM (120 minutes). The exact time is always shown on each course card.',
       },
       {
         q: 'Are classes suitable for beginners?',

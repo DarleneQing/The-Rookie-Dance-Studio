@@ -1,16 +1,8 @@
-import nextDynamic from "next/dynamic"
 import Image from "next/image"
 import { Footer } from "@/components/footer"
+import { FloatingElements } from "@/components/auth/floating-elements"
 import { FindUsDialog } from "@/components/legal/find-us-dialog"
 import { SubscriptionPricingDialog } from "@/components/legal/subscription-pricing-dialog"
-
-const FloatingElementsLazy = nextDynamic(
-  () =>
-    import("@/components/auth/floating-elements-lazy").then((mod) => ({
-      default: mod.FloatingElementsLazy,
-    })),
-  { ssr: false }
-)
 
 const landingInfoButtonClassName =
   "flex h-11 w-full items-center justify-center rounded-xl border-2 font-syne font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -20,8 +12,7 @@ export const dynamic = "force-static"
 export default function Home() {
   return (
     <main id="main-content" className="relative flex flex-col items-center justify-center overflow-x-hidden bg-background min-h-screen">
-      {/* Decoration loads in separate chunk – does not block content or interaction */}
-      <FloatingElementsLazy />
+      <FloatingElements />
 
       <div className="relative z-10 w-full flex flex-col items-center justify-center px-4 py-8">
         <div className="w-full text-center pt-8 pb-4 px-4">

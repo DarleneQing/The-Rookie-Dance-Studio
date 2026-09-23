@@ -1,4 +1,4 @@
-import dynamic from 'next/dynamic'
+import { FloatingElements } from '@/components/auth/floating-elements'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedUser } from '@/lib/supabase/cached'
 import { getCourses, canCancelBookings } from '@/app/courses/actions'
@@ -10,13 +10,6 @@ import { Footer } from '@/components/footer'
 import { usableSubscriptionFilter } from '@/lib/utils/subscription-helpers'
 import type { BookingWithCourse } from '@/types/courses'
 
-const FloatingElementsLazy = dynamic(
-  () =>
-    import('@/components/auth/floating-elements-lazy').then((mod) => ({
-      default: mod.FloatingElementsLazy,
-    })),
-  { ssr: false }
-)
 
 const coursesPageContent = (
   allCourses: Awaited<ReturnType<typeof getCourses>>,
@@ -29,7 +22,7 @@ const coursesPageContent = (
 ) => (
   <main id="main-content" className="relative min-h-screen overflow-hidden">
     <div className="absolute inset-0 z-0 bg-background" />
-    {!isLoggedIn && <FloatingElementsLazy />}
+    {!isLoggedIn && <FloatingElements />}
     <div className="relative z-10 container max-w-md md:max-w-6xl mx-auto pt-8 pb-8 px-4">
       <div className="relative">
         <div className="relative bg-card border border-border/60 rounded-3xl p-4 md:p-6 shadow-2xl overflow-hidden">

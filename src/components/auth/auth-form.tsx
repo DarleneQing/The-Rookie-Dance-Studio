@@ -7,8 +7,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { AuthMode, FormErrors } from '@/types/auth';
-import { login, signup, resetPassword } from '@/app/auth/actions';
-import { createClient } from '@/lib/supabase/client';
+import { login, signup } from '@/app/auth/actions';
 import { Input } from './auth-input';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import 'react-phone-number-input/style.css';
@@ -56,10 +55,9 @@ function SubmitButton({ mode, isLoading }: { mode: AuthMode; isLoading: boolean 
 
 interface AuthFormProps {
   initialMode?: AuthMode;
-  callbackUrl?: string;
 }
 
-export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN, callbackUrl }) => {
+export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -80,10 +78,11 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
 
   const [loginState, loginAction] = useFormState(loginWithState, initialState);
   const [signupState, signupAction] = useFormState(signup, initialState);
-  const [resetPasswordState, resetPasswordAction] = useFormState(resetPassword, initialState);
 
-  const currentState = mode === AuthMode.LOGIN ? loginState : mode === AuthMode.REGISTER ? signupState : resetPasswordState;
-  const currentAction = mode === AuthMode.LOGIN ? loginAction : mode === AuthMode.REGISTER ? signupAction : resetPasswordAction;
+  // FORGOT_PASSWORD submits from the browser in handleSubmit and returns before
+  // any Server Action runs, so only login/register carry action state.
+  const currentState = mode === AuthMode.LOGIN ? loginState : mode === AuthMode.REGISTER ? signupState : initialState;
+  const currentAction = mode === AuthMode.REGISTER ? signupAction : loginAction;
 
   useEffect(() => {
     if (currentState?.error) {
@@ -165,6 +164,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
     if (mode === AuthMode.FORGOT_PASSWORD) {
       // Client-side reset stores PKCE verifier so email link works with default template
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+      // Loaded on demand: /login and /register don't ship supabase-js up front.
+      const { createClient } = await import('@/lib/supabase/client');
       const { error } = await createClient().auth.resetPasswordForEmail(formData.email.trim(), {
         redirectTo: `${baseUrl}/auth/callback?next=/reset-password`,
       });
@@ -191,6 +192,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
       const guardianForMinor = isMinor && formData.isGuardianForMinor;
       formDataToSubmit.append('is_guardian_for_minor', guardianForMinor ? 'true' : 'false');
     }
+    // Read from the URL (not a page prop) so /login and /register stay static.
+    // The server action validates it with isValidCallbackUrl.
+    const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl');
     if (callbackUrl) {
       formDataToSubmit.append('callbackUrl', callbackUrl);
     }
@@ -225,9 +229,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ initialMode = AuthMode.LOGIN
                   >
                     {currentState.error}
                   </div>
-                )}
-                {callbackUrl && (
-                  <input type="hidden" name="callbackUrl" value={callbackUrl} />
                 )}
                 {mode === AuthMode.REGISTER && (
                     <Input 

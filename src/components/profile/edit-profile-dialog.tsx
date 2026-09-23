@@ -1,6 +1,7 @@
 'use client'
 
 import { startTransition, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { Loader2, UserRound } from 'lucide-react'
 
@@ -17,8 +18,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import PhoneInput from 'react-phone-number-input'
 import 'react-phone-number-input/style.css'
+
+// Loaded on first open: dialog content only mounts when the dialog opens.
+const PhoneInput = dynamic(() => import('react-phone-number-input'))
 
 interface EditProfileDialogProps {
   currentFullName: string | null

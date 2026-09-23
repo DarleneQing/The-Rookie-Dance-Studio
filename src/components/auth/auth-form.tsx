@@ -5,13 +5,20 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { toast } from 'sonner';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { AuthMode, FormErrors } from '@/types/auth';
 import { login, signup, resetPassword } from '@/app/auth/actions';
 import { createClient } from '@/lib/supabase/client';
 import { Input } from './auth-input';
 import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
-import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
+
+// Split out: the phone library (with libphonenumber metadata) is only needed
+// in REGISTER mode, so /login never downloads it. SSR stays on, so /register
+// still renders the field on first paint.
+const PhoneInput = dynamic(() => import('react-phone-number-input'), {
+    loading: () => <div className="h-6" aria-hidden />,
+});
 
 const initialState = {
   message: undefined as string | undefined,

@@ -1,7 +1,7 @@
 'use client'
 
 import { startTransition, useCallback, useRef, useState } from 'react'
-import Cropper from 'react-easy-crop'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { Upload } from 'lucide-react'
 
@@ -10,6 +10,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { formatFileSize } from '@/lib/utils/image-compression'
+
+// Loaded only once an image is picked; it renders inside a fixed-height box,
+// so there is no layout shift while the chunk arrives.
+// The cast restores the class component's defaultProps-aware typing, which
+// dynamic() drops; it is type-only (no runtime import).
+const Cropper = dynamic(() => import('react-easy-crop'), {
+  ssr: false,
+}) as unknown as typeof import('react-easy-crop').default
 
 interface AvatarUploadDialogProps {
   children: React.ReactNode

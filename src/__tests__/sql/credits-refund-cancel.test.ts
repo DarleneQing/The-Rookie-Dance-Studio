@@ -400,15 +400,17 @@ describe('checkins — writes only through the RPCs', () => {
     expect(await sub(card)).toMatchObject({ remaining_credits: 5 })
   })
 
-  it('the check-in RPC still inserts as the API role', async () => {
-    await giveCard(member, '5_times', 5)
+  it('the manual "Add check-in" path (manualCheckin) still inserts and deducts as the API role', async () => {
+    const card = await giveCard(member, '5_times', 5)
     const course = await createCourse()
     await actAs(db, admin)
+    // Same call as manualCheckin in src/app/admin/courses/actions.ts.
     const result = await asApiRole(async () => ({
       ...(await rpc(`perform_course_checkin($1, $2, $3, true, 'abo')`, [member, course, admin])),
       visible: await checkinCount(member),
+      credits: (await sub(card)).remaining_credits,
     }))
-    expect(result).toMatchObject({ success: true, visible: 1 })
+    expect(result).toMatchObject({ success: true, visible: 1, credits: 4 })
   })
 })
 

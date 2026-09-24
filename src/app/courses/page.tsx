@@ -7,7 +7,10 @@ import { CoursesPageClient } from '@/components/courses/courses-page-client'
 import { WhatsAppGroupCard } from '@/components/courses/whatsapp-group-card'
 import { getZurichToday } from '@/lib/utils/date-helpers'
 import { Footer } from '@/components/footer'
-import { usableSubscriptionFilter } from '@/lib/utils/subscription-helpers'
+import {
+  pickUsableSubscription,
+  usableSubscriptionFilter,
+} from '@/lib/utils/subscription-helpers'
 import type { BookingWithCourse } from '@/types/courses'
 
 
@@ -83,17 +86,16 @@ export default async function CoursesPage() {
     bookedCourses.map((course) => [course.id, { ...course.user_booking!, course }])
   )
 
-  const [{ data: subscription }, canCancelMap] = await Promise.all([
+  const [{ data: usableSubscriptions }, canCancelMap] = await Promise.all([
     supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', user.id)
       .or(usableSubscriptionFilter(today))
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .order('created_at', { ascending: false }),
     canCancelBookings(bookedCourses.map((course) => course.user_booking!.id)),
   ])
+  const subscription = pickUsableSubscription(usableSubscriptions)
 
   return (
     <MemberLayout>

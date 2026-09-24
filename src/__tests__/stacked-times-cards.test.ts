@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   combineUsableSubscriptions,
   combineUsableSubscriptionsByUser,
+  pickUsableSubscription,
 } from '@/lib/utils/subscription-helpers'
 
 // Rows as returned by usableSubscriptionFilter + created_at DESC.
@@ -20,13 +21,23 @@ describe('combineUsableSubscriptions', () => {
     expect(combineUsableSubscriptions([oldFive])).toMatchObject({ remaining_credits: 4, total_credits: 5 })
   })
 
-  it('shows the monthly pass when it is the newest card (check-ins use it first)', () => {
+  it('shows the monthly pass whenever one is usable (check-ins use it first)', () => {
     expect(combineUsableSubscriptions([monthly, oldFive])).toBe(monthly)
+    // Times card assigned after the monthly card: monthly still wins
+    expect(combineUsableSubscriptions([newTen, monthly])).toBe(monthly)
   })
 
   it('returns null when nothing is usable', () => {
     expect(combineUsableSubscriptions([])).toBeNull()
     expect(combineUsableSubscriptions(null)).toBeNull()
+  })
+})
+
+describe('pickUsableSubscription (mirrors find_usable_subscription ordering)', () => {
+  it('prefers a usable monthly card, else the newest card', () => {
+    expect(pickUsableSubscription([newTen, monthly, oldFive])).toBe(monthly)
+    expect(pickUsableSubscription([newTen, oldFive])).toBe(newTen)
+    expect(pickUsableSubscription([])).toBeNull()
   })
 })
 

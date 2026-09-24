@@ -1190,7 +1190,7 @@ CREATE TYPE course_status AS ENUM ('scheduled', 'completed', 'cancelled');
 | location | TEXT | NOT NULL | Studio location/room |
 | scheduled_date | DATE | NOT NULL | Course date |
 | start_time | TIME | NOT NULL | Start time (default 15:00) |
-| duration | INTERVAL | NOT NULL | Duration (default 90 minutes) |
+| duration | INTERVAL | NOT NULL | Duration (default 120 minutes) |
 | capacity | INTEGER | NOT NULL, DEFAULT 25 | Maximum participants |
 | status | course_status | NOT NULL, DEFAULT 'scheduled' | Course status |
 | description | TEXT | | Additional course details |
@@ -2218,7 +2218,7 @@ A course represents a specific dance class scheduled for a particular date and t
 - Location/studio room
 - Scheduled date (typically Saturday)
 - Start time (default: 15:00 / 3:00 PM)
-- Duration (default: 90 minutes)
+- Duration (default: 120 minutes)
 - Capacity (default: 25 participants, adjustable by admin)
 - Status (scheduled, completed, cancelled)
 
@@ -2227,7 +2227,7 @@ Default values streamline course creation:
 - **Default Dance Style**: "Girls Kpop"
 - **Default Location**: Studio address (configured by admin)
 - **Default Time**: 15:00 (3:00 PM)
-- **Default Duration**: 90 minutes
+- **Default Duration**: 120 minutes
 - **Default Capacity**: 25
 
 #### 12.2.2 Course Creation Workflows

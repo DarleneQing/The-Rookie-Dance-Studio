@@ -80,8 +80,8 @@ export function TermsContent() {
         <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">4.1 Class Fees</h3>
         <p className="mb-2">Contribution fees are set as follows:</p>
         <ul className="list-disc list-inside space-y-2 ml-4">
-          <li><strong>CHF 10</strong> for verified student members</li>
-          <li><strong>CHF 15</strong> for adult members and general public</li>
+          <li><strong>CHF 12</strong> for verified student members</li>
+          <li><strong>CHF 18</strong> for adult members and general public</li>
         </ul>
 
         <h3 className="font-syne font-semibold text-xl text-foreground/90 mb-3 mt-6">4.2 Subscription Types</h3>

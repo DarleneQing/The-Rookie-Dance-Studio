@@ -16,7 +16,7 @@ const faqData = [
       },
       {
         q: 'What\'s the difference between student and adult membership?',
-        a: '<strong>Student Members</strong>: Verified students enrolled in educational institutions receive discounted class fees (CHF 10 per class). You\'ll need to upload a valid student card for verification.<br/><br/><strong>Adult Members</strong>: Standard membership for individuals 18 years and older (CHF 15 per class).',
+        a: '<strong>Student Members</strong>: Verified students enrolled in educational institutions receive discounted class fees (CHF 12 per class). You\'ll need to upload a valid student card for verification.<br/><br/><strong>Adult Members</strong>: Standard membership for individuals 18 years and older (CHF 18 per class).',
       },
       {
         q: 'How do I verify my student status?',
@@ -38,7 +38,7 @@ const faqData = [
       },
       {
         q: 'What\'s the difference between single class and subscription booking?',
-        a: '<strong>Single Class Booking</strong>: Pay per class (CHF 10 for students, CHF 15 for adults). No subscription required.<br/><br/><strong>Subscription Booking</strong>: If you have an active subscription, your booking will automatically use your subscription credits.',
+        a: '<strong>Single Class Booking</strong>: Pay per class (CHF 12 for students, CHF 18 for adults). No subscription required.<br/><br/><strong>Subscription Booking</strong>: If you have an active subscription, your booking will automatically use your subscription credits.',
       },
       {
         q: 'What subscription options are available?',
@@ -154,7 +154,7 @@ const faqData = [
       },
       {
         q: 'What\'s the class duration?',
-        a: 'Most classes are 60-90 minutes long. The exact duration is shown on each course card (e.g., "7:00 PM - 8:30 PM").',
+        a: 'Classes run from 3:00 PM to 5:00 PM (120 minutes). The exact time is always shown on each course card.',
       },
       {
         q: 'Are classes suitable for beginners?',
@@ -168,7 +168,7 @@ const faqData = [
     questions: [
       {
         q: 'How much do classes cost?',
-        a: '<strong>Student Members</strong> (verified): CHF 10 per class<br/><strong>Adult Members</strong>: CHF 15 per class<br/><br/>These are contribution fees to cover the cost of running the studio.',
+        a: '<strong>Student Members</strong> (verified): CHF 12 per class<br/><strong>Adult Members</strong>: CHF 18 per class<br/><br/>These are contribution fees to cover the cost of running the studio.',
       },
       {
         q: 'How and when do I pay for classes?',

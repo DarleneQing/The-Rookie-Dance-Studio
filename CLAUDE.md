@@ -88,7 +88,7 @@ Server Actions are colocated with their routes as `actions.ts`:
 After mutations, call `revalidatePath(...)` to refresh server-rendered pages.
 
 ### Auth callback
-`src/app/auth/callback/route.ts` uses Supabase's **`token_hash` + `verifyOtp`** flow (not the PKCE `code` flow) for email verification. The email template must point to `/auth/callback?token_hash=...&type=email`. If verification "fails" intermittently after a confirmed email, this is the first thing to check (see `EMAIL_VERIFICATION_FIX.md` and `docs/migrations` history for context).
+`src/app/auth/callback/route.ts` uses Supabase's **`token_hash` + `verifyOtp`** flow (not the PKCE `code` flow) for email verification. The email template must point to `/auth/callback?token_hash=...&type=email`. If verification "fails" intermittently after a confirmed email, this is the first thing to check (also confirm the Supabase Site URL and Redirect URLs include `/auth/callback` for both production and `http://localhost:3000`).
 
 ### Roles
 - `role: 'admin'` — gates `src/app/admin/*` (middleware enforces auth; the page itself checks role).

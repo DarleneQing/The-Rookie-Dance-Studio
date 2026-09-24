@@ -373,6 +373,45 @@ describe('book_course — authorization', () => {
   })
 })
 
+describe('checkins — writes only through the RPCs', () => {
+  // Run as the Supabase API role so RLS applies (the harness is a superuser).
+  async function asApiRole<T>(fn: () => Promise<T>): Promise<T> {
+    await db.exec(`SAVEPOINT api_role; SET LOCAL ROLE authenticated`)
+    try {
+      return await fn()
+    } finally {
+      await db.exec(`ROLLBACK TO SAVEPOINT api_role`)
+    }
+  }
+
+  it('an admin cannot insert a check-in row directly, skipping the credit debit', async () => {
+    const card = await giveCard(member, '5_times', 5)
+    await actAs(db, admin)
+    await asApiRole(() =>
+      expect(
+        db.query(`INSERT INTO checkins (user_id, subscription_id, admin_id) VALUES ($1, $2, $3)`, [
+          member,
+          card,
+          admin,
+        ])
+      ).rejects.toThrow(/row-level security/)
+    )
+    expect(await checkinCount(member)).toBe(0)
+    expect(await sub(card)).toMatchObject({ remaining_credits: 5 })
+  })
+
+  it('the check-in RPC still inserts as the API role', async () => {
+    await giveCard(member, '5_times', 5)
+    const course = await createCourse()
+    await actAs(db, admin)
+    const result = await asApiRole(async () => ({
+      ...(await rpc(`perform_course_checkin($1, $2, $3, true, 'abo')`, [member, course, admin])),
+      visible: await checkinCount(member),
+    }))
+    expect(result).toMatchObject({ success: true, visible: 1 })
+  })
+})
+
 describe('batch_create_courses', () => {
   const nextYear = new Date().getUTCFullYear() + 1
 

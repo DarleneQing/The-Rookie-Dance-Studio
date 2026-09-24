@@ -438,6 +438,23 @@ describe('getCheckinContext — user flow scenarios', () => {
   })
 
   // ========================================================================
+  // Flow J3: Monthly + times card — monthly is used first, even when the
+  // booking was made with the times card (perform_course_checkin re-links).
+  // ========================================================================
+  it('Flow J3: monthly card takes priority over a linked times card', async () => {
+    const tenCard = makeSub('10_times', { remaining_credits: 10 })
+    const pass = makeSub('monthly')
+    configureMocks({
+      profile: makeProfile(),
+      booking: makeBooking('subscription', SUB_10T_ID, tenCard),
+      usableSubs: [tenCard, pass], // times card is newer
+    })
+    const ctx = await getCheckinContext(USER_ID, COURSE_ID)
+    expect(ctx.subscriptionDetails).toMatchObject({ type: 'monthly' })
+    expect(ctx.subscriptionDetails?.remainingCredits).toBeUndefined()
+  })
+
+  // ========================================================================
   // Flow K: User not found
   // ========================================================================
   it('Flow K: user not found → success=false', async () => {

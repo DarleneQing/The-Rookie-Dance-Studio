@@ -71,7 +71,7 @@ export function AssignSubscriptionDialog({
         <DialogHeader>
           <DialogTitle>Assign Subscription</DialogTitle>
           <DialogDescription>
-            Assign a new subscription to {userName}. This will archive their current active subscription.
+            Give {userName} a new card. A monthly card is always used first; times-card credits are kept and used once no monthly card is active. A new monthly card replaces the current monthly card.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">

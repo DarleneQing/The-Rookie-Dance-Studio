@@ -60,6 +60,9 @@ export function isMonthlySubscription(type: string): boolean {
  * SQL rule:
  *   (type IN ('5_times','10_times') AND remaining_credits > 0 AND status <> 'depleted')
  *   OR (type = 'monthly' AND status = 'active' AND end_date >= CURRENT_DATE)
+ *
+ * The SQL also orders monthly first (2026-09-24_1); PostgREST cannot order by
+ * that expression, so order by created_at DESC and use pickUsableSubscription.
  */
 export function usableSubscriptionFilter(today: string): string {
   return `and(type.in.(5_times,10_times),remaining_credits.gt.0,status.neq.depleted),and(type.eq.monthly,status.eq.active,end_date.gte.${today})`
@@ -98,23 +101,35 @@ interface CombinableSubscription {
 }
 
 /**
+ * The card check-ins use next, from usable rows ordered created_at DESC.
+ * Mirrors find_usable_subscription(): a usable monthly card first (times
+ * credits are not spent while one is usable), otherwise the newest card.
+ * KEEP IN SYNC with docs/migrations/2026-09-24_1_prioritize-monthly-over-times-cards.sql
+ */
+export function pickUsableSubscription<T extends { type: string }>(
+  subs: T[] | null | undefined
+): T | null {
+  return subs?.find((sub) => isMonthlySubscription(sub.type)) ?? subs?.[0] ?? null
+}
+
+/**
  * Collapses a member's usable subscriptions (usableSubscriptionFilter rows,
  * created_at DESC) into the single card the UI shows. Check-ins drain every
  * usable times card, newest first (find_usable_subscription), so the real
  * balance is the sum: an archived 5-times card with 4 left plus a newly
- * assigned 10-times card shows as 14 / 15. A newest monthly pass wins as-is
- * because check-ins use it before any leftover times credits.
+ * assigned 10-times card shows as 14 / 15. A usable monthly card is shown
+ * as-is because check-ins use it before any times credits.
  */
 export function combineUsableSubscriptions<T extends CombinableSubscription>(
   subs: T[] | null | undefined
 ): T | null {
-  const newest = subs?.[0]
-  if (!newest) return null
-  if (!isTimesBasedSubscription(newest.type)) return newest
+  const next = pickUsableSubscription(subs)
+  if (!next || !subs) return null
+  if (!isTimesBasedSubscription(next.type)) return next
 
   const cards = subs.filter((sub) => isTimesBasedSubscription(sub.type))
   return {
-    ...newest,
+    ...next,
     remaining_credits: cards.reduce((sum, sub) => sum + (sub.remaining_credits ?? 0), 0),
     total_credits: cards.reduce(
       (sum, sub) => sum + (sub.total_credits ?? getSubscriptionTotalCredits(sub.type)),

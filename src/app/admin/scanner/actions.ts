@@ -8,6 +8,7 @@ import {
   usableSubscriptionFilter,
   isUsableSubscription,
   isTimesBasedSubscription,
+  pickUsableSubscription,
 } from '@/lib/utils/subscription-helpers';
 import { requireAdmin } from '@/lib/utils/admin-guard';
 import { getZurichToday } from '@/lib/utils/date-helpers';
@@ -165,8 +166,8 @@ export async function getCheckinContext(
   const isRepeatCheckin = !!(checkinResult.data && checkinResult.data.length > 0);
   const booking = bookingResult.data;
   const usableSubs = subscriptionResult.data ?? [];
-  // The card find_usable_subscription() would pick
-  const usableSub = usableSubs[0] ?? null;
+  // The card find_usable_subscription() would pick (monthly first)
+  const usableSub = pickUsableSubscription(usableSubs);
   const timesCredits = sumTimesCredits(usableSubs);
 
   // No booking — return profile + subscription info (for drop-in/capacity-override dialogs)
@@ -192,9 +193,15 @@ export async function getCheckinContext(
   let subDetails: SubscriptionDetails | undefined;
 
   if (booking.booking_type === 'subscription' && booking.subscription_id) {
-    // Check if the linked subscription is still usable (mirrors SQL usability rule)
+    // Keep the linked card while usable (mirrors SQL usability rule), unless
+    // it is a times card and a monthly card is usable: perform_course_checkin
+    // then re-links the booking to the monthly card.
     const linkedSub = unwrapSupabaseRelation(booking.subscription);
-    if (linkedSub && isUsableSubscription(linkedSub, today)) {
+    const monthlyOverrides =
+      !!linkedSub &&
+      isTimesBasedSubscription(linkedSub.type) &&
+      usableSub?.type === 'monthly';
+    if (linkedSub && isUsableSubscription(linkedSub, today) && !monthlyOverrides) {
       subDetails = formatSubDetails(linkedSub, timesCredits);
     }
     // Linked sub is depleted/expired/missing — fall through to check usableSub
@@ -345,7 +352,7 @@ export async function getUserActiveSubscription(
 
   return {
     hasSubscription: true,
-    subscriptionDetails: formatSubDetails(data[0], sumTimesCredits(data)),
+    subscriptionDetails: formatSubDetails(pickUsableSubscription(data)!, sumTimesCredits(data)),
   };
 }
 

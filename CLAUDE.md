@@ -54,7 +54,7 @@ Key RPCs:
 - `perform_course_checkin` — course-scoped check-in; may upgrade `single`/`drop_in` bookings to `subscription` if the user has acquired a card.
 - `book_course` — capacity-checked course booking with subscription detection.
 - `has_checked_in_today` — duplicate-check-in guard.
-- `find_usable_subscription` — shared subscription selector mirrored in the TS filter `usableSubscriptionFilter` in `src/lib/utils/subscription-helpers.ts` (used by `src/app/admin/scanner/actions.ts`, `src/app/courses/page.tsx`, `src/app/profile/page.tsx`). **Keep these two definitions in sync.**
+- `find_usable_subscription` — shared subscription selector mirrored in the TS filter `usableSubscriptionFilter` in `src/lib/utils/subscription-helpers.ts` (used by `src/app/admin/scanner/actions.ts`, `src/app/courses/page.tsx`, `src/app/profile/page.tsx`). It orders **monthly first, then newest**; PostgREST can't order by that expression, so TS mirrors it with `pickUsableSubscription`. **Keep these definitions in sync.**
 
 #### Critical SQL pattern: RLS bypass
 `SECURITY DEFINER` RPCs **must** declare `SET search_path = public, pg_temp` or RLS will still apply using the admin's `auth.uid()`, causing queries like `WHERE user_id = p_user_id` (a member UUID) to return zero rows. Reference fix: `docs/migrations/2026-02-06_4_fix-rls-subscription-access.sql`.
@@ -67,11 +67,12 @@ Key RPCs:
   OR (type = 'monthly' AND end_date >= CURRENT_DATE)
   ```
 - Booking types: `'subscription' | 'single' | 'drop_in'`. `drop_in` is legacy — no new ones are created, but existing rows are still upgraded on check-in.
-- One active subscription per user — assigning a new one archives the previous.
+- One active card **per kind** per user (unique index `one_active_sub_per_kind_per_user`): a member can hold an active monthly card and an active times card at once. `assign_subscription` archives only the active card of the same kind. Check-ins use a usable monthly card first and spend no times credit until it expires (`2026-09-24_1`).
+- Archived times cards with credits stay usable, so stacked times cards add up; the UI sums them via `combineUsableSubscriptions`.
 
 ### Duplicate check-ins are a FEATURE (shared accounts)
 Members share accounts (family members check in under one account), so **the same `user_id` legitimately checks into the same course multiple times — once per person** — and each check-in must deduct exactly one credit. This is documented in the migrations ("Allows duplicate check-ins for the same course. Each check-in deducts subscription credits if applicable.") and enabled by dropping the `unique_course_checkin` index (`2026-02-06_5`). Preserve this:
-- `perform_course_checkin` (latest: `2026-08-16_5`) has **no duplicate guard** in either path. The walk-in (`p_is_drop_in = true`) path reuses an existing confirmed booking instead of delegating blindly to `book_course` (whose "You already have a booking" guard correctly blocks *booking creation*, not check-ins). The upgrade/re-link step runs for reused bookings too, so a `single` booking made by person one upgrades to `subscription` when person two checks in with a card.
+- `perform_course_checkin` (latest: `2026-09-24_1`) has **no duplicate guard** in either path. The walk-in (`p_is_drop_in = true`) path reuses an existing confirmed booking instead of delegating blindly to `book_course` (whose "You already have a booking" guard correctly blocks *booking creation*, not check-ins). The upgrade/re-link step runs for reused bookings too, so a `single` booking made by person one upgrades to `subscription` when person two checks in with a card.
 - `book_course` **must keep** its duplicate-booking guard — members cannot create two bookings for the same course; only the check-in path tolerates repeats.
 - The scanner UI warns on repeat scans (`isRepeatCheckin` in `getCheckinContext`) but allows them — do not turn that warning into a block.
 

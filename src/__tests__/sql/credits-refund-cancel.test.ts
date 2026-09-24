@@ -152,6 +152,82 @@ describe('perform_course_checkin — credit deduction', () => {
   })
 })
 
+describe('monthly card priority over times cards', () => {
+  async function assign(userId: string, type: SubType): Promise<string> {
+    await actAs(db, admin)
+    const { rows } = await db.query<{ id: string }>(
+      `SELECT assign_subscription($1, $2::subscription_type) AS id`,
+      [userId, type]
+    )
+    return rows[0].id
+  }
+
+  async function checkinCard(checkinId: string): Promise<string | null> {
+    const { rows } = await db.query<{ subscription_id: string | null }>(
+      `SELECT subscription_id FROM checkins WHERE id = $1`,
+      [checkinId]
+    )
+    return rows[0].subscription_id
+  }
+
+  it('assigning a times card keeps an active monthly card active', async () => {
+    const pass = await assign(member, 'monthly')
+    const card = await assign(member, '10_times')
+    expect(await sub(pass)).toMatchObject({ status: 'active' })
+    expect(await sub(card)).toEqual({ remaining_credits: 10, status: 'active' })
+  })
+
+  it('assigning a card still archives the active card of the same kind', async () => {
+    const oldPass = await assign(member, 'monthly')
+    await assign(member, 'monthly')
+    expect(await sub(oldPass)).toMatchObject({ status: 'archived' })
+
+    const oldCard = await assign(member, '5_times')
+    await assign(member, '10_times')
+    // Archived, but its credits stay usable (see find_usable_subscription)
+    expect(await sub(oldCard)).toEqual({ remaining_credits: 5, status: 'archived' })
+  })
+
+  it('course check-in uses the monthly card and deducts no times credit', async () => {
+    const pass = await assign(member, 'monthly')
+    const card = await assign(member, '10_times')
+    const checkin = await bookAndCheckIn(member, await createCourse())
+    expect(await checkinCard(checkin)).toBe(pass)
+    expect(await sub(card)).toMatchObject({ remaining_credits: 10 })
+  })
+
+  it('re-links a booking made with a times card once a monthly card is assigned', async () => {
+    const card = await assign(member, '10_times')
+    const course = await createCourse()
+    await actAs(db, member)
+    expect(await rpc(`book_course($1, $2)`, [member, course])).toMatchObject({ success: true })
+
+    const pass = await assign(member, 'monthly')
+    const result = await rpc(`perform_course_checkin($1, $2, $3, false, 'abo')`, [member, course, admin])
+    expect(result).toMatchObject({ success: true })
+    expect(await checkinCard(result.checkin_id as string)).toBe(pass)
+    expect(await sub(card)).toMatchObject({ remaining_credits: 10 })
+  })
+
+  it('walk-in check-in (perform_checkin) uses the monthly card first', async () => {
+    const pass = await assign(member, 'monthly')
+    const card = await assign(member, '5_times')
+    await actAs(db, admin)
+    const walkIn = await rpc(`perform_checkin($1, $2, 'abo')`, [member, admin])
+    expect(walkIn).toMatchObject({ success: true })
+    expect(await checkinCard(walkIn.checkin_id as string)).toBe(pass)
+    expect(await sub(card)).toMatchObject({ remaining_credits: 5 })
+  })
+
+  it('falls back to the times card once the monthly card has expired', async () => {
+    const pass = await assign(member, 'monthly')
+    await db.query(`UPDATE subscriptions SET end_date = CURRENT_DATE - 1 WHERE id = $1`, [pass])
+    const card = await assign(member, '10_times')
+    await bookAndCheckIn(member, await createCourse())
+    expect(await sub(card)).toMatchObject({ remaining_credits: 9 })
+  })
+})
+
 describe('delete_course_checkin — refunds', () => {
   it('refunds a times-card credit (regression: row IS NOT NULL made refunds a no-op)', async () => {
     const card = await giveCard(member, '5_times', 5)

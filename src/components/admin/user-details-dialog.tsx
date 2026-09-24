@@ -191,7 +191,7 @@ export function UserDetailsDialog({ user, children }: UserDetailsDialogProps) {
             <AssignSubscriptionDialog userId={user.id} userName={user.full_name ?? 'User'}>
               <Button className="mt-3 h-11 w-full rounded-xl font-outfit">
                 <CreditCard className="mr-2 h-4 w-4" aria-hidden="true" />
-                {subscription ? 'Replace Plan' : 'Assign Plan'}
+                {subscription ? 'Add Card' : 'Assign Card'}
               </Button>
             </AssignSubscriptionDialog>
           </section>
